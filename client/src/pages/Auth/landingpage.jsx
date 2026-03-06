@@ -1,8 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import '../components_styles/landingpage.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom'; // Add this import
+import "../../styles/Auth/landingpage.css";
+import { 
+  FaChartBar, 
+  FaMapMarkerAlt, 
+  FaDatabase, 
+  FaUsers, 
+  FaHardHat,
+  FaProjectDiagram,
+  FaClipboardList,
+  FaExclamationTriangle,
+  FaBan,
+  FaTimesCircle,
+  FaArrowRight,
+  FaMicrochip,
+  FaSolarPanel,
+  FaTemperatureHigh,
+  FaTint,
+  FaBolt,
+  FaUserTie,
+  FaUserCog,
+  FaUserCheck,
+  FaShieldAlt,
+  FaChartLine,
+  FaCopy,
+  FaBook,
+  FaCalendarAlt,
+  FaSignal,
+  FaWifi,
+  FaServer,
+  FaCloud,
+  FaBatteryFull,
+  FaRuler,
+  FaWind,
+  FaSun
+} from 'react-icons/fa';
 
-const SolarisLandingPage = () => {
-  const [activeSection, setActiveSection] = useState('hero');
+const LandingPage = () => {
+  const navigate = useNavigate(); // Add this hook
+  const [activeSection, setActiveSection] = useState("home");
 
   const scrollToSection = (sectionId) => {
     setActiveSection(sectionId);
@@ -31,6 +67,15 @@ const SolarisLandingPage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Add navigation handlers
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
+  const handleRegisterClick = () => {
+    navigate('/register');
+  };
+
   return (
     <div className="solaris-landing-page">
       {/* Header */}
@@ -38,9 +83,7 @@ const SolarisLandingPage = () => {
         <div className="header-container">
           <div className="logo-container">
             <div className="logo-icon">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 2L3 21H21L12 2ZM12 6L17 18H7L12 6Z" />
-              </svg>
+              <FaSolarPanel style={{ color: '#f39c12' }} />
             </div>
             <h1 className="logo-text">SOLARIS</h1>
           </div>
@@ -70,16 +113,26 @@ const SolarisLandingPage = () => {
             >
               Users
             </button>
-            <button 
-              className={`nav-btn ${activeSection === 'limitations' ? 'active' : ''}`}
-              onClick={() => scrollToSection('limitations')}
-            >
-              Limitations
-            </button>
           </nav>
+
+          <div className="auth-buttons">
+            <button 
+              className="btn-login"
+              onClick={handleLoginClick} // Add click handler
+            >
+              Log In
+            </button>
+            <button 
+              className="btn-register"
+              onClick={handleRegisterClick} // Add click handler
+            >
+              Register
+            </button>
+          </div>
         </div>
       </header>
 
+      {/* Rest of your component remains the same */}
       {/* Hero Section */}
       <section id="hero" className="hero-section">
         <div className="hero-container">
@@ -105,44 +158,33 @@ const SolarisLandingPage = () => {
           </div>
           
           <div className="hero-visual">
-            <div className="device-container">
-              <div className="iot-device">
-                <div className="device-screen">
-                  <div className="screen-header">
-                    <span className="device-status">● Transmitting</span>
-                  </div>
-                  <div className="screen-data">
-                    <div className="data-row">
-                      <span className="data-label">Irradiance</span>
-                      <span className="data-value">850 W/m²</span>
-                    </div>
-                    <div className="data-row">
-                      <span className="data-label">Temperature</span>
-                      <span className="data-value">24°C</span>
-                    </div>
-                    <div className="data-row">
-                      <span className="data-label">Humidity</span>
-                      <span className="data-value">45%</span>
-                    </div>
-                    <div className="data-row">
-                      <span className="data-label">Battery</span>
-                      <span className="data-value">92%</span>
-                    </div>
-                  </div>
+            <div className="stats-grid">
+              <div className="stat-card">
+                <FaSun className="stat-icon" style={{ color: '#f39c12' }} />
+                <div className="stat-info">
+                  <span className="stat-label">Solar Irradiance</span>
+                  <span className="stat-value">850 W/m²</span>
                 </div>
               </div>
-              
-              <div className="data-transmission">
-                <div className="signal-dots">
-                  <div className="signal-dot"></div>
-                  <div className="signal-dot"></div>
-                  <div className="signal-dot"></div>
+              <div className="stat-card">
+                <FaTemperatureHigh className="stat-icon" style={{ color: '#e67e22' }} />
+                <div className="stat-info">
+                  <span className="stat-label">Temperature</span>
+                  <span className="stat-value">24°C</span>
                 </div>
-                <div className="signal-line"></div>
-                <div className="cloud-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" />
-                  </svg>
+              </div>
+              <div className="stat-card">
+                <FaTint className="stat-icon" style={{ color: '#3498db' }} />
+                <div className="stat-info">
+                  <span className="stat-label">Humidity</span>
+                  <span className="stat-value">45%</span>
+                </div>
+              </div>
+              <div className="stat-card">
+                <FaWind className="stat-icon" style={{ color: '#2ecc71' }} />
+                <div className="stat-info">
+                  <span className="stat-label">Wind Speed</span>
+                  <span className="stat-value">12 km/h</span>
                 </div>
               </div>
             </div>
@@ -159,9 +201,7 @@ const SolarisLandingPage = () => {
           <div className="features-grid">
             <div className="feature-card">
               <div className="feature-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" />
-                </svg>
+                <FaChartLine style={{ color: '#f39c12' }} />
               </div>
               <h3>Environmental Data Collection</h3>
               <p>Uses an IoT device to collect site-specific data including solar irradiance, ambient temperature, and weather conditions during pre-installation inspections.</p>
@@ -169,9 +209,7 @@ const SolarisLandingPage = () => {
             
             <div className="feature-card">
               <div className="feature-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                </svg>
+                <FaCalendarAlt style={{ color: '#e67e22' }} />
               </div>
               <h3>Temporary Site Deployment</h3>
               <p>Device is temporarily deployed only during the site inspection phase, prior to any solar panel installation, typically for 1-4 weeks.</p>
@@ -179,9 +217,7 @@ const SolarisLandingPage = () => {
             
             <div className="feature-card">
               <div className="feature-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                </svg>
+                <FaBook style={{ color: '#3498db' }} />
               </div>
               <h3>Data Reference for Planning</h3>
               <p>Provides organized reference data to support engineers and project teams in manual solar system design and layout planning.</p>
@@ -200,43 +236,33 @@ const SolarisLandingPage = () => {
             <div className="process-step">
               <div className="step-number">1</div>
               <div className="step-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                </svg>
+                <FaMapMarkerAlt style={{ color: '#f39c12' }} />
               </div>
               <h3>Device Deployment</h3>
               <p>Temporary installation of IoT device at potential solar site for data collection period</p>
             </div>
             
             <div className="step-arrow">
-              <svg viewBox="0 0 24 24">
-                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
-              </svg>
+              <FaArrowRight style={{ color: '#cccccc' }} />
             </div>
             
             <div className="process-step">
               <div className="step-number">2</div>
               <div className="step-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                </svg>
+                <FaWifi style={{ color: '#3498db' }} />
               </div>
               <h3>Data Transmission</h3>
               <p>Collected environmental data transmitted to secure web-based platform</p>
             </div>
             
             <div className="step-arrow">
-              <svg viewBox="0 0 24 24">
-                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
-              </svg>
+              <FaArrowRight style={{ color: '#cccccc' }} />
             </div>
             
             <div className="process-step">
               <div className="step-number">3</div>
               <div className="step-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" />
-                </svg>
+                <FaServer style={{ color: '#2ecc71' }} />
               </div>
               <h3>Platform Access</h3>
               <p>Authorized users view, store, and review assessment data through dashboards</p>
@@ -251,53 +277,37 @@ const SolarisLandingPage = () => {
           <h2 className="section-title">Key Features</h2>
           <p className="section-subtitle">Core functionality of the SOLARIS system</p>
           
-          <div className="features-list">
-            <div className="feature-item">
-              <div className="feature-item-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" />
-                </svg>
+          <div className="features-grid-4">
+            <div className="feature-card-4">
+              <div className="feature-icon-4">
+                <FaChartBar style={{ color: '#f39c12' }} />
               </div>
-              <div>
-                <h3>Data Dashboards</h3>
-                <p>Visual presentation of collected environmental metrics with clear charts and historical data views.</p>
-              </div>
+              <h3>Data Dashboards</h3>
+              <p>Visual presentation of collected environmental metrics with clear charts and historical data views.</p>
             </div>
             
-            <div className="feature-item">
-              <div className="feature-item-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
+            <div className="feature-card-4">
+              <div className="feature-icon-4">
+                <FaUsers style={{ color: '#3498db' }} />
               </div>
-              <div>
-                <h3>Role-Based Access</h3>
-                <p>Secure authentication system providing different access levels for engineers, project managers, and inspectors.</p>
-              </div>
+              <h3>Role-Based Access</h3>
+              <p>Secure authentication system providing different access levels for engineers, project managers, and inspectors.</p>
             </div>
             
-            <div className="feature-item">
-              <div className="feature-item-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
-                </svg>
+            <div className="feature-card-4">
+              <div className="feature-icon-4">
+                <FaDatabase style={{ color: '#2ecc71' }} />
               </div>
-              <div>
-                <h3>Structured Data Storage</h3>
-                <p>Organized database for all site assessment records with metadata, timestamps, and location data.</p>
-              </div>
+              <h3>Structured Data Storage</h3>
+              <p>Organized database for all site assessment records with metadata, timestamps, and location data.</p>
             </div>
             
-            <div className="feature-item">
-              <div className="feature-item-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z" />
-                </svg>
+            <div className="feature-card-4">
+              <div className="feature-icon-4">
+                <FaCopy style={{ color: '#e67e22' }} />
               </div>
-              <div>
-                <h3>Site Comparison Tools</h3>
-                <p>Compare environmental data across multiple potential installation sites for better decision making.</p>
-              </div>
+              <h3>Site Comparison Tools</h3>
+              <p>Compare environmental data across multiple potential installation sites for better decision making.</p>
             </div>
           </div>
         </div>
@@ -312,9 +322,7 @@ const SolarisLandingPage = () => {
           <div className="users-grid">
             <div className="user-card">
               <div className="user-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
+                <FaUserTie style={{ color: '#f39c12' }} />
               </div>
               <h3>Solar Engineers</h3>
               <p>Use collected environmental data as reference for manual system design and component selection.</p>
@@ -322,9 +330,7 @@ const SolarisLandingPage = () => {
             
             <div className="user-card">
               <div className="user-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-                </svg>
+                <FaProjectDiagram style={{ color: '#3498db' }} />
               </div>
               <h3>Project Teams</h3>
               <p>Review site assessment data during planning and feasibility stages of solar projects.</p>
@@ -332,9 +338,7 @@ const SolarisLandingPage = () => {
             
             <div className="user-card">
               <div className="user-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
-                </svg>
+                <FaHardHat style={{ color: '#e67e22' }} />
               </div>
               <h3>Site Inspectors</h3>
               <p>Deploy and manage IoT devices during on-site assessments and data collection periods.</p>
@@ -352,9 +356,7 @@ const SolarisLandingPage = () => {
           <div className="limitations-list">
             <div className="limitation-card">
               <div className="limitation-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
-                </svg>
+                <FaBan style={{ color: '#e74c3c' }} />
               </div>
               <div>
                 <h3>Not a Monitoring System</h3>
@@ -364,9 +366,7 @@ const SolarisLandingPage = () => {
             
             <div className="limitation-card">
               <div className="limitation-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M16.59 7.58L10 14.17l-3.59-3.58L5 12l5 5 8-8zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
-                </svg>
+                <FaExclamationTriangle style={{ color: '#e67e22' }} />
               </div>
               <div>
                 <h3>No Automated Analysis</h3>
@@ -376,9 +376,7 @@ const SolarisLandingPage = () => {
             
             <div className="limitation-card">
               <div className="limitation-icon">
-                <svg viewBox="0 0 24 24">
-                  <path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
-                </svg>
+                <FaTimesCircle style={{ color: '#e74c3c' }} />
               </div>
               <div>
                 <h3>No Design Recommendations</h3>
@@ -396,9 +394,7 @@ const SolarisLandingPage = () => {
             <div className="footer-logo">
               <div className="logo-container">
                 <div className="logo-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M12 2L3 21H21L12 2ZM12 6L17 18H7L12 6Z" />
-                  </svg>
+                  <FaSolarPanel style={{ color: '#f39c12' }} />
                 </div>
                 <h3 className="logo-text">SOLARIS</h3>
               </div>
@@ -416,4 +412,4 @@ const SolarisLandingPage = () => {
   );
 };
 
-export default SolarisLandingPage;
+export default LandingPage;

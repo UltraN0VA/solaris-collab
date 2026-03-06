@@ -1,15 +1,20 @@
 import { useEffect } from "react";
 import { api } from "./services/api";
-import SolarisLandingPage from './components/landingpage';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import SolarisLandingPage from './pages/Auth/landingpage';
+import LoginPage from './pages/Auth/loginpage';
+import RegisterPage from './pages/Auth/registerpage';
 
 function App() {
-  useEffect(() => {
-    api.get("/")
-      .then(res => console.log(res.data))
-      .catch(err => console.error(err));
-  }, []);
-
-  return <SolarisLandingPage />;
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<SolarisLandingPage/>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;
