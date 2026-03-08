@@ -183,6 +183,7 @@
   font-size: 0.9rem;
   transition: all 0.3s ease;
   background-color: #fafafa;
+    color: #1a2632; /* dark text color */
 }
 
 .form-input:focus {
@@ -190,6 +191,12 @@
   border-color: #f39c12;
   background-color: #ffffff;
   box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+    color: #1a2632; /* dark text color */
+}
+
+/* Placeholder text color */
+.form-input::placeholder {
+  color: #7f8c8d; /* medium grey placeholder */
 }
 
 .form-input.input-error {
@@ -441,3 +448,4 @@
     width: 25%;
   }
 }
+
