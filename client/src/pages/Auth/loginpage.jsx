@@ -49,45 +49,54 @@ const LoginPage = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const newErrors = validateForm();
-    if (Object.keys(newErrors).length === 0) {
-      setIsLoading(true);
-      setTimeout(() => {
-        console.log('Login attempt with:', formData);
-        if (formData.password === 'admin123') {
-          localStorage.setItem('userRole', 'admin');
-          localStorage.setItem('userName', 'Admin User');
-          localStorage.removeItem('userPhotoURL');
-          localStorage.removeItem('userEmail');
-          navigate('/dashboard');
-        }
-        else if (formData.password === 'engineer123') {
-          localStorage.setItem('userRole', 'engineer');
-          localStorage.setItem('userName', 'John Engineer');
-          localStorage.removeItem('userPhotoURL');
-          localStorage.removeItem('userEmail');
-          navigate('/dashboard');
-        }
-        else if (formData.password === 'customer123') {
-          localStorage.setItem('userRole', 'customer');
-          localStorage.setItem('userName', 'Maria Cruz');
-          localStorage.removeItem('userPhotoURL');
-          localStorage.removeItem('userEmail');
-          navigate('/dashboard');
-        }
-        else {
-          setErrors({
-            password: 'Invalid credentials. Use: admin123, engineer123, or customer123'
-          });
-          setIsLoading(false);
-        }
-      }, 1500);
+  // LOGIN SUBMIT
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const newErrors = validateForm();
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  setIsLoading(true);
+  setErrors({});
+
+  try {
+    const response = await fetch('http://localhost:5000/api/auth/login', {
+      
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Backend error message
+      setErrors({ general: data.message || data.error || "Login failed" });
     } else {
-      setErrors(newErrors);
+      // Store JWT and user info
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userName", data.user.fullName);
+      localStorage.setItem("userEmail", data.user.email);
+      localStorage.setItem("userRole", data.user.role);
+      if (data.user.photoURL) {
+        localStorage.setItem("userPhotoURL", data.user.photoURL);
+      } else {
+        localStorage.removeItem("userPhotoURL");
+      }
+
+      navigate("/dashboard");
     }
-  };
+  } catch (err) {
+    console.error("Login error:", err);
+    setErrors({ general: "Server error. Please try again later." });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);

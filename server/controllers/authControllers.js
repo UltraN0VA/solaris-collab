@@ -1,4 +1,4 @@
-const User = require("../models/User");
+const User = require("../models/Users.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
@@ -12,34 +12,71 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
   This function authenticates a user using their email and password.
 */
 exports.login = async (req, res) => {
+  
   try {
-
-    // Extract email and password from the request body
     const { email, password } = req.body;
+   
 
-    // Check if a user with the provided email exists
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({
-        message: "Invalid email or password"
-      });
+      return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Compare the entered password with the stored hashed password
     const isMatch = await bcrypt.compare(password, user.passwordHash);
+   
 
     if (!isMatch) {
-      return res.status(400).json({
-        message: "Invalid email or password"
-      });
+      return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Create a JWT token for authenticated access
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({ message: "Login successful", token, user });
+
+  } catch (error) {
+    console.error("Login error:", error); // log the full error
+    res.status(500).json({ error: error.message });
+  }
+};
+/*
+  REGISTER
+  This function allows a new user to create an account using email and password.
+*/
+exports.register = async (req, res) => {
+  try {
+    const { fullName, email, password } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email is already registered" });
+    }
+
+    // Hash the password before saving
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    // Create new user
+    const newUser = new User({
+      fullName,
+      email,
+      passwordHash,
+      role: "user",  // default role
+      provider: "local" // to distinguish from OAuth users
+    });
+
+    await newUser.save();
+
+    // Optionally create JWT token immediately after registration
     const token = jwt.sign(
       {
-        id: user._id,
-        role: user.role
+        id: newUser._id,
+        role: newUser.role
       },
       process.env.JWT_SECRET,
       {
@@ -47,23 +84,17 @@ exports.login = async (req, res) => {
       }
     );
 
-    // Return login success response
-    res.json({
-      message: "Login successful",
+    // Send response
+    res.status(201).json({
+      message: "Registration successful",
       token: token,
-      user: user
+      user: newUser
     });
 
   } catch (error) {
-
-    // Handle unexpected errors
-    res.status(500).json({
-      error: error.message
-    });
-
+    res.status(500).json({ error: error.message });
   }
 };
-
 
 /*
   GOOGLE LOGIN

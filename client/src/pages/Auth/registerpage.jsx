@@ -61,16 +61,53 @@ const RegisterPage = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const newErrors = validateForm();
-    
-    if (Object.keys(newErrors).length === 0) {
-      console.log('Registration attempt with:', formData);
-    } else {
-      setErrors(newErrors);
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  // validate form fields first
+  const newErrors = validateForm();
+
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  try {
+
+    // send registration data to backend
+    const response = await fetch("http://localhost:5000/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // show backend error message
+      alert(data.message || "Registration failed");
+      return;
     }
-  };
+
+    // registration success
+    alert("Account created successfully");
+
+    // redirect to login page
+    window.location.href = "/login";
+
+  } catch (error) {
+
+    console.error("Registration error:", error);
+    alert("Server error. Please try again.");
+
+  }
+};
 
   return (
     <div className="register-page">
