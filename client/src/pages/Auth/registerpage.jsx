@@ -54,7 +54,7 @@ const RegisterPage = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -87,7 +87,7 @@ const RegisterPage = () => {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
 
-    const response = await fetch("http://localhost:5000/api/auth/google-register", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google-register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -132,7 +132,7 @@ const RegisterPage = () => {
 
       // Send token to backend (you can create /facebook-login route similarly if needed)
       const idToken = await user.getIdToken();
-      const response = await fetch("http://localhost:5000/api/auth/google-login", { // reuse google-login route
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/facebook-login`, { // reuse facebook-login route
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: idToken })
