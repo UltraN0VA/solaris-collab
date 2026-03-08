@@ -1,12 +1,65 @@
 const User = require("../models/Users.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { OAuth2Client } = require("google-auth-library");
-
-// Create Google OAuth client using the client ID from environment variables
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
+
+exports.googleRegister = async (req, res) => {
+  try {
+    const { fullName, email, googleId, photoURL } = req.body;
+
+    let user = await User.findOne({ email });
+
+    // If user already exists → login
+    if (user) {
+      const token = jwt.sign(
+        { id: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      return res.json({
+        message: "Login successful",
+        token,
+        user
+      });
+    }
+
+    // Generate random password
+    const randomPassword = Math.random().toString(36).slice(-10);
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(randomPassword, salt);
+
+    user = new User({
+      fullName,
+      email,
+      passwordHash,
+      provider: "google",
+      googleId,
+      photoURL,
+      role: "user"
+    });
+
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(201).json({
+      message: "Google registration successful",
+      token,
+      user
+    });
+
+  } catch (error) {
+    console.error("Google register error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 /*
   EMAIL AND PASSWORD LOGIN
   This function authenticates a user using their email and password.
@@ -102,66 +155,54 @@ exports.register = async (req, res) => {
   If the user does not exist in the database, a new account is created.
 */
 exports.googleLogin = async (req, res) => {
-
   try {
 
-    // Get Google ID token from request
-    const { token } = req.body;
+    const { fullName, email, googleId, photoURL } = req.body;
 
-    // Verify the token using Google OAuth client
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID
-    });
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
-    // Extract user information from Google payload
-    const payload = ticket.getPayload();
-
-    const googleId = payload.sub;
-    const email = payload.email;
-    const name = payload.name;
-
-    // Check if user already exists
     let user = await User.findOne({ email });
 
-    // If the user does not exist, create a new user
+    // If user does not exist → create
     if (!user) {
 
+      const randomPassword = Math.random().toString(36).slice(-10);
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(randomPassword, salt);
+
       user = new User({
-        fullName: name,
-        email: email,
+        fullName,
+        email,
+        passwordHash,
         provider: "google",
-        googleId: googleId,
+        googleId,
+        photoURL,
         role: "user"
       });
 
       await user.save();
     }
 
-    // Create JWT token
     const jwtToken = jwt.sign(
-      {
-        id: user._id,
-        role: user.role
-      },
+      { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "7d"
-      }
+      { expiresIn: "7d" }
     );
 
-    // Send success response
     res.json({
       message: "Google login successful",
       token: jwtToken,
-      user: user
+      user
     });
 
   } catch (error) {
+    console.error("Google login error:", error);
 
     res.status(500).json({
+      message: "Server error",
       error: error.message
     });
-
   }
 };

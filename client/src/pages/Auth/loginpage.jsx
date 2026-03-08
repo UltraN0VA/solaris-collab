@@ -104,33 +104,59 @@ const handleSubmit = async (e) => {
 
   // GOOGLE LOGIN
   const handleGoogleLogin = async () => {
-    try {
-      setSocialLoading('google');
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      console.log('Google user data:', user);
-      
-      localStorage.setItem("userName", user.displayName);
-      localStorage.setItem("userEmail", user.email);
-      localStorage.setItem("userRole", "customer");
-      
-      if (user.photoURL) {
-        localStorage.setItem("userPhotoURL", user.photoURL);
-      } else {
-        localStorage.removeItem("userPhotoURL");
-      }
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Google login error:", error);
-      if (error.code === 'auth/popup-closed-by-user') {
-        setErrors({ general: 'Login popup was closed. Please try again.' });
-      } else {
-        setErrors({ general: 'Failed to login with Google. Please try again.' });
-      }
-    } finally {
-      setSocialLoading('');
+  try {
+    setSocialLoading('google');
+
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+
+    const response = await fetch("http://localhost:5000/api/auth/google-login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        fullName: user.displayName,
+        email: user.email,
+        googleId: user.uid,
+        photoURL: user.photoURL
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setErrors({ general: data.message || "Google login failed" });
+      return;
     }
-  };
+
+    // Store backend token + user info
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("userName", data.user.fullName);
+    localStorage.setItem("userEmail", data.user.email);
+    localStorage.setItem("userRole", data.user.role);
+
+    if (data.user.photoURL) {
+      localStorage.setItem("userPhotoURL", data.user.photoURL);
+    } else {
+      localStorage.removeItem("userPhotoURL");
+    }
+
+    navigate("/dashboard");
+
+  } catch (error) {
+    console.error("Google login error:", error);
+
+    if (error.code === 'auth/popup-closed-by-user') {
+      setErrors({ general: 'Login popup was closed. Please try again.' });
+    } else {
+      setErrors({ general: 'Failed to login with Google. Please try again.' });
+    }
+
+  } finally {
+    setSocialLoading('');
+  }
+};
 
   // FACEBOOK LOGIN
   const handleFacebookLogin = async () => {
