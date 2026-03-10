@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { FaSolarPanel, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaArrowLeft, FaGoogle, FaFacebook } from 'react-icons/fa';
+import { FaSolarPanel, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc'; // Import colored Google icon
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider, facebookProvider } from "../../firebase";
+import { auth, googleProvider } from "../../firebase"; // Remove facebookProvider
 import '../../styles/Auth/register.css';
 
 const RegisterPage = () => {
@@ -22,7 +23,7 @@ const RegisterPage = () => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState(''); // 'google', 'facebook', ''
+  const [socialLoading, setSocialLoading] = useState(''); // 'google' only
 
   // MODAL STATE
   const [modal, setModal] = useState({ show: false, message: '', type: '' });
@@ -306,7 +307,6 @@ const RegisterPage = () => {
     }
   };
 
-
   const handleBackToLogin = () => {
     navigate('/login');
   };
@@ -504,9 +504,12 @@ const RegisterPage = () => {
                         onClick={handleGoogleRegister}
                         disabled={isLoading || socialLoading !== ''}
                       >
-                        {socialLoading === 'google' ? '⏳' : <FaGoogle />}
+                        {socialLoading === 'google' ? (
+                          <span className="loading-spinner">⏳</span>
+                        ) : (
+                          <FcGoogle className="google-icon" />
+                        )}
                       </button>
-                      
                     </div>
                   </div>
 

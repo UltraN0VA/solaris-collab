@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { FaSolarPanel, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle, FaFacebook } from 'react-icons/fa';
+import { FaSolarPanel, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc'; // Import colored Google icon
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider, facebookProvider } from "../../firebase";
+import { auth, googleProvider } from "../../firebase";
 import '../../styles/Auth/loginpage.css';
 
 const LoginPage = () => {
-
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +16,7 @@ const LoginPage = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState(''); // 'google', 'facebook', or ''
+  const [socialLoading, setSocialLoading] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -154,8 +154,6 @@ const LoginPage = () => {
     }
   };
 
-  
-
   return (
     <div className="login-page">
       <div className="login-card">
@@ -243,7 +241,7 @@ const LoginPage = () => {
                   </button>
                 </div>
                 
-                {/* FORGOT PASSWORD LINK - Right Aligned */}
+                {/* FORGOT PASSWORD LINK */}
                 <div className="forgot-password-container">
                   <Link to="/forgotpassword" className="forgot-link">
                     Forgot password?
@@ -273,13 +271,11 @@ const LoginPage = () => {
                     disabled={isLoading || socialLoading !== ''}
                   >
                     {socialLoading === 'google' ? (
-                      <span className="loading-spinner">⏳</span>
+                      <span className="loading-spinner"></span>
                     ) : (
-                      <FaGoogle />
+                      <FcGoogle className="google-icon" />
                     )}
                   </button>
-
-                  
                 </div>
               </div>
 
