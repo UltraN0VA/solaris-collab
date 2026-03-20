@@ -24,8 +24,12 @@ import {
   FaCalendarAlt,
   FaFileInvoice,
   FaChartLine,
-  FaHeadset
+  FaHeadset,
+  FaHome,
+  FaCreditCard,
+  FaQuestionCircle
 } from 'react-icons/fa';
+import logo from '../../assets/Salfare_Logo.png'; // Import logo
 import '../../styles/Dashboard/dashboard.css';
 
 const Dashboard = () => {
@@ -35,8 +39,8 @@ const Dashboard = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [userRole, setUserRole] = useState('admin');
-  const [userName, setUserName] = useState('Admin User');
+  const [userRole, setUserRole] = useState('user');
+  const [userName, setUserName] = useState('Customer User');
   const [userPhoto, setUserPhoto] = useState(null);
   const [userEmail, setUserEmail] = useState('');
 
@@ -85,14 +89,14 @@ const Dashboard = () => {
     ],
 
     user: [
-      { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/dashboard/customerdashboard' },
-      { icon: <FaProjectDiagram />, label: 'My Projects', path: '/dashboard/customerproject' },
+      { icon: <FaHome />, label: 'Dashboard', path: '/dashboard/customerdashboard' },
+      { icon: <FaSolarPanel />, label: 'My Project', path: '/dashboard/customerproject' },
       { icon: <FaCalendarAlt />, label: 'Book Assessment', path: '/dashboard/schedule' },
-      { icon: <FaFileInvoice />, label: 'Quotations & Billing', path: '/dashboard/customerbilling' },
-      { icon: <FaChartLine />, label: 'System Performance', path: '/dashboard/performance' },
-      { icon: <FaFileAlt />, label: 'Assessment Reports', path: '/dashboard/customerreports' },
-      { icon: <FaHeadset />, label: 'Support Center', path: '/dashboard/support' },
-      { icon: <FaUserCog />, label: 'Profile Settings', path: '/dashboard/customerprofile' },
+      { icon: <FaFileInvoice />, label: 'Billing', path: '/dashboard/customerbilling' },
+      { icon: <FaChartLine />, label: 'Performance', path: '/dashboard/performance' },
+      { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/customerreports' },
+      { icon: <FaHeadset />, label: 'Support', path: '/dashboard/support' },
+      { icon: <FaUserCog />, label: 'Profile', path: '/dashboard/customerprofile' },
     ],
   };
 
@@ -105,30 +109,137 @@ const Dashboard = () => {
     }
   };
 
-  const currentMenu = menuItems[userRole] || menuItems.admin;
+  const currentMenu = menuItems[userRole] || menuItems.user;
   const unreadCount = notifications.filter(n => !n.read).length;
+  const isCustomer = userRole === 'user';
 
   const handleLogout = () => {
     sessionStorage.removeItem('userRole');
     sessionStorage.removeItem('userName');
     sessionStorage.removeItem('userEmail');
     sessionStorage.removeItem('userPhotoURL');
+    sessionStorage.removeItem('token');
     navigate('/');
   };
 
   const handleNavigation = (path) => {
     navigate(path);
-    setSidebarOpen(false);
+    if (!isCustomer) {
+      setSidebarOpen(false);
+    }
   };
 
-  // Check if menu item is active 
   const isActive = (itemPath) => {
-    if (itemPath === '/dashboard') {
-      return location.pathname === '/dashboard';
+    if (itemPath === '/dashboard' || itemPath === '/dashboard/customerdashboard') {
+      return location.pathname === itemPath;
     }
     return location.pathname.startsWith(itemPath);
   };
 
+  // ========== CUSTOMER LAYOUT (NO SIDEBAR) ==========
+  if (isCustomer) {
+    return (
+      <div className="dashboard customer-dashboard">
+        <main className="customer-main-content">
+          {/* Simple Header for Customer */}
+          <header className="customer-header">
+            <div className="customer-header-left">
+              <div className="customer-logo">
+                <img src={logo} alt="Salfer Engineering" className="customer-logo-img" />
+                <span className="customer-logo-text">Salfer Engineering</span>
+              </div>
+            </div>
+
+            <div className="customer-header-right">
+              {/* Notifications */}
+              <div className="notification-wrapper">
+                <button
+                  className="notification-btn"
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                >
+                  <FaBell />
+                  {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+                </button>
+
+                {notificationsOpen && (
+                  <div className="notification-dropdown">
+                    <div className="notification-header">
+                      <h3>Notifications</h3>
+                      <span className="mark-read">Mark all as read</span>
+                    </div>
+                    <div className="notification-list">
+                      {notifications.map(notif => (
+                        <div key={notif.id} className={`notification-item ${!notif.read ? 'unread' : ''}`}>
+                          <p className="notification-message">{notif.message}</p>
+                          <span className="notification-time">{notif.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="notification-footer">
+                      <a href="#">View all</a>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Profile */}
+              <div className="profile-wrapper">
+                <button
+                  className="profile-btn"
+                  onClick={() => setProfileOpen(!profileOpen)}
+                >
+                  {userPhoto ? (
+                    <img
+                      src={userPhoto}
+                      alt={userName}
+                      className="customer-profile-img"
+                    />
+                  ) : (
+                    <FaUserCircle className="profile-icon" />
+                  )}
+                  <span className="profile-name">{userName}</span>
+                  <FaChevronDown className={`dropdown-icon ${profileOpen ? 'open' : ''}`} />
+                </button>
+
+                {profileOpen && (
+                  <div className="profile-dropdown">
+                    <button onClick={() => navigate('/dashboard/customerprofile')} className="dropdown-item">
+                      <FaUserCircle /> Profile
+                    </button>
+                    <hr />
+                    <button onClick={handleLogout} className="dropdown-item logout">
+                      <FaSignOutAlt /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          {/* Customer Navigation Tabs */}
+          <nav className="customer-nav">
+            {currentMenu.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => handleNavigation(item.path)}
+                className={`customer-nav-item ${isActive(item.path) ? 'active' : ''}`}
+              >
+                <span className="customer-nav-icon">{item.icon}</span>
+                <span className="customer-nav-label">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+
+          {/* Content Area */}
+          <div className="customer-content-area">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ========== ADMIN/ENGINEER LAYOUT (WITH SIDEBAR) ==========
   return (
     <div className="dashboard">
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
@@ -137,9 +248,9 @@ const Dashboard = () => {
         <div className="sidebar-header">
           <div className="logo-container">
             <div className="logo-icon">
-              <FaSolarPanel />
+              <img src={logo} alt="Salfer Engineering" className="sidebar-logo-img" />
             </div>
-            <h1 className="logo-text">SOLARIS</h1>
+            <h1 className="logo-text">Salfer Engineering</h1>
           </div>
           <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>
             <FaTimes />
@@ -176,8 +287,6 @@ const Dashboard = () => {
             </button>
           ))}
         </nav>
-
-        {/* REMOVED: sidebar-footer with logout button */}
       </aside>
 
       <main className="main-content">
