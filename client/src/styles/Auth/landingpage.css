@@ -11,7 +11,178 @@
   overflow-x: hidden;
   line-height: 1.6;
 }
+/* Add to landingpage.css */
+.estimator-section {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
 
+.estimator-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-top: 40px;
+}
+
+.estimator-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  padding: 40px;
+}
+
+.estimator-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.estimator-inputs .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.estimator-inputs label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.estimator-inputs input,
+.estimator-inputs select {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.estimator-inputs small {
+  color: #666;
+  font-size: 12px;
+}
+
+.btn-calculate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f39c12;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+
+.btn-calculate:hover:not(:disabled) {
+  background: #e67e22;
+  transform: translateY(-2px);
+}
+
+.btn-calculate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.estimator-results {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.estimator-results h3 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.result-item {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.result-item svg {
+  font-size: 24px;
+  color: #f39c12;
+  margin-bottom: 8px;
+}
+
+.result-label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.result-item strong {
+  display: block;
+  font-size: 20px;
+  color: #333;
+  margin: 4px 0;
+}
+
+.result-item small {
+  font-size: 10px;
+  color: #999;
+}
+
+.result-item.highlight {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.result-item.highlight svg,
+.result-item.highlight strong,
+.result-item.highlight .result-label {
+  color: white;
+}
+
+.estimator-note {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}
+
+.text-link {
+  background: none;
+  border: none;
+  color: #f39c12;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-left: 5px;
+}
+
+.text-link:hover {
+  color: #e67e22;
+}
+
+@media (max-width: 768px) {
+  .estimator-grid {
+    grid-template-columns: 1fr;
+    padding: 24px;
+  }
+  
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .container {
   max-width: 1200px;
   margin: 0 auto;

@@ -8,7 +8,7 @@ const ClientSchema = new mongoose.Schema({
   contactMiddleName: { type: String, default: "" },
   contactLastName: { type: String, default: "" },
   contactNumber: { type: String, default: "" },
-  // Remove the address field from here - it will be in a separate table
+  birthday: { type: Date, default: null }, // Added birthday field
   createdAt: { type: Date, default: Date.now },
   account_setup: { type: Boolean, default: false },
   client_type: { 

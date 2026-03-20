@@ -16,6 +16,12 @@ exports.updateClient = async (req, res) => {
         updateData.client_type.slice(1).toLowerCase();
     }
 
+    // Format birthday if provided
+    if (updateData.birthday) {
+      // If birthday is a string, convert to Date
+      updateData.birthday = new Date(updateData.birthday);
+    }
+
     let client = await Client.findOne({ userId });
 
     if (!client) {
@@ -36,7 +42,8 @@ exports.updateClient = async (req, res) => {
       message: "Client updated successfully",
       client: {
         ...client.toObject(),
-        email: client.userId?.email || ''
+        email: client.userId?.email || '',
+        birthday: client.birthday ? client.birthday.toISOString().split('T')[0] : null
       }
     });
 
@@ -68,6 +75,7 @@ exports.getClientInfo = async (req, res) => {
     const clientData = {
       ...client.toObject(),
       email: client.userId?.email || '',
+      birthday: client.birthday ? client.birthday.toISOString().split('T')[0] : null,
       addresses: addresses.map(addr => ({
         ...addr.toObject(),
         fullAddress: addr.getFullAddress ? addr.getFullAddress() : ''
@@ -90,7 +98,6 @@ exports.addAddress = async (req, res) => {
   try {
     const userId = req.user.id;
     const addressData = req.body;
-
 
     // Find client
     const client = await Client.findOne({ userId });

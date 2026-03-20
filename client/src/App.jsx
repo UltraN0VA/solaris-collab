@@ -37,6 +37,7 @@ import SystemPerformance from './pages/Customer/systemperformance';
 import CustomerReports from './pages/Customer/reports';
 import Supports from './pages/Customer/supports';
 import CustomerProfile from './pages/Customer/profile';
+import CustomerSettings from './pages/Customer/customerSettings';
 
 function App() {
   return (
@@ -89,6 +90,7 @@ function App() {
           <Route path="customerreports" element={<CustomerReports />} />
           <Route path="support" element={<Supports />} />
           <Route path="customerprofile" element={<CustomerProfile />} />
+          <Route path="customersettings" element={<CustomerSettings />} />
 
         </Route>
 

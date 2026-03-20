@@ -142,7 +142,7 @@ const Dashboard = () => {
       { icon: <FaChartLine />, label: 'Performance', path: '/dashboard/performance' },
       { icon: <FaFileAlt />, label: 'Reports', path: '/dashboard/customerreports' },
       { icon: <FaHeadset />, label: 'Support', path: '/dashboard/support' },
-      { icon: <FaUserCog />, label: 'Settings', path: '/dashboard/customersettings' }, // Changed to customersettings
+      { icon: <FaUserCog />, label: 'Settings', path: '/dashboard/customerSettings' }, // Changed to customersettings
     ],
   };
 

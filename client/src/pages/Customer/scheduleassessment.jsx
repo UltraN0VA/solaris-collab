@@ -1,3 +1,4 @@
+// pages/Customer/scheduleassessment.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
@@ -47,17 +48,6 @@ const ScheduleAssessment = () => {
   const [error, setError] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
-
-  // Estimator state
-  const [estimatorData, setEstimatorData] = useState({
-    monthlyBill: '',
-    electricityRate: '11.50',
-    averageSunHours: '5',
-    systemType: 'grid-tie',
-    usagePattern: 'daytime'
-  });
-
-  const [estimationResult, setEstimationResult] = useState(null);
 
   // Booking form state - DISSECTED FIELDS
   const [formData, setFormData] = useState({
@@ -217,110 +207,6 @@ const ScheduleAssessment = () => {
     }
   };
 
-  const handleEstimatorChange = (e) => {
-    const { name, value } = e.target;
-    setEstimatorData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const calculateSavings = () => {
-    const monthlyBill = parseFloat(estimatorData.monthlyBill) || 0;
-    const rate = parseFloat(estimatorData.electricityRate) || 11.50;
-    const sunHours = parseFloat(estimatorData.averageSunHours) || 5;
-    const systemType = estimatorData.systemType;
-    const usagePattern = estimatorData.usagePattern;
-
-    const monthlyConsumption = monthlyBill / rate;
-    const dailyConsumption = monthlyConsumption / 30;
-
-    let recommendedSize = dailyConsumption / sunHours;
-    recommendedSize = Math.ceil(recommendedSize * 2) / 2;
-
-    let selfConsumptionRatio = usagePattern === 'daytime' ? 0.8 : 0.4;
-    let exportRatio = usagePattern === 'daytime' ? 0.2 : 0.6;
-
-    let systemCostPerKw = 0;
-    let batteryCost = 0;
-    let systemEfficiency = 0;
-    let systemDescription = '';
-
-    switch (systemType) {
-      case 'grid-tie':
-        systemCostPerKw = 70000;
-        batteryCost = 0;
-        systemEfficiency = 0.85;
-        systemDescription = 'Grid-tied (No battery)';
-        break;
-      case 'hybrid':
-        systemCostPerKw = 75000;
-        batteryCost = 120000;
-        systemEfficiency = 0.9;
-        systemDescription = 'Hybrid (With battery)';
-        break;
-      case 'off-grid':
-        systemCostPerKw = 80000;
-        batteryCost = 200000;
-        systemEfficiency = 0.8;
-        systemDescription = 'Off-grid (Independent)';
-        break;
-      default:
-        systemCostPerKw = 70000;
-        batteryCost = 0;
-        systemEfficiency = 0.85;
-    }
-
-    const systemCost = recommendedSize * systemCostPerKw;
-    const totalSystemCost = systemCost + batteryCost;
-
-    const dailyProduction = recommendedSize * sunHours * systemEfficiency;
-    const monthlyProduction = dailyProduction * 30;
-
-    const selfConsumedEnergy = monthlyProduction * selfConsumptionRatio;
-    const selfConsumptionSavings = selfConsumedEnergy * rate;
-
-    const exportRate = systemType === 'grid-tie' ? rate * 0.7 : 0;
-    const exportedEnergy = monthlyProduction * exportRatio;
-    const exportSavings = exportedEnergy * exportRate;
-
-    const estimatedMonthlySavings = selfConsumptionSavings + exportSavings;
-    const gridDependency = Math.max(0, ((monthlyConsumption - monthlyProduction) / monthlyConsumption * 100)).toFixed(1);
-
-    const annualSavings = estimatedMonthlySavings * 12;
-    const paybackPeriod = totalSystemCost / annualSavings;
-
-    const co2PerKwh = 0.7;
-    const annualProduction = monthlyProduction * 12;
-    const co2OffsetPerYear = Math.round(annualProduction * co2PerKwh);
-
-    let cumulativeSavings = 0;
-    for (let year = 1; year <= 25; year++) {
-      cumulativeSavings += annualSavings * Math.pow(1.03, year - 1);
-    }
-    const total25YearSavingsWithInflation = Math.round(cumulativeSavings);
-
-    const panelsNeeded = Math.ceil(recommendedSize * 1000 / 400);
-    const roofSpaceNeeded = panelsNeeded * 2;
-
-    setEstimationResult({
-      recommendedSize,
-      panelsNeeded,
-      roofSpaceNeeded,
-      estimatedMonthlySavings: Math.round(estimatedMonthlySavings),
-      monthlyProduction: Math.round(monthlyProduction),
-      monthlyConsumption: Math.round(monthlyConsumption),
-      selfConsumptionRatio: selfConsumptionRatio * 100,
-      exportRatio: exportRatio * 100,
-      gridDependency,
-      systemCost: Math.round(totalSystemCost),
-      paybackPeriod: Math.round(paybackPeriod * 10) / 10,
-      co2OffsetPerYear,
-      total25YearSavings: total25YearSavingsWithInflation,
-      systemDescription,
-      systemType,
-      dailyProduction: Math.round(dailyProduction * 10) / 10,
-      annualSavings: Math.round(annualSavings)
-    });
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -438,10 +324,6 @@ const ScheduleAssessment = () => {
         fullName,
         fullAddress,
         
-        // Estimator data
-        estimatorData,
-        estimationResult,
-        
         userId: user?.userId || user?._id,
         clientId: user?._id,
         addressId: selectedAddressId || null // Include selected address ID if any
@@ -531,12 +413,13 @@ const ScheduleAssessment = () => {
     return (
       <>
         <Helmet>
-          <title>Schedule Free Assessment | Salfer Engineering</title>
-          <meta name="description" content="Book a free site assessment for your solar panel installation. Get personalized savings estimates and schedule your consultation with Salfer Engineering." />
+          <title>Schedule Site Assessment | Salfer Engineering</title>
+          <meta name="description" content="Book a detailed site assessment for your solar panel installation. Get accurate data and professional evaluation with Salfer Engineering." />
         </Helmet>
 
         <div className="schedule-container">
-          <h1 className="schedule-title">Book Your Free Assessment</h1>
+          <h1 className="schedule-title">Book Your Site Assessment</h1>
+          <p className="schedule-subtitle">Fill out the form below to schedule your professional site assessment</p>
 
           {/* Confirmation Dialog Modal */}
           {showConfirmDialog && (
@@ -588,147 +471,6 @@ const ScheduleAssessment = () => {
             </div>
           )}
 
-          {/* Quick Savings Estimator */}
-          <div className="schedule-estimator-card">
-            <h3><FaChartLine /> Solar Savings Estimator</h3>
-            <p className="schedule-estimator-subtitle">Enter your details below for a personalized estimate</p>
-
-            <div className="schedule-estimator-grid">
-              <div className="schedule-form-group">
-                <label><FaMoneyBillWave /> Monthly Electricity Bill (₱)</label>
-                <input
-                  type="number"
-                  name="monthlyBill"
-                  value={estimatorData.monthlyBill}
-                  onChange={handleEstimatorChange}
-                  placeholder="e.g., 5000"
-                  className="schedule-input"
-                />
-              </div>
-
-              <div className="schedule-form-group">
-                <label><FaBolt /> Electricity Rate (₱/kWh)</label>
-                <input
-                  type="number"
-                  name="electricityRate"
-                  value={estimatorData.electricityRate}
-                  onChange={handleEstimatorChange}
-                  placeholder="e.g., 11.50"
-                  step="0.1"
-                  className="schedule-input"
-                />
-                <small>Meralco avg: ₱11.50/kWh</small>
-              </div>
-
-              <div className="schedule-form-group">
-                <label><FaSun /> Average Sun Hours</label>
-                <input
-                  type="number"
-                  name="averageSunHours"
-                  value={estimatorData.averageSunHours}
-                  onChange={handleEstimatorChange}
-                  placeholder="e.g., 5"
-                  step="0.5"
-                  className="schedule-input"
-                />
-                <small>PH average: 5-6 hours</small>
-              </div>
-
-              <div className="schedule-form-group">
-                <label><FaSolarPanel /> System Type</label>
-                <select
-                  name="systemType"
-                  value={estimatorData.systemType}
-                  onChange={handleEstimatorChange}
-                  className="schedule-select"
-                >
-                  <option value="grid-tie">Grid-tie (No battery)</option>
-                  <option value="hybrid">Hybrid (With battery backup)</option>
-                  <option value="off-grid">Off-grid (Complete independence)</option>
-                </select>
-              </div>
-
-              <div className="schedule-form-group">
-                <label><FaClock /> Usage Pattern</label>
-                <select
-                  name="usagePattern"
-                  value={estimatorData.usagePattern}
-                  onChange={handleEstimatorChange}
-                  className="schedule-select"
-                >
-                  <option value="daytime">Mostly Daytime</option>
-                  <option value="nighttime">Mostly Nighttime</option>
-                  <option value="mixed">Mixed (balanced usage)</option>
-                </select>
-              </div>
-
-              <div className="schedule-form-group schedule-button-group">
-                <button
-                  onClick={calculateSavings}
-                  disabled={!estimatorData.monthlyBill}
-                  className="schedule-btn-calculate"
-                >
-                  <FaSearch /> Calculate Savings
-                </button>
-              </div>
-            </div>
-
-            {/* Estimation Results */}
-            {estimationResult && (
-              <div className="schedule-results-card">
-                <h4><FaChartLine /> Your Personalized Solar Estimate</h4>
-
-                <div className="schedule-results-grid">
-                  <div className="schedule-result-item">
-                    <FaSolarPanel className="schedule-result-icon" />
-                    <span className="schedule-result-label">Recommended System</span>
-                    <span className="schedule-result-value">{estimationResult.recommendedSize} kW</span>
-                    <small>{estimationResult.systemDescription}</small>
-                  </div>
-
-                  <div className="schedule-result-item">
-                    <FaMoneyBillWave className="schedule-result-icon" />
-                    <span className="schedule-result-label">Monthly Savings</span>
-                    <span className="schedule-result-value highlight">
-                      {formatCurrency(estimationResult.estimatedMonthlySavings)}
-                    </span>
-                  </div>
-
-                  <div className="schedule-result-item">
-                    <FaBolt className="schedule-result-icon" />
-                    <span className="schedule-result-label">System Cost</span>
-                    <span className="schedule-result-value">{formatCurrency(estimationResult.systemCost)}</span>
-                    <small>{estimationResult.panelsNeeded} panels • {estimationResult.roofSpaceNeeded} sqm</small>
-                  </div>
-
-                  <div className="schedule-result-item">
-                    <FaPlug className="schedule-result-icon" />
-                    <span className="schedule-result-label">Grid Dependency</span>
-                    <span className="schedule-result-value">{estimationResult.gridDependency}%</span>
-                  </div>
-
-                  <div className="schedule-result-item">
-                    <FaClock className="schedule-result-icon" />
-                    <span className="schedule-result-label">Payback Period</span>
-                    <span className="schedule-result-value">{estimationResult.paybackPeriod} years</span>
-                  </div>
-
-                  <div className="schedule-result-item">
-                    <FaLeaf className="schedule-result-icon" />
-                    <span className="schedule-result-label">CO₂ Offset/Year</span>
-                    <span className="schedule-result-value">{formatNumber(estimationResult.co2OffsetPerYear)} kg</span>
-                  </div>
-                </div>
-
-                <p className="schedule-disclaimer">
-                  *This is a preliminary estimate. Actual savings may vary based on site conditions.
-                </p>
-              </div>
-            )}
-          </div>
-
-          <h2 className="schedule-subtitle">Book Your Site Assessment</h2>
-          
           <form onSubmit={handleSubmitClick} className="schedule-form">
             <h3 className="schedule-section-title"><FaUser /> Personal Information</h3>
             <div className="schedule-form-grid">
@@ -975,7 +717,7 @@ const ScheduleAssessment = () => {
                 <FaMoneyBillWave className="schedule-fee-icon" />
                 <div>
                   <strong>Assessment Fee: ₱1,500.00</strong>
-                  <p>Non-refundable fee for 7-day monitoring</p>
+                  <p>Non-refundable fee for 7-day monitoring with IoT device</p>
                 </div>
               </div>
             </div>
