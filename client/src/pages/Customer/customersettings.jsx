@@ -506,12 +506,12 @@ const CustomerSettings = () => {
     switch (activeTab) {
       case 'profile':
         return (
-          <div className="profile-section">
+          <div className="profile-section-settings">
             <h2>Personal Information</h2>
             
-            <div className="profile-form">
-              <div className="form-row">
-                <div className="form-group">
+            <div className="profile-form-settings">
+              <div className="form-row-settings">
+                <div className="form-group-settings">
                   <label><FaUser /> First Name</label>
                   <input
                     type="text"
@@ -522,7 +522,7 @@ const CustomerSettings = () => {
                   />
                 </div>
 
-                <div className="form-group">
+                <div className="form-group-settings">
                   <label><FaUser /> Middle Name</label>
                   <input
                     type="text"
@@ -533,7 +533,7 @@ const CustomerSettings = () => {
                   />
                 </div>
 
-                <div className="form-group">
+                <div className="form-group-settings">
                   <label><FaUser /> Last Name</label>
                   <input
                     type="text"
@@ -545,19 +545,19 @@ const CustomerSettings = () => {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className="form-row-settings">
+                <div className="form-group-settings">
                   <label><FaEnvelope /> Email Address</label>
                   <input
                     type="email"
                     value={profileData.email}
                     disabled
-                    className="readonly"
+                    className="readonly-settings"
                   />
                   <small>Email cannot be changed</small>
                 </div>
 
-                <div className="form-group">
+                <div className="form-group-settings">
                   <label><FaPhone /> Contact Number</label>
                   <input
                     type="tel"
@@ -569,8 +569,8 @@ const CustomerSettings = () => {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className="form-row-settings">
+                <div className="form-group-settings">
                   <label><FaBuilding /> Company Name</label>
                   <input
                     type="text"
@@ -582,7 +582,7 @@ const CustomerSettings = () => {
                   />
                 </div>
 
-                <div className="form-group">
+                <div className="form-group-settings">
                   <label><FaCalendarAlt /> Birthday</label>
                   <input
                     type="date"
@@ -593,13 +593,13 @@ const CustomerSettings = () => {
                 </div>
               </div>
 
-              <div className="form-actions">
+              <div className="form-actions-settings">
                 <button
-                  className="save-btn"
+                  className="save-btn-settings"
                   onClick={saveProfile}
                   disabled={saving}
                 >
-                  {saving ? <><FaSpinner className="spinner" /> Saving...</> : <><FaSave /> Save Changes</>}
+                  {saving ? <><FaSpinner className="spinner-settings" /> Saving...</> : <><FaSave /> Save Changes</>}
                 </button>
               </div>
             </div>
@@ -608,38 +608,38 @@ const CustomerSettings = () => {
 
       case 'addresses':
         return (
-          <div className="addresses-section">
-            <div className="section-header">
+          <div className="addresses-section-settings">
+            <div className="section-header-settings">
               <h2>My Addresses</h2>
-              <button className="add-btn" onClick={handleAddAddress}>
+              <button className="add-btn-settings" onClick={handleAddAddress}>
                 <FaPlus /> Add New Address
               </button>
             </div>
 
             {addresses.length === 0 ? (
-              <div className="empty-state">
-                <FaMapMarkerAlt className="empty-icon" />
+              <div className="empty-state-settings">
+                <FaMapMarkerAlt className="empty-icon-settings" />
                 <h3>No addresses yet</h3>
                 <p>Add your first address to get started</p>
-                <button className="add-first-btn" onClick={handleAddAddress}>
+                <button className="add-first-btn-settings" onClick={handleAddAddress}>
                   <FaPlus /> Add Address
                 </button>
               </div>
             ) : (
-              <div className="addresses-grid">
+              <div className="addresses-grid-settings">
                 {addresses.map(address => (
-                  <div key={address._id} className={`address-card ${address.isPrimary ? 'primary' : ''}`}>
+                  <div key={address._id} className={`address-card-settings ${address.isPrimary ? 'primary-settings' : ''}`}>
                     {address.isPrimary && (
-                      <div className="primary-badge">
+                      <div className="primary-badge-settings">
                         <FaStar /> Primary
                       </div>
                     )}
                     
-                    <div className="address-label">
-                      <span className="label-badge">{address.label}</span>
+                    <div className="address-label-settings">
+                      <span className="label-badge-settings">{address.label}</span>
                     </div>
 
-                    <div className="address-details">
+                    <div className="address-details-settings">
                       <p><FaHashtag /> {address.houseOrBuilding}</p>
                       <p><FaRoad /> {address.street}</p>
                       <p><FaCity /> {address.barangay}</p>
@@ -648,23 +648,23 @@ const CustomerSettings = () => {
                       <p><FaMailBulk /> {address.zipCode}</p>
                     </div>
 
-                    <div className="address-actions">
+                    <div className="address-actions-settings">
                       {!address.isPrimary && (
                         <button
-                          className="action-btn primary"
+                          className="action-btn-settings primary-settings"
                           onClick={() => setAsPrimary(address._id)}
                         >
                           <FaRegStar /> Set Primary
                         </button>
                       )}
                       <button
-                        className="action-btn edit"
+                        className="action-btn-settings edit-settings"
                         onClick={() => handleEditAddress(address)}
                       >
                         <FaEdit /> Edit
                       </button>
                       <button
-                        className="action-btn delete"
+                        className="action-btn-settings delete-settings"
                         onClick={() => setDeleteConfirm(address)}
                       >
                         <FaTrash /> Delete
@@ -679,13 +679,13 @@ const CustomerSettings = () => {
 
       case 'notifications':
         return (
-          <div className="notifications-section">
+          <div className="notifications-section-settings">
             <h2>Notification Preferences</h2>
             
-            <div className="preferences-group">
+            <div className="preferences-group-settings">
               <h3>Communication Channels</h3>
-              <div className="checkbox-list">
-                <label className="checkbox-label">
+              <div className="checkbox-list-settings">
+                <label className="checkbox-label-settings">
                   <input
                     type="checkbox"
                     name="emailNotifications"
@@ -694,7 +694,7 @@ const CustomerSettings = () => {
                   />
                   <span>Email Notifications</span>
                 </label>
-                <label className="checkbox-label">
+                <label className="checkbox-label-settings">
                   <input
                     type="checkbox"
                     name="smsNotifications"
@@ -706,10 +706,10 @@ const CustomerSettings = () => {
               </div>
             </div>
 
-            <div className="preferences-group">
+            <div className="preferences-group-settings">
               <h3>Notification Types</h3>
-              <div className="checkbox-list">
-                <label className="checkbox-label">
+              <div className="checkbox-list-settings">
+                <label className="checkbox-label-settings">
                   <input
                     type="checkbox"
                     name="bookingUpdates"
@@ -718,7 +718,7 @@ const CustomerSettings = () => {
                   />
                   <span>Booking Updates</span>
                 </label>
-                <label className="checkbox-label">
+                <label className="checkbox-label-settings">
                   <input
                     type="checkbox"
                     name="paymentConfirmations"
@@ -727,7 +727,7 @@ const CustomerSettings = () => {
                   />
                   <span>Payment Confirmations</span>
                 </label>
-                <label className="checkbox-label">
+                <label className="checkbox-label-settings">
                   <input
                     type="checkbox"
                     name="assessmentReminders"
@@ -736,7 +736,7 @@ const CustomerSettings = () => {
                   />
                   <span>Assessment Reminders</span>
                 </label>
-                <label className="checkbox-label">
+                <label className="checkbox-label-settings">
                   <input
                     type="checkbox"
                     name="systemAlerts"
@@ -745,7 +745,7 @@ const CustomerSettings = () => {
                   />
                   <span>System Alerts</span>
                 </label>
-                <label className="checkbox-label">
+                <label className="checkbox-label-settings">
                   <input
                     type="checkbox"
                     name="promotionalEmails"
@@ -757,8 +757,8 @@ const CustomerSettings = () => {
               </div>
             </div>
 
-            <div className="form-actions">
-              <button className="save-btn" onClick={saveNotificationPrefs}>
+            <div className="form-actions-settings">
+              <button className="save-btn-settings" onClick={saveNotificationPrefs}>
                 <FaSave /> Save Preferences
               </button>
             </div>
@@ -767,15 +767,15 @@ const CustomerSettings = () => {
 
       case 'security':
         return (
-          <div className="security-section">
+          <div className="security-section-settings">
             <h2>Security Settings</h2>
 
-            <div className="security-group">
-              <div className="group-header">
+            <div className="security-group-settings">
+              <div className="group-header-settings">
                 <h3><FaKey /> Password</h3>
                 {!showPasswordForm && (
                   <button
-                    className="change-btn"
+                    className="change-btn-settings"
                     onClick={() => setShowPasswordForm(true)}
                   >
                     Change Password
@@ -784,97 +784,97 @@ const CustomerSettings = () => {
               </div>
 
               {showPasswordForm && (
-                <form onSubmit={handlePasswordChange} className="password-form">
-                  <div className="form-group">
+                <form onSubmit={handlePasswordChange} className="password-form-settings">
+                  <div className="form-group-settings">
                     <label>Current Password</label>
-                    <div className="password-input-wrapper">
+                    <div className="password-input-wrapper-settings">
                       <input
                         type={showCurrentPassword ? 'text' : 'password'}
                         value={passwordData.currentPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                        className={passwordErrors.currentPassword ? 'error' : ''}
+                        className={passwordErrors.currentPassword ? 'error-settings' : ''}
                         placeholder="Enter your current password"
                       />
                       <button
                         type="button"
-                        className="password-toggle-btn"
+                        className="password-toggle-btn-settings"
                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                       >
                         {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
                     {passwordErrors.currentPassword && (
-                      <small className="error-text">{passwordErrors.currentPassword}</small>
+                      <small className="error-text-settings">{passwordErrors.currentPassword}</small>
                     )}
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group-settings">
                     <label>New Password</label>
-                    <div className="password-input-wrapper">
+                    <div className="password-input-wrapper-settings">
                       <input
                         type={showNewPassword ? 'text' : 'password'}
                         value={passwordData.newPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                        className={passwordErrors.newPassword ? 'error' : ''}
+                        className={passwordErrors.newPassword ? 'error-settings' : ''}
                         placeholder="Enter new password (min. 8 characters)"
                       />
                       <button
                         type="button"
-                        className="password-toggle-btn"
+                        className="password-toggle-btn-settings"
                         onClick={() => setShowNewPassword(!showNewPassword)}
                       >
                         {showNewPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
                     {passwordErrors.newPassword && (
-                      <small className="error-text">{passwordErrors.newPassword}</small>
+                      <small className="error-text-settings">{passwordErrors.newPassword}</small>
                     )}
-                    <small className="password-hint">
+                    <small className="password-hint-settings">
                       Password must be at least 8 characters long
                     </small>
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group-settings">
                     <label>Confirm New Password</label>
-                    <div className="password-input-wrapper">
+                    <div className="password-input-wrapper-settings">
                       <input
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={passwordData.confirmPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                        className={passwordErrors.confirmPassword ? 'error' : ''}
+                        className={passwordErrors.confirmPassword ? 'error-settings' : ''}
                         placeholder="Confirm your new password"
                       />
                       <button
                         type="button"
-                        className="password-toggle-btn"
+                        className="password-toggle-btn-settings"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       >
                         {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </div>
                     {passwordErrors.confirmPassword && (
-                      <small className="error-text">{passwordErrors.confirmPassword}</small>
+                      <small className="error-text-settings">{passwordErrors.confirmPassword}</small>
                     )}
                   </div>
 
                   {passwordData.newPassword && (
-                    <div className="password-strength">
-                      <div className="strength-meter">
+                    <div className="password-strength-settings">
+                      <div className="strength-meter-settings">
                         <div 
-                          className={`strength-bar ${getPasswordStrength(passwordData.newPassword)}`} 
+                          className={`strength-bar-settings ${getPasswordStrength(passwordData.newPassword)}-settings`} 
                           style={{ width: `${getPasswordStrengthPercent(passwordData.newPassword)}%` }}
                         ></div>
                       </div>
-                      <small className="strength-text">
+                      <small className="strength-text-settings">
                         Password strength: {getPasswordStrengthLabel(passwordData.newPassword)}
                       </small>
                     </div>
                   )}
 
-                  <div className="form-actions">
+                  <div className="form-actions-settings">
                     <button
                       type="button"
-                      className="cancel-btn"
+                      className="cancel-btn-settings"
                       onClick={() => {
                         setShowPasswordForm(false);
                         setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -888,19 +888,19 @@ const CustomerSettings = () => {
                     </button>
                     <button
                       type="submit"
-                      className="save-btn"
+                      className="save-btn-settings"
                       disabled={saving}
                     >
-                      {saving ? <><FaSpinner className="spinner" /> Updating...</> : 'Update Password'}
+                      {saving ? <><FaSpinner className="spinner-settings" /> Updating...</> : 'Update Password'}
                     </button>
                   </div>
                 </form>
               )}
             </div>
 
-            <div className="security-group">
+            <div className="security-group-settings">
               <h3><FaShieldAlt /> Session Settings</h3>
-              <div className="info-message">
+              <div className="info-message-settings">
                 <p>Your session will automatically timeout after 30 minutes of inactivity.</p>
                 <small>Contact support if you need to adjust these settings.</small>
               </div>
@@ -910,11 +910,11 @@ const CustomerSettings = () => {
 
       case 'preferences':
         return (
-          <div className="preferences-section">
+          <div className="preferences-section-settings">
             <h2>Account Preferences</h2>
 
-            <div className="preferences-grid">
-              <div className="preference-group">
+            <div className="preferences-grid-settings">
+              <div className="preference-group-settings">
                 <label><FaLanguage /> Language</label>
                 <select
                   name="language"
@@ -927,10 +927,10 @@ const CustomerSettings = () => {
                 </select>
               </div>
 
-              <div className="preference-group">
+              <div className="preference-group-settings">
                 <label><FaPalette /> Theme</label>
-                <div className="theme-selector">
-                  <label className={`theme-option ${preferences.theme === 'light' ? 'active' : ''}`}>
+                <div className="theme-selector-settings">
+                  <label className={`theme-option-settings ${preferences.theme === 'light' ? 'active-settings' : ''}`}>
                     <input
                       type="radio"
                       name="theme"
@@ -940,7 +940,7 @@ const CustomerSettings = () => {
                     />
                     <FaSun /> Light
                   </label>
-                  <label className={`theme-option ${preferences.theme === 'dark' ? 'active' : ''}`}>
+                  <label className={`theme-option-settings ${preferences.theme === 'dark' ? 'active-settings' : ''}`}>
                     <input
                       type="radio"
                       name="theme"
@@ -953,7 +953,7 @@ const CustomerSettings = () => {
                 </div>
               </div>
 
-              <div className="preference-group">
+              <div className="preference-group-settings">
                 <label><FaGlobeAsia /> Timezone</label>
                 <select
                   name="timezone"
@@ -966,7 +966,7 @@ const CustomerSettings = () => {
                 </select>
               </div>
 
-              <div className="preference-group">
+              <div className="preference-group-settings">
                 <label>Date Format</label>
                 <select
                   name="dateFormat"
@@ -979,7 +979,7 @@ const CustomerSettings = () => {
                 </select>
               </div>
 
-              <div className="preference-group">
+              <div className="preference-group-settings">
                 <label>Currency</label>
                 <select
                   name="currency"
@@ -992,8 +992,8 @@ const CustomerSettings = () => {
               </div>
             </div>
 
-            <div className="form-actions">
-              <button className="save-btn" onClick={savePreferences}>
+            <div className="form-actions-settings">
+              <button className="save-btn-settings" onClick={savePreferences}>
                 <FaSave /> Save Preferences
               </button>
             </div>
@@ -1002,18 +1002,18 @@ const CustomerSettings = () => {
 
       case 'billing':
         return (
-          <div className="billing-section">
+          <div className="billing-section-settings">
             <h2>Billing History</h2>
             
             {billingHistory.length === 0 ? (
-              <div className="empty-state">
-                <FaFileInvoice className="empty-icon" />
+              <div className="empty-state-settings">
+                <FaFileInvoice className="empty-icon-settings" />
                 <h3>No billing history</h3>
                 <p>Your transactions will appear here</p>
               </div>
             ) : (
-              <div className="billing-table">
-                 <table>
+              <div className="billing-table-settings">
+                <table>
                   <thead>
                     <tr>
                       <th>Invoice</th>
@@ -1031,7 +1031,7 @@ const CustomerSettings = () => {
                         <td>{invoice.description}</td>
                         <td>₱{invoice.amount.toLocaleString()}</td>
                         <td>
-                          <span className={`status-badge ${invoice.status}`}>
+                          <span className={`status-badge-settings ${invoice.status}-settings`}>
                             {invoice.status === 'paid' ? 'Paid' : invoice.status === 'pending' ? 'Pending' : 'Failed'}
                           </span>
                         </td>
@@ -1051,8 +1051,8 @@ const CustomerSettings = () => {
 
   if (loading) {
     return (
-      <div className="settings-loading">
-        <FaSpinner className="spinner" />
+      <div className="settings-loading-settings">
+        <FaSpinner className="spinner-settings" />
         <p>Loading your settings...</p>
       </div>
     );
@@ -1089,20 +1089,20 @@ const CustomerSettings = () => {
         )}
 
         {/* NO TABS - Direct content only */}
-        <div className="tab-content">
+        <div className="tab-content-settings">
           {renderTabContent()}
         </div>
 
         {/* Address Modal */}
         {showAddressModal && (
-          <div className="modal-overlay" onClick={() => setShowAddressModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-settings" onClick={() => setShowAddressModal(false)}>
+            <div className="modal-content-settings" onClick={e => e.stopPropagation()}>
               <h3>{editingAddress ? 'Edit Address' : 'Add New Address'}</h3>
               
               <form onSubmit={handleAddressSubmit}>
-                <div className="modal-form">
-                  <div className="form-row">
-                    <div className="form-group">
+                <div className="modal-form-settings">
+                  <div className="form-row-settings">
+                    <div className="form-group-settings">
                       <label>Label</label>
                       <select
                         name="label"
@@ -1115,8 +1115,8 @@ const CustomerSettings = () => {
                       </select>
                     </div>
 
-                    <div className="form-group checkbox-group">
-                      <label className="checkbox-label">
+                    <div className="form-group-settings checkbox-group-settings">
+                      <label className="checkbox-label-settings">
                         <input
                           type="checkbox"
                           name="isPrimary"
@@ -1128,92 +1128,92 @@ const CustomerSettings = () => {
                     </div>
                   </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
+                  <div className="form-row-settings">
+                    <div className="form-group-settings">
                       <label>House/Building No. *</label>
                       <input
                         type="text"
                         name="houseOrBuilding"
                         value={addressForm.houseOrBuilding}
                         onChange={handleAddressFormChange}
-                        className={formErrors.houseOrBuilding ? 'error' : ''}
+                        className={formErrors.houseOrBuilding ? 'error-settings' : ''}
                       />
-                      {formErrors.houseOrBuilding && <small className="error-text">{formErrors.houseOrBuilding}</small>}
+                      {formErrors.houseOrBuilding && <small className="error-text-settings">{formErrors.houseOrBuilding}</small>}
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group-settings">
                       <label>Street *</label>
                       <input
                         type="text"
                         name="street"
                         value={addressForm.street}
                         onChange={handleAddressFormChange}
-                        className={formErrors.street ? 'error' : ''}
+                        className={formErrors.street ? 'error-settings' : ''}
                       />
-                      {formErrors.street && <small className="error-text">{formErrors.street}</small>}
+                      {formErrors.street && <small className="error-text-settings">{formErrors.street}</small>}
                     </div>
                   </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
+                  <div className="form-row-settings">
+                    <div className="form-group-settings">
                       <label>Barangay *</label>
                       <input
                         type="text"
                         name="barangay"
                         value={addressForm.barangay}
                         onChange={handleAddressFormChange}
-                        className={formErrors.barangay ? 'error' : ''}
+                        className={formErrors.barangay ? 'error-settings' : ''}
                       />
-                      {formErrors.barangay && <small className="error-text">{formErrors.barangay}</small>}
+                      {formErrors.barangay && <small className="error-text-settings">{formErrors.barangay}</small>}
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group-settings">
                       <label>City/Municipality *</label>
                       <input
                         type="text"
                         name="cityMunicipality"
                         value={addressForm.cityMunicipality}
                         onChange={handleAddressFormChange}
-                        className={formErrors.cityMunicipality ? 'error' : ''}
+                        className={formErrors.cityMunicipality ? 'error-settings' : ''}
                       />
-                      {formErrors.cityMunicipality && <small className="error-text">{formErrors.cityMunicipality}</small>}
+                      {formErrors.cityMunicipality && <small className="error-text-settings">{formErrors.cityMunicipality}</small>}
                     </div>
                   </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
+                  <div className="form-row-settings">
+                    <div className="form-group-settings">
                       <label>Province *</label>
                       <input
                         type="text"
                         name="province"
                         value={addressForm.province}
                         onChange={handleAddressFormChange}
-                        className={formErrors.province ? 'error' : ''}
+                        className={formErrors.province ? 'error-settings' : ''}
                       />
-                      {formErrors.province && <small className="error-text">{formErrors.province}</small>}
+                      {formErrors.province && <small className="error-text-settings">{formErrors.province}</small>}
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group-settings">
                       <label>ZIP Code *</label>
                       <input
                         type="text"
                         name="zipCode"
                         value={addressForm.zipCode}
                         onChange={handleAddressFormChange}
-                        className={formErrors.zipCode ? 'error' : ''}
+                        className={formErrors.zipCode ? 'error-settings' : ''}
                         maxLength="4"
                       />
-                      {formErrors.zipCode && <small className="error-text">{formErrors.zipCode}</small>}
+                      {formErrors.zipCode && <small className="error-text-settings">{formErrors.zipCode}</small>}
                     </div>
                   </div>
                 </div>
 
-                <div className="modal-actions">
-                  <button type="button" className="cancel-btn" onClick={() => setShowAddressModal(false)}>
+                <div className="modal-actions-settings">
+                  <button type="button" className="cancel-btn-settings" onClick={() => setShowAddressModal(false)}>
                     Cancel
                   </button>
-                  <button type="submit" className="save-btn" disabled={saving}>
-                    {saving ? <><FaSpinner className="spinner" /> Saving...</> : <><FaSave /> Save Address</>}
+                  <button type="submit" className="save-btn-settings" disabled={saving}>
+                    {saving ? <><FaSpinner className="spinner-settings" /> Saving...</> : <><FaSave /> Save Address</>}
                   </button>
                 </div>
               </form>
@@ -1223,19 +1223,19 @@ const CustomerSettings = () => {
 
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (
-          <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
-            <div className="modal-content confirm-modal" onClick={e => e.stopPropagation()}>
-              <FaExclamationTriangle className="confirm-icon" />
+          <div className="modal-overlay-settings" onClick={() => setDeleteConfirm(null)}>
+            <div className="modal-content-settings confirm-modal-settings" onClick={e => e.stopPropagation()}>
+              <FaExclamationTriangle className="confirm-icon-settings" />
               <h3>Delete Address</h3>
               <p>Are you sure you want to delete this address?</p>
-              <div className="address-preview">
+              <div className="address-preview-settings">
                 {getFullAddress(deleteConfirm)}
               </div>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setDeleteConfirm(null)}>
+              <div className="modal-actions-settings">
+                <button className="cancel-btn-settings" onClick={() => setDeleteConfirm(null)}>
                   Cancel
                 </button>
-                <button className="delete-btn" onClick={() => deleteAddress(deleteConfirm._id)}>
+                <button className="delete-btn-settings" onClick={() => deleteAddress(deleteConfirm._id)}>
                   <FaTrash /> Delete
                 </button>
               </div>
