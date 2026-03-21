@@ -1,0 +1,361 @@
+/* Customer Dashboard - Simple & Clean */
+.customer-dashboard {
+  width: 100%;
+  background-color: #f9fafb;
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Header */
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-header p {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Stats Grid - 3 columns */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.stat-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-title {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.stat-change {
+  font-size: 0.7rem;
+  color: #10b981;
+  margin-top: 0.25rem;
+  display: inline-block;
+}
+
+/* Project Card */
+.project-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.project-header h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.status-badge.in-progress {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.project-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.progress-section {
+  margin-bottom: 1rem;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+  height: 0.5rem;
+  background-color: #e5e7eb;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #f39c12;
+  border-radius: 0.25rem;
+}
+
+.project-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 1rem 0;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.project-details div {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-details span {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-bottom: 0.25rem;
+}
+
+.project-details strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.view-btn {
+  width: 100%;
+  padding: 0.625rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.view-btn:hover {
+  background: #f3f4f6;
+  border-color: #f39c12;
+  color: #f39c12;
+}
+
+/* Two Columns */
+.two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Activities Card */
+.activities-card,
+.schedule-card {
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.card-header h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.view-all {
+  font-size: 0.75rem;
+  color: #f39c12;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.activities-list {
+  padding: 0.5rem 1.25rem 1.25rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-icon {
+  color: #10b981;
+  font-size: 0.875rem;
+}
+
+.activity-name {
+  display: block;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.activity-date {
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+/* Schedule Card */
+.schedule-icon {
+  color: #f39c12;
+}
+
+.schedule-content {
+  padding: 1rem 1.25rem;
+}
+
+.schedule-type {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.schedule-date,
+.schedule-time {
+  font-size: 0.875rem;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.schedule-location {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.manage-btn {
+  width: calc(100% - 2.5rem);
+  margin: 0 1.25rem 1.25rem;
+  padding: 0.625rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.manage-btn:hover {
+  background: #f3f4f6;
+  border-color: #f39c12;
+  color: #f39c12;
+}
+
+/* Quick Actions */
+.quick-actions {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #e5e7eb;
+}
+
+.quick-actions h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: #f3f4f6;
+  transform: translateY(-2px);
+}
+
+.action-btn svg {
+  font-size: 1.25rem;
+}
+
+.action-btn span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #374151;
+}

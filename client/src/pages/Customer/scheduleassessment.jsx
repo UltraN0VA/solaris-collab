@@ -1,5 +1,5 @@
 // pages/Customer/scheduleassessment.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { 
@@ -14,9 +14,7 @@ import {
   FaSpinner,
   FaSolarPanel,
   FaPhone,
-  FaEnvelope,
-  FaArrowRight,
-  FaArrowLeft
+  FaEnvelope
 } from 'react-icons/fa';
 import '../../styles/Customer/scheduleassessment.css';
 
@@ -34,7 +32,12 @@ const ScheduleAssessment = () => {
   const [paymentProof, setPaymentProof] = useState(null);
   const [paymentStatus, setPaymentStatus] = useState('pending');
   const [currentStep, setCurrentStep] = useState('form');
-  const [activeCard, setActiveCard] = useState(1); // 1=Personal, 2=Address, 3=Property
+  const [activeCard, setActiveCard] = useState(1);
+
+  // Refs for scrolling
+  const card1Ref = useRef(null);
+  const card2Ref = useRef(null);
+  const card3Ref = useRef(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -61,6 +64,17 @@ const ScheduleAssessment = () => {
     fetchClientData();
     fetchClientAddresses();
   }, []);
+
+  // Scroll to active card when activeCard changes
+  useEffect(() => {
+    if (activeCard === 1 && card1Ref.current) {
+      card1Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (activeCard === 2 && card2Ref.current) {
+      card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (activeCard === 3 && card3Ref.current) {
+      card3Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [activeCard]);
 
   const fetchClientData = async () => {
     try {
@@ -131,7 +145,6 @@ const ScheduleAssessment = () => {
     if (validationErrors[name]) {
       setValidationErrors(prev => ({ ...prev, [name]: '' }));
     }
-    // Clear card errors when user types
     if (cardErrors[activeCard]) {
       setCardErrors(prev => ({ ...prev, [activeCard]: '' }));
     }
@@ -240,7 +253,6 @@ const ScheduleAssessment = () => {
   };
 
   const handleSubmitClick = () => {
-    // Final validation before showing modal
     const errors1 = validateCard1();
     const errors2 = validateCard2();
     const errors3 = validateCard3();
@@ -362,340 +374,322 @@ const ScheduleAssessment = () => {
           <h1 className="schedule-title">Book Your Site Assessment</h1>
           <p className="schedule-subtitle">Complete the steps below to schedule your professional site assessment</p>
 
-          <div className="schedule-layout">
-            {/* Left Side - Cards */}
-            <div className="schedule-cards-wrapper">
-              {/* Card 1: Personal Information */}
-              <div className={`schedule-card ${activeCard === 1 ? 'active' : activeCard > 1 ? 'completed' : 'disabled'}`}>
-                <div className="card-header">
-                  <div className="card-number">
-                    {activeCard > 1 ? <FaCheckCircle /> : '1'}
-                  </div>
-                  <h3>Personal Information</h3>
-                  {activeCard > 1 && <span className="card-status">Completed</span>}
-                  {activeCard === 1 && cardErrors[1] && <span className="card-error">{cardErrors[1]}</span>}
+          <div className="schedule-cards-wrapper">
+            {/* Card 1: Personal Information */}
+            <div ref={card1Ref} className={`schedule-card ${activeCard === 1 ? 'active' : activeCard > 1 ? 'completed' : 'disabled'}`}>
+              <div className="card-header">
+                <div className="card-number">
+                  {activeCard > 1 ? <FaCheckCircle /> : '1'}
                 </div>
-                
-                <div className="card-content">
-                  <div className="schedule-form-grid">
-                    <div className="schedule-form-group">
-                      <label>First Name *</label>
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        className={`schedule-input ${validationErrors.firstName ? 'error' : ''}`}
-                        disabled={activeCard !== 1}
-                      />
-                      {validationErrors.firstName && <small>{validationErrors.firstName}</small>}
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>Middle Name</label>
-                      <input
-                        type="text"
-                        name="middleName"
-                        value={formData.middleName}
-                        onChange={handleInputChange}
-                        className="schedule-input"
-                        disabled={activeCard !== 1}
-                      />
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>Last Name *</label>
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        className={`schedule-input ${validationErrors.lastName ? 'error' : ''}`}
-                        disabled={activeCard !== 1}
-                      />
-                      {validationErrors.lastName && <small>{validationErrors.lastName}</small>}
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>Email Address *</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className={`schedule-input ${validationErrors.email ? 'error' : ''}`}
-                        disabled={activeCard !== 1}
-                      />
-                      {validationErrors.email && <small>{validationErrors.email}</small>}
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>Contact Number *</label>
-                      <input
-                        type="tel"
-                        name="contactNumber"
-                        value={formData.contactNumber}
-                        onChange={handleInputChange}
-                        className={`schedule-input ${validationErrors.contactNumber ? 'error' : ''}`}
-                        placeholder="0917xxxxxxx"
-                        disabled={activeCard !== 1}
-                      />
-                      {validationErrors.contactNumber && <small>{validationErrors.contactNumber}</small>}
-                    </div>
-                  </div>
-                </div>
+                <h3>Personal Information</h3>
+                {activeCard > 1 && <span className="card-status">Completed</span>}
+                {activeCard === 1 && cardErrors[1] && <span className="card-error">{cardErrors[1]}</span>}
               </div>
-
-              {/* Card 2: Address Details */}
-              <div className={`schedule-card ${activeCard === 2 ? 'active' : activeCard > 2 ? 'completed' : 'disabled'}`}>
-                <div className="card-header">
-                  <div className="card-number">
-                    {activeCard > 2 ? <FaCheckCircle /> : '2'}
+              
+              <div className="card-content">
+                <div className="schedule-form-grid">
+                  <div className="schedule-form-group">
+                    <label>First Name *</label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      className={`schedule-input ${validationErrors.firstName ? 'error' : ''}`}
+                      disabled={activeCard !== 1}
+                    />
+                    {validationErrors.firstName && <small>{validationErrors.firstName}</small>}
                   </div>
-                  <h3>Address Details</h3>
-                  {activeCard > 2 && <span className="card-status">Completed</span>}
-                  {activeCard === 2 && cardErrors[2] && <span className="card-error">{cardErrors[2]}</span>}
+
+                  <div className="schedule-form-group">
+                    <label>Middle Name</label>
+                    <input
+                      type="text"
+                      name="middleName"
+                      value={formData.middleName}
+                      onChange={handleInputChange}
+                      className="schedule-input"
+                      disabled={activeCard !== 1}
+                    />
+                  </div>
+
+                  <div className="schedule-form-group">
+                    <label>Last Name *</label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      className={`schedule-input ${validationErrors.lastName ? 'error' : ''}`}
+                      disabled={activeCard !== 1}
+                    />
+                    {validationErrors.lastName && <small>{validationErrors.lastName}</small>}
+                  </div>
+
+                  <div className="schedule-form-group">
+                    <label>Email Address *</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={`schedule-input ${validationErrors.email ? 'error' : ''}`}
+                      disabled={activeCard !== 1}
+                    />
+                    {validationErrors.email && <small>{validationErrors.email}</small>}
+                  </div>
+
+                  <div className="schedule-form-group">
+                    <label>Contact Number *</label>
+                    <input
+                      type="tel"
+                      name="contactNumber"
+                      value={formData.contactNumber}
+                      onChange={handleInputChange}
+                      className={`schedule-input ${validationErrors.contactNumber ? 'error' : ''}`}
+                      placeholder="0917xxxxxxx"
+                      disabled={activeCard !== 1}
+                    />
+                    {validationErrors.contactNumber && <small>{validationErrors.contactNumber}</small>}
+                  </div>
                 </div>
-                
-                <div className="card-content">
-                  {addresses.length > 0 && (
-                    <div className="schedule-form-group schedule-full-width">
-                      <label>Select Saved Address</label>
-                      <select
-                        value={selectedAddressId}
-                        onChange={handleAddressChange}
-                        className="schedule-select"
-                        disabled={activeCard !== 2}
-                      >
-                        <option value="">-- Select an address --</option>
-                        {addresses.map(addr => (
-                          <option key={addr._id} value={addr._id}>
-                            {addr.houseOrBuilding} {addr.street}, {addr.barangay}, {addr.cityMunicipality}
-                          </option>
-                        ))}
-                      </select>
-                      <small>Select a saved address or fill in the fields below</small>
-                    </div>
+
+                {/* Card 1 Actions */}
+                <div className="card-actions">
+                  {activeCard === 1 && activeCard < 3 && (
+                    <button onClick={handleNext} className="card-btn-next">
+                      Next
+                    </button>
                   )}
-
-                  <div className="schedule-form-grid">
-                    <div className="schedule-form-group">
-                      <label>House/Bldg. No. *</label>
-                      <input
-                        type="text"
-                        name="houseOrBuilding"
-                        value={formData.houseOrBuilding}
-                        onChange={handleInputChange}
-                        className={`schedule-input ${validationErrors.houseOrBuilding ? 'error' : ''}`}
-                        disabled={activeCard !== 2}
-                      />
-                      {validationErrors.houseOrBuilding && <small>{validationErrors.houseOrBuilding}</small>}
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>Street *</label>
-                      <input
-                        type="text"
-                        name="street"
-                        value={formData.street}
-                        onChange={handleInputChange}
-                        className={`schedule-input ${validationErrors.street ? 'error' : ''}`}
-                        disabled={activeCard !== 2}
-                      />
-                      {validationErrors.street && <small>{validationErrors.street}</small>}
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>Barangay *</label>
-                      <input
-                        type="text"
-                        name="barangay"
-                        value={formData.barangay}
-                        onChange={handleInputChange}
-                        className={`schedule-input ${validationErrors.barangay ? 'error' : ''}`}
-                        disabled={activeCard !== 2}
-                      />
-                      {validationErrors.barangay && <small>{validationErrors.barangay}</small>}
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>City/Municipality *</label>
-                      <input
-                        type="text"
-                        name="cityMunicipality"
-                        value={formData.cityMunicipality}
-                        onChange={handleInputChange}
-                        className={`schedule-input ${validationErrors.cityMunicipality ? 'error' : ''}`}
-                        disabled={activeCard !== 2}
-                      />
-                      {validationErrors.cityMunicipality && <small>{validationErrors.cityMunicipality}</small>}
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>Province *</label>
-                      <input
-                        type="text"
-                        name="province"
-                        value={formData.province}
-                        onChange={handleInputChange}
-                        className={`schedule-input ${validationErrors.province ? 'error' : ''}`}
-                        disabled={activeCard !== 2}
-                      />
-                      {validationErrors.province && <small>{validationErrors.province}</small>}
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>Zip Code *</label>
-                      <input
-                        type="text"
-                        name="zipCode"
-                        value={formData.zipCode}
-                        onChange={handleInputChange}
-                        className={`schedule-input ${validationErrors.zipCode ? 'error' : ''}`}
-                        maxLength="4"
-                        disabled={activeCard !== 2}
-                      />
-                      {validationErrors.zipCode && <small>{validationErrors.zipCode}</small>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3: Property Details */}
-              <div className={`schedule-card ${activeCard === 3 ? 'active' : activeCard > 3 ? 'completed' : 'disabled'}`}>
-                <div className="card-header">
-                  <div className="card-number">
-                    {activeCard > 3 ? <FaCheckCircle /> : '3'}
-                  </div>
-                  <h3>Property Details</h3>
-                  {activeCard > 3 && <span className="card-status">Completed</span>}
-                  {activeCard === 3 && cardErrors[3] && <span className="card-error">{cardErrors[3]}</span>}
-                </div>
-                
-                <div className="card-content">
-                  <div className="schedule-form-grid">
-                    <div className="schedule-form-group">
-                      <label>Property Type *</label>
-                      <select
-                        name="propertyType"
-                        value={formData.propertyType}
-                        onChange={handleInputChange}
-                        className={`schedule-select ${validationErrors.propertyType ? 'error' : ''}`}
-                        disabled={activeCard !== 3}
-                      >
-                        <option value="residential">Residential</option>
-                        <option value="commercial">Commercial</option>
-                      </select>
-                      {validationErrors.propertyType && <small>{validationErrors.propertyType}</small>}
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>Desired Capacity (kW)</label>
-                      <input
-                        type="text"
-                        name="desiredCapacity"
-                        value={formData.desiredCapacity}
-                        onChange={handleInputChange}
-                        className="schedule-input"
-                        placeholder="e.g., 5kW"
-                        disabled={activeCard !== 3}
-                      />
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>Roof Type</label>
-                      <select
-                        name="roofType"
-                        value={formData.roofType}
-                        onChange={handleInputChange}
-                        className="schedule-select"
-                        disabled={activeCard !== 3}
-                      >
-                        <option value="">Select roof type</option>
-                        <option value="concrete">Concrete</option>
-                        <option value="metal">Metal</option>
-                        <option value="tile">Tile</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-
-                    <div className="schedule-form-group">
-                      <label>Preferred Start Date *</label>
-                      <input
-                        type="date"
-                        name="preferredDate"
-                        value={formData.preferredDate}
-                        onChange={handleInputChange}
-                        className={`schedule-input ${validationErrors.preferredDate ? 'error' : ''}`}
-                        min={new Date().toISOString().split('T')[0]}
-                        disabled={activeCard !== 3}
-                      />
-                      {validationErrors.preferredDate && <small>{validationErrors.preferredDate}</small>}
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Side - Preview Card with Next/Submit */}
-            <div className="schedule-preview">
-              <div className="schedule-preview-card">
-                <h3>Booking Preview</h3>
-                
-                <div className="preview-section">
-                  <h4><FaUser /> Personal Info</h4>
-                  <p><strong>Name:</strong> {getFullName() || '—'}</p>
-                  <p><strong>Email:</strong> {formData.email || '—'}</p>
-                  <p><strong>Contact:</strong> {formData.contactNumber || '—'}</p>
+            {/* Card 2: Address Details */}
+            <div ref={card2Ref} className={`schedule-card ${activeCard === 2 ? 'active' : activeCard > 2 ? 'completed' : 'disabled'}`}>
+              <div className="card-header">
+                <div className="card-number">
+                  {activeCard > 2 ? <FaCheckCircle /> : '2'}
                 </div>
+                <h3>Address Details</h3>
+                {activeCard > 2 && <span className="card-status">Completed</span>}
+                {activeCard === 2 && cardErrors[2] && <span className="card-error">{cardErrors[2]}</span>}
+              </div>
+              
+              <div className="card-content">
+                {addresses.length > 0 && (
+                  <div className="schedule-form-group schedule-full-width">
+                    <label>Select Saved Address</label>
+                    <select
+                      value={selectedAddressId}
+                      onChange={handleAddressChange}
+                      className="schedule-select"
+                      disabled={activeCard !== 2}
+                    >
+                      <option value="">-- Select an address --</option>
+                      {addresses.map(addr => (
+                        <option key={addr._id} value={addr._id}>
+                          {addr.houseOrBuilding} {addr.street}, {addr.barangay}, {addr.cityMunicipality}
+                        </option>
+                      ))}
+                    </select>
+                    <small>Select a saved address or fill in the fields below</small>
+                  </div>
+                )}
 
-                <div className="preview-section">
-                  <h4><FaMapMarkerAlt /> Address</h4>
-                  <p>{getFullAddress() || '—'}</p>
-                </div>
+                <div className="schedule-form-grid">
+                  <div className="schedule-form-group">
+                    <label>House/Bldg. No. *</label>
+                    <input
+                      type="text"
+                      name="houseOrBuilding"
+                      value={formData.houseOrBuilding}
+                      onChange={handleInputChange}
+                      className={`schedule-input ${validationErrors.houseOrBuilding ? 'error' : ''}`}
+                      disabled={activeCard !== 2}
+                    />
+                    {validationErrors.houseOrBuilding && <small>{validationErrors.houseOrBuilding}</small>}
+                  </div>
 
-                <div className="preview-section">
-                  <h4><FaHome /> Property</h4>
-                  <p><strong>Type:</strong> {formData.propertyType === 'residential' ? 'Residential' : 'Commercial'}</p>
-                  <p><strong>Capacity:</strong> {formData.desiredCapacity || '—'}</p>
-                  <p><strong>Roof:</strong> {formData.roofType || '—'}</p>
-                  <p><strong>Preferred Date:</strong> {formData.preferredDate || '—'}</p>
-                </div>
+                  <div className="schedule-form-group">
+                    <label>Street *</label>
+                    <input
+                      type="text"
+                      name="street"
+                      value={formData.street}
+                      onChange={handleInputChange}
+                      className={`schedule-input ${validationErrors.street ? 'error' : ''}`}
+                      disabled={activeCard !== 2}
+                    />
+                    {validationErrors.street && <small>{validationErrors.street}</small>}
+                  </div>
 
-                <div className="preview-fee">
-                  <FaMoneyBillWave />
-                  <div>
-                    <strong>Assessment Fee</strong>
-                    <p>₱1,500.00</p>
+                  <div className="schedule-form-group">
+                    <label>Barangay *</label>
+                    <input
+                      type="text"
+                      name="barangay"
+                      value={formData.barangay}
+                      onChange={handleInputChange}
+                      className={`schedule-input ${validationErrors.barangay ? 'error' : ''}`}
+                      disabled={activeCard !== 2}
+                    />
+                    {validationErrors.barangay && <small>{validationErrors.barangay}</small>}
+                  </div>
+
+                  <div className="schedule-form-group">
+                    <label>City/Municipality *</label>
+                    <input
+                      type="text"
+                      name="cityMunicipality"
+                      value={formData.cityMunicipality}
+                      onChange={handleInputChange}
+                      className={`schedule-input ${validationErrors.cityMunicipality ? 'error' : ''}`}
+                      disabled={activeCard !== 2}
+                    />
+                    {validationErrors.cityMunicipality && <small>{validationErrors.cityMunicipality}</small>}
+                  </div>
+
+                  <div className="schedule-form-group">
+                    <label>Province *</label>
+                    <input
+                      type="text"
+                      name="province"
+                      value={formData.province}
+                      onChange={handleInputChange}
+                      className={`schedule-input ${validationErrors.province ? 'error' : ''}`}
+                      disabled={activeCard !== 2}
+                    />
+                    {validationErrors.province && <small>{validationErrors.province}</small>}
+                  </div>
+
+                  <div className="schedule-form-group">
+                    <label>Zip Code *</label>
+                    <input
+                      type="text"
+                      name="zipCode"
+                      value={formData.zipCode}
+                      onChange={handleInputChange}
+                      className={`schedule-input ${validationErrors.zipCode ? 'error' : ''}`}
+                      maxLength="4"
+                      disabled={activeCard !== 2}
+                    />
+                    {validationErrors.zipCode && <small>{validationErrors.zipCode}</small>}
                   </div>
                 </div>
 
-                {/* Navigation Buttons */}
-                <div className="preview-actions">
-                  {activeCard < 3 && (
-                    <button onClick={handleNext} className="schedule-btn-next">
-                      Next <FaArrowRight />
-                    </button>
-                  )}
-                  
-                  {activeCard > 1 && (
-                    <button onClick={handlePrevious} className="schedule-btn-prev">
-                      <FaArrowLeft /> Back
-                    </button>
-                  )}
-                  
-                  {activeCard === 3 && (
-                    <button onClick={handleSubmitClick} className="schedule-btn-submit">
-                      Review & Confirm
-                    </button>
+                {/* Card 2 Actions */}
+                <div className="card-actions">
+                  {activeCard === 2 && (
+                    <>
+                      <button onClick={handlePrevious} className="card-btn-prev">
+                        Back
+                      </button>
+                      <button onClick={handleNext} className="card-btn-next">
+                        Next
+                      </button>
+                    </>
                   )}
                 </div>
-                
-                <p className="preview-note">
-                  {activeCard === 1 && "Step 1 of 3: Fill in your personal information"}
-                  {activeCard === 2 && "Step 2 of 3: Fill in your address details"}
-                  {activeCard === 3 && "Step 3 of 3: Fill in your property details"}
-                </p>
+              </div>
+            </div>
+
+            {/* Card 3: Property Details */}
+            <div ref={card3Ref} className={`schedule-card ${activeCard === 3 ? 'active' : activeCard > 3 ? 'completed' : 'disabled'}`}>
+              <div className="card-header">
+                <div className="card-number">
+                  {activeCard > 3 ? <FaCheckCircle /> : '3'}
+                </div>
+                <h3>Property Details</h3>
+                {activeCard > 3 && <span className="card-status">Completed</span>}
+                {activeCard === 3 && cardErrors[3] && <span className="card-error">{cardErrors[3]}</span>}
+              </div>
+              
+              <div className="card-content">
+                <div className="schedule-form-grid">
+                  <div className="schedule-form-group">
+                    <label>Property Type *</label>
+                    <select
+                      name="propertyType"
+                      value={formData.propertyType}
+                      onChange={handleInputChange}
+                      className={`schedule-select ${validationErrors.propertyType ? 'error' : ''}`}
+                      disabled={activeCard !== 3}
+                    >
+                      <option value="residential">Residential</option>
+                      <option value="commercial">Commercial</option>
+                    </select>
+                    {validationErrors.propertyType && <small>{validationErrors.propertyType}</small>}
+                  </div>
+
+                  <div className="schedule-form-group">
+                    <label>Desired Capacity (kW)</label>
+                    <input
+                      type="text"
+                      name="desiredCapacity"
+                      value={formData.desiredCapacity}
+                      onChange={handleInputChange}
+                      className="schedule-input"
+                      placeholder="e.g., 5kW"
+                      disabled={activeCard !== 3}
+                    />
+                  </div>
+
+                  <div className="schedule-form-group">
+                    <label>Roof Type</label>
+                    <select
+                      name="roofType"
+                      value={formData.roofType}
+                      onChange={handleInputChange}
+                      className="schedule-select"
+                      disabled={activeCard !== 3}
+                    >
+                      <option value="">Select roof type</option>
+                      <option value="concrete">Concrete</option>
+                      <option value="metal">Metal</option>
+                      <option value="tile">Tile</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="schedule-form-group">
+                    <label>Preferred Start Date *</label>
+                    <input
+                      type="date"
+                      name="preferredDate"
+                      value={formData.preferredDate}
+                      onChange={handleInputChange}
+                      className={`schedule-input ${validationErrors.preferredDate ? 'error' : ''}`}
+                      min={new Date().toISOString().split('T')[0]}
+                      disabled={activeCard !== 3}
+                    />
+                    {validationErrors.preferredDate && <small>{validationErrors.preferredDate}</small>}
+                  </div>
+                </div>
+
+                <div className="schedule-fee-card">
+                  <div className="schedule-fee-info">
+                    <FaMoneyBillWave className="schedule-fee-icon" />
+                    <div>
+                      <strong>Assessment Fee: ₱1,500.00</strong>
+                      <p>Non-refundable fee for 7-day monitoring with IoT device</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 3 Actions */}
+                <div className="card-actions">
+                  {activeCard === 3 && (
+                    <>
+                      <button onClick={handlePrevious} className="card-btn-prev">
+                        Back
+                      </button>
+                      <button onClick={handleSubmitClick} className="card-btn-submit">
+                        Review & Confirm
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>

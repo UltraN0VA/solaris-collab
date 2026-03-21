@@ -45,11 +45,13 @@ const Dashboard = () => {
   const profileRef = useRef(null);
   const notificationsRef = useRef(null);
   const settingsDropdownRef = useRef(null);
+  const supportDropdownRef = useRef(null);
   
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [settingsDropdownOpen, setSettingsDropdownOpen] = useState(false);
+  const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [userRole, setUserRole] = useState('user');
   const [userName, setUserName] = useState('Customer User');
@@ -67,6 +69,9 @@ const Dashboard = () => {
       }
       if (settingsDropdownRef.current && !settingsDropdownRef.current.contains(event.target)) {
         setSettingsDropdownOpen(false);
+      }
+      if (supportDropdownRef.current && !supportDropdownRef.current.contains(event.target)) {
+        setSupportDropdownOpen(false);
       }
     };
 
@@ -137,11 +142,11 @@ const Dashboard = () => {
       { label: 'Billing', path: '/dashboard/customerbilling' },
       { label: 'Performance', path: '/dashboard/performance' },
       { label: 'Reports', path: '/dashboard/customerreports' },
-      { label: 'Support', path: '/dashboard/support' },
+      // Support is handled by dropdown, not in this list
     ],
   };
 
-  // Settings submenu items for customer - NO ICONS
+  // Settings submenu items for customer
   const settingsSubmenu = [
     { label: 'Profile', path: '/dashboard/customersettings?tab=profile' },
     { label: 'Addresses', path: '/dashboard/customersettings?tab=addresses' },
@@ -149,6 +154,15 @@ const Dashboard = () => {
     { label: 'Security', path: '/dashboard/customersettings?tab=security' },
     { label: 'Preferences', path: '/dashboard/customersettings?tab=preferences' },
     { label: 'Billing', path: '/dashboard/customersettings?tab=billing' },
+  ];
+
+  // Support submenu items for customer
+  const supportSubmenu = [
+    { label: 'FAQ', path: '/dashboard/support?tab=faq' },
+    { label: 'Contact Form', path: '/dashboard/support?tab=contact' },
+    { label: 'Contact Info', path: '/dashboard/support?tab=info' },
+    { label: 'Ticket System', path: '/dashboard/support?tab=tickets' },
+    { label: 'User Guides', path: '/dashboard/support?tab=guides' },
   ];
 
   const getRoleDisplay = () => {
@@ -188,10 +202,22 @@ const Dashboard = () => {
            location.pathname.startsWith('/dashboard/customersettings');
   };
 
+  // Check if any support submenu is active
+  const isSupportActive = () => {
+    return location.pathname === '/dashboard/support' || 
+           location.pathname.startsWith('/dashboard/support');
+  };
+
   // Handle settings dropdown navigation
   const handleSettingsNavigation = (path) => {
     navigate(path);
     setSettingsDropdownOpen(false);
+  };
+
+  // Handle support dropdown navigation
+  const handleSupportNavigation = (path) => {
+    navigate(path);
+    setSupportDropdownOpen(false);
   };
 
   const handleLogout = () => {
@@ -210,6 +236,7 @@ const Dashboard = () => {
     setProfileOpen(false);
     setNotificationsOpen(false);
     setSettingsDropdownOpen(false);
+    setSupportDropdownOpen(false);
   };
 
   const handleProfileNavigation = (path) => {
@@ -234,7 +261,7 @@ const Dashboard = () => {
     return location.pathname.startsWith(itemPath);
   };
 
-  // ========== CUSTOMER LAYOUT (WITH DROPDOWN SETTINGS) ==========
+  // ========== CUSTOMER LAYOUT (WITH DROPDOWN SETTINGS AND SUPPORT) ==========
   if (isCustomer) {
     return (
       <div className="dashboard customer-dashboard">
@@ -247,7 +274,7 @@ const Dashboard = () => {
                 <span className="customer-logo-text">Salfer Engineering</span>
               </div>
 
-              {/* Navigation Links - No Icons */}
+              {/* Navigation Links */}
               <nav className="customer-nav-links">
                 {currentMenu.map((item, index) => (
                   <button
@@ -258,6 +285,31 @@ const Dashboard = () => {
                     <span className="customer-nav-link-label">{item.label}</span>
                   </button>
                 ))}
+                
+                {/* Support Dropdown Button */}
+                <div className="settings-dropdown-wrapper" ref={supportDropdownRef}>
+                  <button
+                    onClick={() => setSupportDropdownOpen(!supportDropdownOpen)}
+                    className={`customer-nav-link settings-dropdown-btn ${isSupportActive() ? 'active' : ''}`}
+                  >
+                    <span className="customer-nav-link-label">Support</span>
+                    <FaChevronDown className={`dropdown-arrow ${supportDropdownOpen ? 'open' : ''}`} />
+                  </button>
+                  
+                  {supportDropdownOpen && (
+                    <div className="settings-dropdown-menu">
+                      {supportSubmenu.map((item, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleSupportNavigation(item.path)}
+                          className="settings-dropdown-item"
+                        >
+                          <span className="dropdown-item-label">{item.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 
                 {/* Settings Dropdown Button */}
                 <div className="settings-dropdown-wrapper" ref={settingsDropdownRef}>
