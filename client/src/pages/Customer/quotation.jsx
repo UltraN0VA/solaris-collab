@@ -1,3 +1,4 @@
+// pages/Customer/quotation.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { 
@@ -11,85 +12,106 @@ import {
   FaCreditCard,
   FaQrcode,
   FaPrint,
-  FaEnvelope
+  FaEnvelope,
+  FaSpinner
 } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import '../../styles/Customer/quotation.css';
 
 const Quotation = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('quotations');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState('bills');
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentProof, setPaymentProof] = useState(null);
+  const [paymentReference, setPaymentReference] = useState('');
 
-  // Mock data
-  const [quotations, setQuotations] = useState([
-    {
-      id: 'QT-2024-001',
-      date: '2024-04-01',
-      validUntil: '2024-05-01',
-      amount: 250000,
-      status: 'pending',
-      items: [
-        { name: '5kW Solar Panels', qty: 13, price: 15000, total: 195000 },
-        { name: '5kW Hybrid Inverter', qty: 1, price: 45000, total: 45000 },
-        { name: 'Mounting Structure', qty: 1, price: 8000, total: 8000 },
-        { name: 'Installation Labor', qty: 1, price: 2000, total: 2000 }
-      ]
-    },
-    {
-      id: 'QT-2024-002',
-      date: '2024-03-15',
-      validUntil: '2024-04-15',
-      amount: 180000,
-      status: 'expired',
-      items: []
-    }
-  ]);
+  // State for actual data from API
+  const [quotations, setQuotations] = useState([]);
+  const [bills, setBills] = useState([]);
+  const [payments, setPayments] = useState([]);
 
-  const [bills, setBills] = useState([
-    {
-      id: 'INV-2024-001',
-      date: '2024-04-05',
-      dueDate: '2024-04-20',
-      amount: 1500,
-      status: 'paid',
-      description: 'Site Assessment Fee',
-      paymentDate: '2024-04-05'
-    },
-    {
-      id: 'INV-2024-002',
-      date: '2024-05-10',
-      dueDate: '2024-05-25',
-      amount: 25000,
-      status: 'pending',
-      description: 'Initial Payment - Solar Installation'
-    },
-    {
-      id: 'INV-2024-003',
-      date: '2024-06-01',
-      dueDate: '2024-06-15',
-      amount: 50000,
-      status: 'pending',
-      description: 'Final Payment'
-    }
-  ]);
-
-  const [payments, setPayments] = useState([
-    {
-      id: 'PAY-2024-001',
-      date: '2024-04-05',
-      amount: 1500,
-      method: 'GCash',
-      invoiceId: 'INV-2024-001',
-      status: 'completed'
-    }
-  ]);
-
+  // Check if we have a new invoice from booking
   useEffect(() => {
-    setTimeout(() => setLoading(false), 1000);
+    if (location.state?.newInvoice) {
+      // Add the new invoice to bills list
+      const newBill = {
+        id: location.state.newInvoice.id,
+        date: new Date().toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        amount: location.state.newInvoice.amount,
+        status: 'pending',
+        description: location.state.newInvoice.description || 'Pre Assessment Fee',
+        isNew: true
+      };
+      setBills(prev => [newBill, ...prev]);
+      setActiveTab('bills');
+    }
+  }, [location.state]);
+
+  // Fetch data from API
+  useEffect(() => {
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      
+      // Fetch bills from API
+      const billsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Transform pre-assessments into bills
+      const transformedBills = billsResponse.data.assessments?.map(assessment => ({
+        id: assessment.invoiceNumber,
+        date: new Date(assessment.bookedAt).toLocaleDateString(),
+        dueDate: new Date(assessment.preferredDate).toLocaleDateString(),
+        amount: assessment.assessmentFee,
+        status: assessment.paymentStatus === 'paid' ? 'paid' : 'pending',
+        description: 'Pre Assessment Fee',
+        bookingReference: assessment.bookingReference,
+        paymentStatus: assessment.paymentStatus
+      })) || [];
+      
+      setBills(transformedBills);
+      
+      // Fetch payments
+      const paymentsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/payments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setPayments(paymentsResponse.data.payments || []);
+      
+      // For now, keep mock quotations
+      setQuotations([
+        {
+          id: 'QT-2024-001',
+          date: '2024-04-01',
+          validUntil: '2024-05-01',
+          amount: 250000,
+          status: 'pending',
+          items: [
+            { name: '5kW Solar Panels', qty: 13, price: 15000, total: 195000 },
+            { name: '5kW Hybrid Inverter', qty: 1, price: 45000, total: 45000 },
+            { name: 'Mounting Structure', qty: 1, price: 8000, total: 8000 },
+            { name: 'Installation Labor', qty: 1, price: 2000, total: 2000 }
+          ]
+        }
+      ]);
+      
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setLoading(false);
+    }
+  };
 
   const getStatusBadge = (status) => {
     switch(status) {
@@ -97,6 +119,8 @@ const Quotation = () => {
         return <span className="status-badge pending">Pending</span>;
       case 'paid':
         return <span className="status-badge paid">Paid</span>;
+      case 'for_verification':
+        return <span className="status-badge for-verification">For Verification</span>;
       case 'expired':
         return <span className="status-badge expired">Expired</span>;
       case 'completed':
@@ -117,16 +141,78 @@ const Quotation = () => {
 
   const handlePayNow = (bill) => {
     setSelectedInvoice(bill);
+    setPaymentMethod('');
+    setPaymentProof(null);
+    setPaymentReference('');
     setShowPaymentModal(true);
   };
 
-  const handleViewQuotation = (quote) => {
-    setSelectedInvoice(quote);
+  const handlePaymentSubmit = async () => {
+    if (!paymentMethod) {
+      alert('Please select a payment method');
+      return;
+    }
+    
+    if (paymentMethod === 'gcash' && !paymentProof) {
+      alert('Please upload payment proof');
+      return;
+    }
+    
+    if (paymentMethod === 'gcash' && !paymentReference) {
+      alert('Please enter GCash reference number');
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const token = sessionStorage.getItem('token');
+      
+      if (paymentMethod === 'gcash') {
+        const formData = new FormData();
+        formData.append('bookingReference', selectedInvoice.bookingReference);
+        formData.append('paymentMethod', 'gcash');
+        formData.append('paymentReference', paymentReference);
+        formData.append('paymentProof', paymentProof);
+        
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/payment`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      } else if (paymentMethod === 'cash') {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/cash-payment`, {
+          bookingReference: selectedInvoice.bookingReference
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      
+      // Update the bill status locally
+      setBills(prev => prev.map(bill => 
+        bill.id === selectedInvoice.id 
+          ? { ...bill, status: paymentMethod === 'gcash' ? 'for_verification' : 'pending', paymentStatus: paymentMethod === 'gcash' ? 'for_verification' : 'pending' }
+          : bill
+      ));
+      
+      alert('Payment submitted successfully!');
+      closeModal();
+      fetchData(); // Refresh data
+    } catch (err) {
+      console.error('Payment error:', err);
+      alert(err.response?.data?.message || 'Failed to submit payment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const closeModal = () => {
     setShowPaymentModal(false);
     setSelectedInvoice(null);
+    setPaymentMethod('');
+    setPaymentProof(null);
+    setPaymentReference('');
   };
 
   // Skeleton Loader Component
@@ -196,7 +282,7 @@ const Quotation = () => {
             className={`tab-btn ${activeTab === 'bills' ? 'active' : ''}`}
             onClick={() => setActiveTab('bills')}
           >
-            <FaMoneyBillWave /> Bills
+            <FaMoneyBillWave /> Pre-Assessment
           </button>
           <button 
             className={`tab-btn ${activeTab === 'payments' ? 'active' : ''}`}
@@ -233,7 +319,7 @@ const Quotation = () => {
                   </div>
 
                   <div className="card-actions">
-                    <button className="action-btn view" onClick={() => handleViewQuotation(quote)}>
+                    <button className="action-btn view" onClick={() => {}}>
                       <FaEye /> View Details
                     </button>
                     <button className="action-btn download">
@@ -257,12 +343,13 @@ const Quotation = () => {
               </div>
             ) : (
               bills.map(bill => (
-                <div key={bill.id} className="bill-card">
+                <div key={bill.id} className={`bill-card ${bill.isNew ? 'new' : ''}`}>
+                  {bill.isNew && <div className="new-badge">New</div>}
                   <div className="card-header">
                     <div>
                       <h3>{bill.id}</h3>
                       <p>{bill.description}</p>
-                      <p>Due: {new Date(bill.dueDate).toLocaleDateString()}</p>
+                      <p>Due: {bill.dueDate}</p>
                     </div>
                     {getStatusBadge(bill.status)}
                   </div>
@@ -273,10 +360,15 @@ const Quotation = () => {
                   </div>
 
                   <div className="card-actions">
-                    {bill.status === 'pending' && (
+                    {(bill.status === 'pending' || bill.paymentStatus === 'pending') && (
                       <button className="action-btn pay" onClick={() => handlePayNow(bill)}>
                         <FaCreditCard /> Pay Now
                       </button>
+                    )}
+                    {bill.paymentStatus === 'for_verification' && (
+                      <span className="payment-status pending-verification">
+                        <FaClock /> Payment Pending Verification
+                      </span>
                     )}
                     <button className="action-btn view">
                       <FaEye /> View Details
@@ -338,36 +430,88 @@ const Quotation = () => {
                 <div className="invoice-summary">
                   <p><strong>Invoice:</strong> {selectedInvoice.id}</p>
                   <p><strong>Amount:</strong> {formatCurrency(selectedInvoice.amount)}</p>
-                  <p><strong>Due Date:</strong> {new Date(selectedInvoice.dueDate).toLocaleDateString()}</p>
+                  <p><strong>Due Date:</strong> {selectedInvoice.dueDate}</p>
                 </div>
 
                 <div className="payment-methods">
                   <h4>Select Payment Method</h4>
-                  <button className="payment-method">
-                    <FaQrcode /> GCash
-                  </button>
-                  <button className="payment-method">
-                    <FaCreditCard /> Bank Transfer
-                  </button>
+                  <div className="payment-options">
+                    <label className={`payment-option ${paymentMethod === 'gcash' ? 'selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="gcash"
+                        checked={paymentMethod === 'gcash'}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      <FaQrcode /> GCash
+                    </label>
+                    <label className={`payment-option ${paymentMethod === 'cash' ? 'selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="cash"
+                        checked={paymentMethod === 'cash'}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      <FaMoneyBillWave /> Cash (Walk-in)
+                    </label>
+                  </div>
                 </div>
 
-                <div className="gcash-details">
-                  <h4>GCash Details</h4>
-                  <p>Number: <strong>0917XXXXXXX</strong></p>
-                  <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
-                  <p>Amount: <strong>{formatCurrency(selectedInvoice.amount)}</strong></p>
-                </div>
+                {paymentMethod === 'gcash' && (
+                  <>
+                    <div className="gcash-details">
+                      <h4>GCash Details</h4>
+                      <p>Number: <strong>0917XXXXXXX</strong></p>
+                      <p>Name: <strong>SALFER ENGINEERING CORP</strong></p>
+                      <p>Amount: <strong>{formatCurrency(selectedInvoice.amount)}</strong></p>
+                    </div>
 
-                <div className="upload-section">
-                  <label>Upload Payment Proof</label>
-                  <input type="file" accept="image/*" />
-                  <small>Upload screenshot of your payment</small>
-                </div>
+                    <div className="upload-section">
+                      <label>Reference Number *</label>
+                      <input
+                        type="text"
+                        value={paymentReference}
+                        onChange={(e) => setPaymentReference(e.target.value)}
+                        placeholder="Enter GCash reference number"
+                        className="payment-input"
+                      />
+                    </div>
+
+                    <div className="upload-section">
+                      <label>Upload Payment Screenshot *</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setPaymentProof(e.target.files[0])}
+                      />
+                      {paymentProof && <small>Selected: {paymentProof.name}</small>}
+                    </div>
+                  </>
+                )}
+
+                {paymentMethod === 'cash' && (
+                  <div className="cash-details">
+                    <p>Please visit our office to pay the amount:</p>
+                    <div className="office-info">
+                      <p><strong>Address:</strong> Purok 2, Masaya, San Jose, Camarines Sur</p>
+                      <p><strong>Office Hours:</strong> Mon-Fri, 9AM-6PM</p>
+                      <p><strong>Amount:</strong> {formatCurrency(selectedInvoice.amount)}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="modal-actions">
                 <button className="cancel-btn" onClick={closeModal}>Cancel</button>
-                <button className="submit-btn">Submit Payment</button>
+                <button 
+                  className="submit-btn" 
+                  onClick={handlePaymentSubmit}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? <><FaSpinner className="spinner" /> Processing...</> : 'Submit Payment'}
+                </button>
               </div>
             </div>
           </div>

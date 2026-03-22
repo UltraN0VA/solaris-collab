@@ -24,9 +24,7 @@ import {
   FaRegFileAlt,
   FaPaperPlane,
   FaClipboardList,
-  FaQrcode,
   FaTimes,
-  FaTrash,
   FaArrowLeft,
   FaArrowRight,
   FaBolt,
@@ -44,7 +42,6 @@ const ScheduleAssessment = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState('service-selection');
-  const [activeCard, setActiveCard] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [submittedData, setSubmittedData] = useState(null);
 
@@ -70,35 +67,13 @@ const ScheduleAssessment = () => {
   const [bookingData, setBookingData] = useState(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [paymentProof, setPaymentProof] = useState(null);
-  const [paymentReference, setPaymentReference] = useState('');
-  const [paymentStatus, setPaymentStatus] = useState('pending');
 
   const [validationErrors, setValidationErrors] = useState({});
-  const [cardErrors, setCardErrors] = useState({});
-
-  const card1Ref = useRef(null);
-  const card2Ref = useRef(null);
-  const card3Ref = useRef(null);
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      fetchClientData();
-      fetchClientAddresses();
-    }, 1000);
+    fetchClientData();
+    fetchClientAddresses();
   }, []);
-
-  useEffect(() => {
-    if (activeCard === 1 && card1Ref.current) {
-      card1Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else if (activeCard === 2 && card2Ref.current) {
-      card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else if (activeCard === 3 && card3Ref.current) {
-      card3Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [activeCard]);
 
   const fetchClientData = async () => {
     try {
@@ -171,9 +146,6 @@ const ScheduleAssessment = () => {
       if (validationErrors[name]) {
         setValidationErrors(prev => ({ ...prev, [name]: '' }));
       }
-      if (cardErrors[activeCard]) {
-        setCardErrors(prev => ({ ...prev, [activeCard]: '' }));
-      }
     }
   };
 
@@ -239,82 +211,23 @@ const ScheduleAssessment = () => {
   };
 
   // PRE ASSESSMENT VALIDATION
-  const validateCard1 = () => {
+  const validateForm = () => {
     const errors = {};
-    if (!formData.firstName.trim()) errors.firstName = 'First name is required';
-    if (!formData.lastName.trim()) errors.lastName = 'Last name is required';
-    if (!formData.contactNumber.trim()) errors.contactNumber = 'Contact number is required';
-    return errors;
-  };
-
-  const validateCard2 = () => {
-    const errors = {};
+    if (!formData.propertyType) errors.propertyType = 'Property type is required';
+    if (!formData.preferredDate) errors.preferredDate = 'Preferred date is required';
     if (!selectedAddress) errors.address = 'Please select an address';
     return errors;
   };
 
-  const validateCard3 = () => {
-    const errors = {};
-    if (!formData.propertyType) errors.propertyType = 'Property type is required';
-    if (!formData.preferredDate) errors.preferredDate = 'Preferred date is required';
-    return errors;
-  };
-
-  const handleNext = () => {
-    let isValid = false;
-
-    if (activeCard === 1) {
-      const errors = validateCard1();
-      if (Object.keys(errors).length === 0) {
-        isValid = true;
-      } else {
-        setValidationErrors(errors);
-        setCardErrors(prev => ({ ...prev, [1]: 'Please complete all required fields' }));
-      }
-    } else if (activeCard === 2) {
-      const errors = validateCard2();
-      if (Object.keys(errors).length === 0) {
-        isValid = true;
-      } else {
-        setValidationErrors(errors);
-        setCardErrors(prev => ({ ...prev, [2]: 'Please select an address' }));
-      }
-    } else if (activeCard === 3) {
-      const errors = validateCard3();
-      if (Object.keys(errors).length === 0) {
-        isValid = true;
-      } else {
-        setValidationErrors(errors);
-        setCardErrors(prev => ({ ...prev, [3]: 'Please complete all required fields' }));
-      }
-    }
-
-    if (isValid && activeCard < 3) {
-      setActiveCard(activeCard + 1);
-      setValidationErrors({});
-    }
-  };
-
-  const handlePrevious = () => {
-    if (activeCard > 1) {
-      setActiveCard(activeCard - 1);
-      setValidationErrors({});
-    }
-  };
-
   // PRE ASSESSMENT SUBMISSION
   const handleSubmitClick = () => {
-    const errors1 = validateCard1();
-    const errors2 = validateCard2();
-    const errors3 = validateCard3();
-
-    if (Object.keys(errors1).length === 0 &&
-      Object.keys(errors2).length === 0 &&
-      Object.keys(errors3).length === 0) {
-      setShowConfirmDialog(true);
-    } else {
-      alert('Please complete all sections before submitting');
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      alert('Please complete all required fields');
+      return;
     }
+    setShowConfirmDialog(true);
   };
 
   const handleConfirmBooking = async () => {
@@ -349,55 +262,18 @@ const ScheduleAssessment = () => {
 
       setShowConfirmDialog(false);
       setTermsAccepted(false);
-      setCurrentStep('payment');
+      // After successful booking, navigate to billing page to make payment
+      navigate('/dashboard/customerbilling', { 
+        state: { 
+          newInvoice: {
+            id: response.data.booking.invoiceNumber,
+            amount: response.data.booking.assessmentFee,
+            description: 'Pre Assessment Fee'
+          }
+        }
+      });
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to submit pre-assessment. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handlePaymentSubmit = async () => {
-    if (!paymentProof) {
-      alert('Please upload payment proof');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      const formDataPayment = new FormData();
-      formDataPayment.append('bookingReference', bookingData.bookingReference);
-      formDataPayment.append('paymentMethod', paymentMethod);
-      formDataPayment.append('paymentProof', paymentProof);
-      if (paymentReference) formDataPayment.append('paymentReference', paymentReference);
-
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/payment`, formDataPayment, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
-      });
-
-      setPaymentStatus('forVerification');
-      setCurrentStep('confirmation');
-    } catch (err) {
-      alert('Failed to submit payment. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCashPayment = async () => {
-    setIsSubmitting(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/cash-payment`, {
-        bookingReference: bookingData.bookingReference
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      setCurrentStep('confirmation');
-    } catch (err) {
-      alert('Failed to process cash payment.');
     } finally {
       setIsSubmitting(false);
     }
@@ -566,7 +442,6 @@ const ScheduleAssessment = () => {
                 className="btn-paid-assessment"
                 onClick={() => {
                   setCurrentStep('form');
-                  setActiveCard(1);
                 }}
               >
                 Book Pre Assessment
@@ -686,6 +561,12 @@ const ScheduleAssessment = () => {
         </Helmet>
 
         <div className="schedule-container">
+          <div className="back-button-container">
+            <button onClick={() => setCurrentStep('service-selection')} className="back-to-services">
+              <FaChevronRight /> Back to Services
+            </button>
+          </div>
+
           <h1 className="schedule-title">Book Pre Assessment</h1>
           <p className="schedule-subtitle">Complete the form below to schedule your professional pre-assessment (₱1,500)</p>
 
@@ -747,6 +628,7 @@ const ScheduleAssessment = () => {
                       </button>
                     </div>
                   )}
+                  {validationErrors.address && <small className="schedule-error-text">{validationErrors.address}</small>}
                 </div>
               </div>
             </div>
@@ -819,14 +701,14 @@ const ScheduleAssessment = () => {
                     <FaMoneyBillWave className="schedule-fee-icon" />
                     <div>
                       <strong>Pre Assessment Fee: ₱1,500.00</strong>
-                      <p>Non-refundable fee for 7-day IoT device monitoring and detailed report</p>
+                      <p>You will be redirected to the billing page to complete payment after booking.</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="form-actions">
                   <button onClick={handleSubmitClick} className="schedule-btn-submit">
-                    Review & Confirm
+                    Continue to Payment
                   </button>
                 </div>
               </div>
@@ -878,7 +760,7 @@ const ScheduleAssessment = () => {
                     disabled={!termsAccepted || isSubmitting}
                     className="schedule-btn-success"
                   >
-                    {isSubmitting ? 'Processing...' : 'Confirm Booking'}
+                    {isSubmitting ? 'Processing...' : 'Confirm & Proceed to Payment'}
                   </button>
                 </div>
               </div>
@@ -886,175 +768,6 @@ const ScheduleAssessment = () => {
           )}
         </div>
       </>
-    );
-  }
-
-  // ==================== PAYMENT SCREEN ====================
-  if (currentStep === 'payment') {
-    return (
-      <div className="schedule-container">
-        <h1 className="schedule-title">Complete Your Payment</h1>
-
-        <div className="schedule-summary-card">
-          <h3>Booking Summary</h3>
-          <p><strong>Booking Reference:</strong> {bookingData?.bookingReference}</p>
-          <p><strong>Invoice Number:</strong> {bookingData?.invoiceNumber}</p>
-          <p><strong>Amount Due:</strong> ₱{bookingData?.assessmentFee}.00</p>
-        </div>
-
-        <h3>Select Payment Method</h3>
-
-        <div className="schedule-payment-options">
-          {/* GCash Option */}
-          <div className={`schedule-payment-card ${paymentMethod === 'gcash' ? 'selected' : ''}`}>
-            <label className="schedule-radio-label">
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="gcash"
-                checked={paymentMethod === 'gcash'}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              />
-              <div className="schedule-payment-header">
-                <FaQrcode />
-                <span>GCash</span>
-              </div>
-            </label>
-
-            {paymentMethod === 'gcash' && (
-              <div className="schedule-payment-details">
-                <div className="schedule-payment-info">
-                  <p><strong>GCash Number:</strong> 0917XXXXXXX</p>
-                  <p><strong>Name:</strong> SALFER ENGINEERING CORP</p>
-                  <p><strong>Amount:</strong> ₱{bookingData?.assessmentFee}.00</p>
-                </div>
-
-                <div className="schedule-upload-group">
-                  <label>Reference Number *</label>
-                  <input
-                    type="text"
-                    value={paymentReference}
-                    onChange={(e) => setPaymentReference(e.target.value)}
-                    placeholder="Enter GCash reference number"
-                    className="schedule-form-input"
-                  />
-                </div>
-
-                <div className="schedule-upload-group">
-                  <label>Upload Payment Screenshot *</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setPaymentProof(e.target.files[0])}
-                  />
-                  {paymentProof && <small>Selected: {paymentProof.name}</small>}
-                </div>
-
-                <button
-                  onClick={handlePaymentSubmit}
-                  disabled={!paymentProof || !paymentReference}
-                  className="schedule-btn-payment"
-                >
-                  Submit Proof of Payment
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Cash Option */}
-          <div className={`schedule-payment-card ${paymentMethod === 'cash' ? 'selected' : ''}`}>
-            <label className="schedule-radio-label">
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="cash"
-                checked={paymentMethod === 'cash'}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              />
-              <div className="schedule-payment-header">
-                <span>Cash (Walk-in Payment)</span>
-              </div>
-            </label>
-
-            {paymentMethod === 'cash' && (
-              <div className="schedule-payment-details">
-                <p>Please visit our office to pay the pre-assessment fee:</p>
-                <div className="schedule-office-info">
-                  <p><strong>Address:</strong> Purok 2, Masaya, San Jose, Camarines Sur</p>
-                  <p><strong>Office Hours:</strong> Mon-Fri, 9AM-6PM</p>
-                  <p><strong>Amount:</strong> ₱{bookingData?.assessmentFee}.00</p>
-                </div>
-                <button onClick={handleCashPayment} className="schedule-btn-payment">
-                  I Understand, Proceed
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ==================== CONFIRMATION SCREEN ====================
-  if (currentStep === 'confirmation') {
-    return (
-      <div className="schedule-container">
-        <div className="schedule-confirmation-card">
-          <FaCheckCircle className="schedule-confirmation-icon" />
-
-          <h1>Pre Assessment {paymentStatus === 'paid' ? 'Confirmed!' : 'Booked!'}</h1>
-
-          <div className="schedule-booking-details">
-            <p><strong>Booking Reference:</strong> {bookingData?.bookingReference}</p>
-            <p><strong>Invoice Number:</strong> {bookingData?.invoiceNumber}</p>
-
-            {paymentMethod === 'gcash' && paymentStatus === 'forVerification' && (
-              <div className="schedule-status-info">
-                <FaClock />
-                <div>
-                  <p><strong>Payment Status:</strong> For Verification</p>
-                  <p>Your proof of payment is being verified. You'll receive a confirmation email once verified.</p>
-                </div>
-              </div>
-            )}
-
-            {paymentMethod === 'cash' && (
-              <div className="schedule-status-info">
-                <FaExclamationTriangle />
-                <div>
-                  <p><strong>Payment Status:</strong> Pending Cash Payment</p>
-                  <p>Please visit our office to complete your payment.</p>
-                </div>
-              </div>
-            )}
-
-            {paymentStatus === 'paid' && (
-              <div className="schedule-status-info">
-                <FaCheckCircle />
-                <div>
-                  <p><strong>Payment Status:</strong> Paid</p>
-                  <p><strong>Assessment Status:</strong> Scheduled</p>
-                  <p>Your pre-assessment is scheduled to start on {formData.preferredDate}.</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="schedule-next-steps">
-            <h3>What's Next?</h3>
-            <ul>
-              <li>An engineer will be assigned to your site</li>
-              <li>IoT device will be deployed for 7-day monitoring</li>
-              <li>You'll receive updates via email/SMS</li>
-              <li>A detailed report will be provided after data collection</li>
-            </ul>
-          </div>
-
-          <button onClick={() => navigate('/dashboard/customerdashboard')} className="schedule-btn-secondary">
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
     );
   }
 
