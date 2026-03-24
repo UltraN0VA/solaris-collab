@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { 
-  FaProjectDiagram,
   FaSearch, 
   FaEye, 
   FaCheckCircle, 
@@ -12,34 +11,11 @@ import {
   FaMoneyBillWave,
   FaClock,
   FaExclamationTriangle,
-  FaDownload,
-  FaFilter,
   FaChevronLeft,
   FaChevronRight,
-  FaUser,
-  FaMapMarkerAlt,
-  FaCalendarAlt,
-  FaBuilding,
-  FaMicrochip,
   FaUserCog,
-  FaEnvelope,
-  FaPhone,
-  FaFileAlt,
-  FaEdit,
-  FaUserCheck,
-  FaTools,
-  FaTrash,
   FaCheck,
-  FaArrowRight,
-  FaChartLine,
-  FaDollarSign,
-  FaWrench,
-  FaClipboardList,
-  FaFileInvoice,
-  FaHistory,
-  FaCamera,
-  FaRegFileAlt,
-  FaClipboardCheck
+  FaTools
 } from 'react-icons/fa';
 import '../../styles/Admin/project.css';
 
@@ -220,15 +196,15 @@ const ProjectManagement = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'quoted': <span className="status-badge quoted">Quoted</span>,
-      'approved': <span className="status-badge approved">Approved</span>,
-      'initial_paid': <span className="status-badge initial-paid">Initial Paid</span>,
-      'in_progress': <span className="status-badge in-progress">In Progress</span>,
-      'progress_paid': <span className="status-badge progress-paid">Progress Paid</span>,
-      'completed': <span className="status-badge completed">Completed</span>,
-      'cancelled': <span className="status-badge cancelled">Cancelled</span>
+      'quoted': <span className="status-badge-adminprojectman quoted-adminprojectman">Quoted</span>,
+      'approved': <span className="status-badge-adminprojectman approved-adminprojectman">Approved</span>,
+      'initial_paid': <span className="status-badge-adminprojectman initial-paid-adminprojectman">Initial Paid</span>,
+      'in_progress': <span className="status-badge-adminprojectman in-progress-adminprojectman">In Progress</span>,
+      'progress_paid': <span className="status-badge-adminprojectman progress-paid-adminprojectman">Progress Paid</span>,
+      'completed': <span className="status-badge-adminprojectman completed-adminprojectman">Completed</span>,
+      'cancelled': <span className="status-badge-adminprojectman cancelled-adminprojectman">Cancelled</span>
     };
-    return badges[status] || <span className="status-badge">{status}</span>;
+    return badges[status] || <span className="status-badge-adminprojectman">{status}</span>;
   };
 
   const getProgressPercentage = (project) => {
@@ -251,13 +227,38 @@ const ProjectManagement = () => {
            project.clientId?.contactLastName?.toLowerCase().includes(searchLower);
   });
 
-  if (loading && projects.length === 0) {
-    return (
-      <div className="project-loading">
-        <FaSpinner className="spinner" />
-        <p>Loading projects...</p>
+  // Skeleton Loader
+  const SkeletonLoader = () => (
+    <div className="project-management-adminprojectman">
+      <div className="project-header-adminprojectman">
+        <div className="skeleton-line-adminprojectman large-adminprojectman"></div>
+        <div className="skeleton-line-adminprojectman medium-adminprojectman"></div>
       </div>
-    );
+      <div className="project-stats-adminprojectman">
+        {[1, 2, 3, 4, 5].map(i => (
+          <div key={i} className="stat-card-adminprojectman skeleton-card-adminprojectman">
+            <div className="skeleton-line-adminprojectman small-adminprojectman"></div>
+            <div className="skeleton-line-adminprojectman large-adminprojectman"></div>
+          </div>
+        ))}
+      </div>
+      <div className="project-filters-adminprojectman">
+        <div className="skeleton-select-adminprojectman"></div>
+        <div className="skeleton-search-adminprojectman"></div>
+      </div>
+      <div className="project-table-container-adminprojectman">
+        <div className="skeleton-table-adminprojectman">
+          <div className="skeleton-table-header-adminprojectman"></div>
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="skeleton-table-row-adminprojectman"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading && projects.length === 0) {
+    return <SkeletonLoader />;
   }
 
   return (
@@ -266,57 +267,52 @@ const ProjectManagement = () => {
         <title>Project Management | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="project-management">
+      <div className="project-management-adminprojectman">
         {/* Header */}
-        <div className="project-header">
+        <div className="project-header-adminprojectman">
           <div>
-            <h1><FaProjectDiagram /> Project Management</h1>
+            <h1>Project Management</h1>
             <p>Manage solar installation projects from quotation to completion</p>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="project-stats">
-          <div className="stat-card total">
-            <div className="stat-icon"><FaProjectDiagram /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.total}</span>
-              <span className="stat-label">Total Projects</span>
+        {/* Stats Cards - No Icons */}
+        <div className="project-stats-adminprojectman">
+          <div className="stat-card-adminprojectman total-adminprojectman">
+            <div className="stat-info-adminprojectman">
+              <span className="stat-value-adminprojectman">{stats.total}</span>
+              <span className="stat-label-adminprojectman">Total Projects</span>
             </div>
           </div>
-          <div className="stat-card quoted">
-            <div className="stat-icon"><FaFileAlt /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.quoted}</span>
-              <span className="stat-label">Quoted</span>
+          <div className="stat-card-adminprojectman quoted-adminprojectman">
+            <div className="stat-info-adminprojectman">
+              <span className="stat-value-adminprojectman">{stats.quoted}</span>
+              <span className="stat-label-adminprojectman">Quoted</span>
             </div>
           </div>
-          <div className="stat-card in-progress">
-            <div className="stat-icon"><FaTools /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.inProgress}</span>
-              <span className="stat-label">In Progress</span>
+          <div className="stat-card-adminprojectman in-progress-adminprojectman">
+            <div className="stat-info-adminprojectman">
+              <span className="stat-value-adminprojectman">{stats.inProgress}</span>
+              <span className="stat-label-adminprojectman">In Progress</span>
             </div>
           </div>
-          <div className="stat-card completed">
-            <div className="stat-icon"><FaCheckCircle /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.completed}</span>
-              <span className="stat-label">Completed</span>
+          <div className="stat-card-adminprojectman completed-adminprojectman">
+            <div className="stat-info-adminprojectman">
+              <span className="stat-value-adminprojectman">{stats.completed}</span>
+              <span className="stat-label-adminprojectman">Completed</span>
             </div>
           </div>
-          <div className="stat-card revenue">
-            <div className="stat-icon"><FaMoneyBillWave /></div>
-            <div className="stat-info">
-              <span className="stat-value">{formatCurrency(stats.totalRevenue)}</span>
-              <span className="stat-label">Total Revenue</span>
+          <div className="stat-card-adminprojectman revenue-adminprojectman">
+            <div className="stat-info-adminprojectman">
+              <span className="stat-value-adminprojectman">{formatCurrency(stats.totalRevenue)}</span>
+              <span className="stat-label-adminprojectman">Total Revenue</span>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="project-filters">
-          <div className="filter-group">
+        <div className="project-filters-adminprojectman">
+          <div className="filter-group-adminprojectman">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Status</option>
               <option value="quoted">Quoted</option>
@@ -328,8 +324,8 @@ const ProjectManagement = () => {
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
-          <div className="search-group">
-            <FaSearch className="search-icon" />
+          <div className="search-group-adminprojectman">
+            <FaSearch className="search-icon-adminprojectman" />
             <input
               type="text"
               placeholder="Search by project name, reference or client..."
@@ -340,8 +336,8 @@ const ProjectManagement = () => {
         </div>
 
         {/* Projects Table */}
-        <div className="project-table-container">
-          <table className="project-table">
+        <div className="project-table-container-adminprojectman">
+          <table className="project-table-adminprojectman">
             <thead>
               <tr>
                 <th>Project</th>
@@ -352,40 +348,39 @@ const ProjectManagement = () => {
                 <th>Progress</th>
                 <th>Status</th>
                 <th>Actions</th>
-                </tr>
-               </thead>
+              </tr>
+            </thead>
             <tbody>
               {filteredProjects.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="empty-state">
-                    <FaProjectDiagram className="empty-icon" />
+                  <td colSpan="8" className="empty-state-adminprojectman">
                     <p>No projects found</p>
                   </td>
                 </tr>
               ) : (
                 filteredProjects.map(project => (
                   <tr key={project._id}>
-                    <td className="project-cell">
-                      <div className="project-name">{project.projectName}</div>
-                      <div className="project-ref">{project.projectReference}</div>
+                    <td className="project-cell-adminprojectman">
+                      <div className="project-name-adminprojectman">{project.projectName}</div>
+                      <div className="project-ref-adminprojectman">{project.projectReference}</div>
                     </td>
                     <td>
                       <div><strong>{project.clientId?.contactFirstName} {project.clientId?.contactLastName}</strong></div>
                       <div><small>{project.clientId?.contactNumber}</small></div>
                     </td>
                     <td>{project.systemSize} kW</td>
-                    <td className="amount">{formatCurrency(project.totalCost)}</td>
-                    <td className="amount">{formatCurrency(project.amountPaid)}</td>
-                    <td className="progress-cell">
-                      <div className="progress-bar-container">
-                        <div className="progress-bar" style={{ width: `${getProgressPercentage(project)}%` }}></div>
+                    <td className="amount-adminprojectman">{formatCurrency(project.totalCost)}</td>
+                    <td className="amount-adminprojectman">{formatCurrency(project.amountPaid)}</td>
+                    <td className="progress-cell-adminprojectman">
+                      <div className="progress-bar-container-adminprojectman">
+                        <div className="progress-bar-adminprojectman" style={{ width: `${getProgressPercentage(project)}%` }}></div>
                       </div>
-                      <span className="progress-text">{getProgressPercentage(project)}%</span>
+                      <span className="progress-text-adminprojectman">{getProgressPercentage(project)}%</span>
                     </td>
                     <td>{getStatusBadge(project.status)}</td>
-                    <td className="actions-cell">
+                    <td className="actions-cell-adminprojectman">
                       <button 
-                        className="action-btn view"
+                        className="action-btn-adminprojectman view-adminprojectman"
                         onClick={() => { setSelectedProject(project); setShowDetailModal(true); }}
                         title="View Details"
                       >
@@ -393,7 +388,7 @@ const ProjectManagement = () => {
                       </button>
                       {project.status === 'quoted' && (
                         <button 
-                          className="action-btn approve"
+                          className="action-btn-adminprojectman approve-adminprojectman"
                           onClick={() => { setSelectedProject(project); setFormData({ ...formData, newStatus: 'approved' }); setShowStatusModal(true); }}
                           title="Approve Project"
                         >
@@ -402,7 +397,7 @@ const ProjectManagement = () => {
                       )}
                       {project.status === 'approved' && (
                         <button 
-                          className="action-btn assign"
+                          className="action-btn-adminprojectman assign-adminprojectman"
                           onClick={() => { setSelectedProject(project); setShowAssignModal(true); }}
                           title="Assign Engineer"
                         >
@@ -411,7 +406,7 @@ const ProjectManagement = () => {
                       )}
                       {(project.status === 'initial_paid' || project.status === 'in_progress') && (
                         <button 
-                          className="action-btn payment"
+                          className="action-btn-adminprojectman payment-adminprojectman"
                           onClick={() => { setSelectedProject(project); setShowPaymentModal(true); }}
                           title="Record Payment"
                         >
@@ -420,7 +415,7 @@ const ProjectManagement = () => {
                       )}
                       {project.status === 'in_progress' && (
                         <button 
-                          className="action-btn complete"
+                          className="action-btn-adminprojectman complete-adminprojectman"
                           onClick={() => { setSelectedProject(project); setFormData({ ...formData, newStatus: 'completed' }); setShowStatusModal(true); }}
                           title="Mark Complete"
                         >
@@ -437,17 +432,17 @@ const ProjectManagement = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="pagination">
+          <div className="pagination-adminprojectman">
             <button 
-              className="page-btn"
+              className="page-btn-adminprojectman"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
               <FaChevronLeft /> Previous
             </button>
-            <span className="page-info">Page {currentPage} of {totalPages}</span>
+            <span className="page-info-adminprojectman">Page {currentPage} of {totalPages}</span>
             <button 
-              className="page-btn"
+              className="page-btn-adminprojectman"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
             >
@@ -458,11 +453,11 @@ const ProjectManagement = () => {
 
         {/* Detail Modal */}
         {showDetailModal && selectedProject && (
-          <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
-            <div className="modal-content detail-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminprojectman" onClick={() => setShowDetailModal(false)}>
+            <div className="modal-content-adminprojectman detail-modal-adminprojectman" onClick={e => e.stopPropagation()}>
               <h3>Project Details</h3>
               
-              <div className="detail-section">
+              <div className="detail-section-adminprojectman">
                 <h4>Project Information</h4>
                 <p><strong>Name:</strong> {selectedProject.projectName}</p>
                 <p><strong>Reference:</strong> {selectedProject.projectReference}</p>
@@ -471,7 +466,7 @@ const ProjectManagement = () => {
                 <p><strong>Created:</strong> {formatDate(selectedProject.createdAt)}</p>
               </div>
 
-              <div className="detail-section">
+              <div className="detail-section-adminprojectman">
                 <h4>Client Information</h4>
                 <p><strong>Name:</strong> {selectedProject.clientId?.contactFirstName} {selectedProject.clientId?.contactLastName}</p>
                 <p><strong>Contact:</strong> {selectedProject.clientId?.contactNumber}</p>
@@ -479,27 +474,32 @@ const ProjectManagement = () => {
                 <p><strong>Address:</strong> {selectedProject.addressId?.houseOrBuilding} {selectedProject.addressId?.street}, {selectedProject.addressId?.barangay}, {selectedProject.addressId?.cityMunicipality}</p>
               </div>
 
-              <div className="detail-section">
+              <div className="detail-section-adminprojectman">
                 <h4>Financial Summary</h4>
                 <p><strong>Total Cost:</strong> {formatCurrency(selectedProject.totalCost)}</p>
                 <p><strong>Amount Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p>
                 <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
-                <div className="progress-bar-container large">
-                  <div className="progress-bar" style={{ width: `${getProgressPercentage(selectedProject)}%` }}></div>
+                <div className="progress-bar-container-adminprojectman large-adminprojectman">
+                  <div className="progress-bar-adminprojectman" style={{ width: `${getProgressPercentage(selectedProject)}%` }}></div>
                 </div>
               </div>
 
               {selectedProject.paymentSchedule?.length > 0 && (
-                <div className="detail-section">
+                <div className="detail-section-adminprojectman">
                   <h4>Payment Schedule</h4>
-                  <table className="payment-schedule-table">
+                  <table className="payment-schedule-table-adminprojectman">
                     <thead>
-                      <tr><th>Type</th><th>Amount</th><th>Due Date</th><th>Status</th></tr>
+                      <tr>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {selectedProject.paymentSchedule.map((payment, idx) => (
                         <tr key={idx}>
-                          <td className="capitalize">{payment.type}</td>
+                          <td className="capitalize-adminprojectman">{payment.type}</td>
                           <td>{formatCurrency(payment.amount)}</td>
                           <td>{formatDate(payment.dueDate)}</td>
                           <td>{getPaymentScheduleStatus(payment)}</td>
@@ -511,7 +511,7 @@ const ProjectManagement = () => {
               )}
 
               {selectedProject.assignedEngineerId && (
-                <div className="detail-section">
+                <div className="detail-section-adminprojectman">
                   <h4>Assigned Engineer</h4>
                   <p><strong>Name:</strong> {selectedProject.assignedEngineerId?.firstName} {selectedProject.assignedEngineerId?.lastName}</p>
                   <p><strong>Email:</strong> {selectedProject.assignedEngineerId?.email}</p>
@@ -519,14 +519,14 @@ const ProjectManagement = () => {
               )}
 
               {selectedProject.installationNotes && (
-                <div className="detail-section">
+                <div className="detail-section-adminprojectman">
                   <h4>Installation Notes</h4>
                   <p>{selectedProject.installationNotes}</p>
                 </div>
               )}
 
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowDetailModal(false)}>Close</button>
+              <div className="modal-actions-adminprojectman">
+                <button className="cancel-btn-adminprojectman" onClick={() => setShowDetailModal(false)}>Close</button>
               </div>
             </div>
           </div>
@@ -534,13 +534,13 @@ const ProjectManagement = () => {
 
         {/* Status Update Modal */}
         {showStatusModal && selectedProject && (
-          <div className="modal-overlay" onClick={() => setShowStatusModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminprojectman" onClick={() => setShowStatusModal(false)}>
+            <div className="modal-content-adminprojectman" onClick={e => e.stopPropagation()}>
               <h3>Update Project Status</h3>
               <p><strong>Project:</strong> {selectedProject.projectName}</p>
               <p><strong>Current Status:</strong> {getStatusBadge(selectedProject.status)}</p>
               
-              <div className="form-group">
+              <div className="form-group-adminprojectman">
                 <label>New Status</label>
                 <select value={formData.newStatus} onChange={(e) => setFormData({ ...formData, newStatus: e.target.value })}>
                   <option value="">Select status...</option>
@@ -550,15 +550,15 @@ const ProjectManagement = () => {
                 </select>
               </div>
 
-              <div className="form-group">
+              <div className="form-group-adminprojectman">
                 <label>Notes (Optional)</label>
                 <textarea rows="3" value={formData.statusNotes} onChange={(e) => setFormData({ ...formData, statusNotes: e.target.value })} placeholder="Add notes about this status change..." />
               </div>
 
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowStatusModal(false)}>Cancel</button>
-                <button className="update-btn" onClick={handleUpdateStatus} disabled={!formData.newStatus || isSubmitting}>
-                  {isSubmitting ? <><FaSpinner className="spinner" /> Updating...</> : 'Update Status'}
+              <div className="modal-actions-adminprojectman">
+                <button className="cancel-btn-adminprojectman" onClick={() => setShowStatusModal(false)}>Cancel</button>
+                <button className="update-btn-adminprojectman" onClick={handleUpdateStatus} disabled={!formData.newStatus || isSubmitting}>
+                  {isSubmitting ? 'Updating...' : 'Update Status'}
                 </button>
               </div>
             </div>
@@ -567,12 +567,12 @@ const ProjectManagement = () => {
 
         {/* Assign Engineer Modal */}
         {showAssignModal && selectedProject && (
-          <div className="modal-overlay" onClick={() => setShowAssignModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminprojectman" onClick={() => setShowAssignModal(false)}>
+            <div className="modal-content-adminprojectman" onClick={e => e.stopPropagation()}>
               <h3>Assign Engineer</h3>
               <p><strong>Project:</strong> {selectedProject.projectName}</p>
               
-              <div className="form-group">
+              <div className="form-group-adminprojectman">
                 <label>Select Engineer</label>
                 <select value={formData.engineerId} onChange={(e) => setFormData({ ...formData, engineerId: e.target.value })}>
                   <option value="">Select an engineer...</option>
@@ -582,15 +582,15 @@ const ProjectManagement = () => {
                 </select>
               </div>
 
-              <div className="form-group">
+              <div className="form-group-adminprojectman">
                 <label>Notes (Optional)</label>
                 <textarea rows="3" value={formData.assignNotes} onChange={(e) => setFormData({ ...formData, assignNotes: e.target.value })} placeholder="Add notes for the engineer..." />
               </div>
 
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowAssignModal(false)}>Cancel</button>
-                <button className="assign-btn" onClick={handleAssignEngineer} disabled={!formData.engineerId || isSubmitting}>
-                  {isSubmitting ? <><FaSpinner className="spinner" /> Assigning...</> : 'Assign Engineer'}
+              <div className="modal-actions-adminprojectman">
+                <button className="cancel-btn-adminprojectman" onClick={() => setShowAssignModal(false)}>Cancel</button>
+                <button className="assign-btn-adminprojectman" onClick={handleAssignEngineer} disabled={!formData.engineerId || isSubmitting}>
+                  {isSubmitting ? 'Assigning...' : 'Assign Engineer'}
                 </button>
               </div>
             </div>
@@ -599,20 +599,20 @@ const ProjectManagement = () => {
 
         {/* Payment Modal */}
         {showPaymentModal && selectedProject && (
-          <div className="modal-overlay" onClick={() => setShowPaymentModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminprojectman" onClick={() => setShowPaymentModal(false)}>
+            <div className="modal-content-adminprojectman" onClick={e => e.stopPropagation()}>
               <h3>Record Payment</h3>
               <p><strong>Project:</strong> {selectedProject.projectName}</p>
               <p><strong>Total Cost:</strong> {formatCurrency(selectedProject.totalCost)}</p>
               <p><strong>Amount Paid:</strong> {formatCurrency(selectedProject.amountPaid)}</p>
               <p><strong>Balance:</strong> {formatCurrency(selectedProject.balance)}</p>
               
-              <div className="form-group">
+              <div className="form-group-adminprojectman">
                 <label>Payment Amount *</label>
                 <input type="number" value={formData.paymentAmount} onChange={(e) => setFormData({ ...formData, paymentAmount: e.target.value })} placeholder="Enter amount" />
               </div>
 
-              <div className="form-group">
+              <div className="form-group-adminprojectman">
                 <label>Payment Method</label>
                 <select value={formData.paymentMethod} onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}>
                   <option value="cash">Cash</option>
@@ -622,15 +622,15 @@ const ProjectManagement = () => {
                 </select>
               </div>
 
-              <div className="form-group">
+              <div className="form-group-adminprojectman">
                 <label>Reference Number</label>
                 <input type="text" value={formData.paymentReference} onChange={(e) => setFormData({ ...formData, paymentReference: e.target.value })} placeholder="Transaction reference" />
               </div>
 
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowPaymentModal(false)}>Cancel</button>
-                <button className="record-btn" onClick={handleRecordPayment} disabled={!formData.paymentAmount || isSubmitting}>
-                  {isSubmitting ? <><FaSpinner className="spinner" /> Recording...</> : 'Record Payment'}
+              <div className="modal-actions-adminprojectman">
+                <button className="cancel-btn-adminprojectman" onClick={() => setShowPaymentModal(false)}>Cancel</button>
+                <button className="record-btn-adminprojectman" onClick={handleRecordPayment} disabled={!formData.paymentAmount || isSubmitting}>
+                  {isSubmitting ? 'Recording...' : 'Record Payment'}
                 </button>
               </div>
             </div>

@@ -1,19 +1,19 @@
-/* userManagement.css - Admin User Management Styles */
+/* schedule.css - Admin Schedule Styles */
 
 /* ============================================
    BASE CONTAINER
    ============================================ */
-.user-management-usermgmtad {
+.schedule-container-adminschedule {
   padding: 1rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: white;
+  background: #ffffff;
   min-height: 100vh;
 }
 
 /* ============================================
    HEADER
    ============================================ */
-.user-management-header-usermgmtad {
+.schedule-header-adminschedule {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -24,20 +24,20 @@
   gap: 1rem;
 }
 
-.user-management-header-usermgmtad h1 {
+.schedule-header-adminschedule h1 {
   font-size: 1.75rem;
   font-weight: 500;
   margin: 0 0 0.25rem 0;
   color: #1a1a1a;
 }
 
-.user-management-header-usermgmtad p {
+.schedule-header-adminschedule p {
   font-size: 0.875rem;
   color: #666;
   margin: 0;
 }
 
-.create-user-btn-usermgmtad {
+.create-btn-adminschedule {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -52,14 +52,14 @@
   transition: all 0.2s ease;
 }
 
-.create-user-btn-usermgmtad:hover {
+.create-btn-adminschedule:hover {
   background: #333;
 }
 
 /* ============================================
    STATS CARDS
    ============================================ */
-.user-stats-cards-usermgmtad {
+.stats-cards-adminschedule {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
@@ -67,36 +67,43 @@
 }
 
 @media (max-width: 768px) {
-  .user-stats-cards-usermgmtad {
+  .stats-cards-adminschedule {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.stat-card-usermgmtad {
+.stat-card-adminschedule {
   background: #ffffff;
   border: 1px solid #eaeaea;
   border-radius: 8px;
   padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   transition: all 0.2s ease;
 }
 
-.stat-card-usermgmtad:hover {
+.stat-card-adminschedule:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.stat-info-usermgmtad {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.stat-icon-adminschedule {
+  font-size: 2rem;
+  color: #1a1a1a;
 }
 
-.stat-value-usermgmtad {
+.stat-info-adminschedule {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value-adminschedule {
   font-size: 1.5rem;
   font-weight: 600;
   color: #1a1a1a;
 }
 
-.stat-label-usermgmtad {
+.stat-label-adminschedule {
   font-size: 0.7rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -105,78 +112,9 @@
 }
 
 /* ============================================
-   ROLE DISTRIBUTION
-   ============================================ */
-.role-distribution-usermgmtad {
-  background: #ffffff;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 2rem;
-}
-
-.role-distribution-usermgmtad h3 {
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin: 0 0 1rem 0;
-  color: #1a1a1a;
-}
-
-.role-bars-usermgmtad {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.role-bar-item-usermgmtad {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.role-label-usermgmtad {
-  width: 80px;
-  font-size: 0.75rem;
-  color: #666;
-}
-
-.role-bar-container-usermgmtad {
-  flex: 1;
-  height: 8px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.role-bar-usermgmtad {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.role-bar-usermgmtad.admin-usermgmtad {
-  background: #e74c3c;
-}
-
-.role-bar-usermgmtad.engineer-usermgmtad {
-  background: #3498db;
-}
-
-.role-bar-usermgmtad.user-usermgmtad {
-  background: #2ecc71;
-}
-
-.role-count-usermgmtad {
-  width: 40px;
-  font-size: 0.75rem;
-  color: #666;
-  text-align: right;
-}
-
-/* ============================================
    FILTERS SECTION
    ============================================ */
-.user-filters-section-usermgmtad {
+.filters-section-adminschedule {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -185,13 +123,13 @@
   flex-wrap: wrap;
 }
 
-.filter-tabs-usermgmtad {
+.filter-tabs-adminschedule {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.filter-tab-usermgmtad {
+.filter-tab-adminschedule {
   padding: 0.5rem 1rem;
   background: none;
   border: 1px solid #eaeaea;
@@ -202,23 +140,23 @@
   transition: all 0.2s ease;
 }
 
-.filter-tab-usermgmtad:hover {
+.filter-tab-adminschedule:hover {
   background: #f5f5f5;
   border-color: #ddd;
 }
 
-.filter-tab-usermgmtad.active-usermgmtad {
+.filter-tab-adminschedule.active-adminschedule {
   background: #1a1a1a;
   color: #ffffff;
   border-color: #1a1a1a;
 }
 
-.search-box-usermgmtad {
+.search-box-adminschedule {
   position: relative;
-  width: 280px;
+  width: 300px;
 }
 
-.search-icon-usermgmtad {
+.search-icon-adminschedule {
   position: absolute;
   left: 0.75rem;
   top: 50%;
@@ -227,7 +165,7 @@
   font-size: 0.875rem;
 }
 
-.search-box-usermgmtad input {
+.search-box-adminschedule input {
   width: 100%;
   padding: 0.5rem 0.75rem 0.5rem 2.25rem;
   border: 1px solid #eaeaea;
@@ -235,15 +173,15 @@
   font-size: 0.875rem;
 }
 
-.search-box-usermgmtad input:focus {
+.search-box-adminschedule input:focus {
   outline: none;
   border-color: #999;
 }
 
 /* ============================================
-   USERS TABLE
+   TABLE
    ============================================ */
-.users-table-container-usermgmtad {
+.table-container-adminschedule {
   background: #ffffff;
   border: 1px solid #eaeaea;
   border-radius: 8px;
@@ -251,20 +189,20 @@
   margin-bottom: 1.5rem;
 }
 
-.users-table-usermgmtad {
+.schedule-table-adminschedule {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
 }
 
-.users-table-usermgmtad th,
-.users-table-usermgmtad td {
+.schedule-table-adminschedule th,
+.schedule-table-adminschedule td {
   padding: 0.75rem 1rem;
   text-align: left;
   border-bottom: 1px solid #eaeaea;
 }
 
-.users-table-usermgmtad th {
+.schedule-table-adminschedule th {
   font-weight: 500;
   color: #666;
   font-size: 0.75rem;
@@ -273,65 +211,39 @@
   background: #fafafa;
 }
 
-.users-table-usermgmtad tr:hover {
+.schedule-table-adminschedule tr:hover {
   background: #fafafa;
 }
 
-.user-cell-usermgmtad {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.user-avatar-usermgmtad {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f0f0f0;
-  border-radius: 50%;
-  color: #666;
-  font-size: 1.25rem;
-}
-
-.avatar-initials-usermgmtad {
-  font-size: 0.875rem;
+.ref-cell-adminschedule {
   font-weight: 500;
   color: #1a1a1a;
 }
 
-.user-info-usermgmtad {
+.client-info-adminschedule {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.user-name-usermgmtad {
-  font-weight: 500;
+.client-info-adminschedule strong {
   color: #1a1a1a;
 }
 
-.user-detail-usermgmtad {
+.client-info-adminschedule small {
   font-size: 0.7rem;
   color: #999;
 }
 
-.email-cell-usermgmtad {
-  color: #666;
+.address-cell-adminschedule {
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.email-icon-usermgmtad {
-  margin-right: 0.5rem;
-  color: #999;
-}
-
-.contact-cell-usermgmtad {
-  color: #666;
-}
-
-/* Role Badges */
-.role-badge-usermgmtad {
+/* Status Badges */
+.status-badge-adminschedule {
   display: inline-block;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
@@ -341,50 +253,29 @@
   letter-spacing: 0.5px;
 }
 
-.role-badge-usermgmtad.admin-usermgmtad {
-  background: #fee2e2;
-  color: #e74c3c;
-}
-
-.role-badge-usermgmtad.engineer-usermgmtad {
+.status-badge-adminschedule.scheduled-adminschedule {
   background: #e3f2fd;
-  color: #3498db;
+  color: #1976d2;
 }
 
-.role-badge-usermgmtad.user-usermgmtad {
+.status-badge-adminschedule.completed-adminschedule {
   background: #e8f5e9;
-  color: #2ecc71;
+  color: #2e7d32;
 }
 
-/* Status Badges */
-.status-badge-usermgmtad {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.65rem;
-  font-weight: 500;
-}
-
-.status-badge-usermgmtad.active-usermgmtad {
-  background: #e8f5e9;
-  color: #2ecc71;
-}
-
-.status-badge-usermgmtad.inactive-usermgmtad {
+.status-badge-adminschedule.cancelled-adminschedule {
   background: #ffebee;
-  color: #e74c3c;
+  color: #c62828;
 }
 
 /* Action Buttons */
-.actions-cell-usermgmtad {
+.actions-cell-adminschedule {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.action-btn-usermgmtad {
+.action-btn-adminschedule {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -397,35 +288,27 @@
   color: #666;
 }
 
-.action-btn-usermgmtad:hover {
+.action-btn-adminschedule:hover {
   background: #f5f5f5;
   border-color: #ddd;
 }
 
-.action-btn-usermgmtad.view-usermgmtad:hover {
+.action-btn-adminschedule.view-adminschedule:hover {
   color: #3498db;
 }
 
-.action-btn-usermgmtad.edit-usermgmtad:hover {
+.action-btn-adminschedule.edit-adminschedule:hover {
   color: #f39c12;
 }
 
-.action-btn-usermgmtad.reset-password-usermgmtad:hover {
-  color: #9b59b6;
-}
-
-.action-btn-usermgmtad.toggle-usermgmtad:hover {
-  color: #2ecc71;
-}
-
-.action-btn-usermgmtad.delete-usermgmtad:hover {
+.action-btn-adminschedule.cancel-adminschedule:hover {
   color: #e74c3c;
 }
 
 /* ============================================
    PAGINATION
    ============================================ */
-.pagination-usermgmtad {
+.pagination-adminschedule {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -433,7 +316,7 @@
   margin-top: 1rem;
 }
 
-.page-btn-usermgmtad {
+.page-btn-adminschedule {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -447,17 +330,17 @@
   color: #666;
 }
 
-.page-btn-usermgmtad:hover:not(:disabled) {
+.page-btn-adminschedule:hover:not(:disabled) {
   background: #f5f5f5;
   border-color: #ddd;
 }
 
-.page-btn-usermgmtad:disabled {
+.page-btn-adminschedule:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.page-info-usermgmtad {
+.page-info-adminschedule {
   font-size: 0.75rem;
   color: #666;
 }
@@ -465,7 +348,7 @@
 /* ============================================
    MODALS
    ============================================ */
-.modal-overlay-usermgmtad {
+.modal-overlay-adminschedule {
   position: fixed;
   top: 0;
   left: 0;
@@ -479,17 +362,21 @@
   padding: 1rem;
 }
 
-.modal-content-usermgmtad {
+.modal-content-adminschedule {
   background: #ffffff;
   border-radius: 8px;
-  max-width: 600px;
+  max-width: 500px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   padding: 1.5rem;
 }
 
-.modal-header-usermgmtad {
+.modal-content-adminschedule.modal-large-adminschedule {
+  max-width: 600px;
+}
+
+.modal-header-adminschedule {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -498,14 +385,14 @@
   border-bottom: 1px solid #eaeaea;
 }
 
-.modal-header-usermgmtad h3 {
+.modal-header-adminschedule h3 {
   font-size: 1rem;
   font-weight: 500;
   margin: 0;
   color: #1a1a1a;
 }
 
-.modal-close-usermgmtad {
+.modal-close-adminschedule {
   background: none;
   border: none;
   font-size: 1.25rem;
@@ -513,23 +400,27 @@
   color: #999;
 }
 
-.modal-close-usermgmtad:hover {
+.modal-close-adminschedule:hover {
   color: #666;
 }
 
-/* Detail View */
-.detail-section-usermgmtad {
+.modal-body-adminschedule {
+  margin-bottom: 1.5rem;
+}
+
+/* Detail Sections */
+.detail-section-adminschedule {
   margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #eaeaea;
 }
 
-.detail-section-usermgmtad:last-child {
+.detail-section-adminschedule:last-child {
   border-bottom: none;
   padding-bottom: 0;
 }
 
-.detail-section-usermgmtad h4 {
+.detail-section-adminschedule h4 {
   font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -538,7 +429,7 @@
   margin: 0 0 0.5rem 0;
 }
 
-.detail-row-usermgmtad {
+.detail-row-adminschedule {
   display: flex;
   justify-content: space-between;
   padding: 0.5rem 0;
@@ -546,25 +437,28 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
-.detail-row-usermgmtad:last-child {
+.detail-row-adminschedule:last-child {
   border-bottom: none;
 }
 
-.detail-row-usermgmtad span {
+.detail-row-adminschedule span {
   color: #666;
 }
 
-.detail-row-usermgmtad strong {
+.detail-row-adminschedule strong {
   color: #1a1a1a;
   font-weight: 500;
 }
 
-/* Forms */
-.user-form-usermgmtad {
-  margin-top: 1rem;
+.notes-text-adminschedule {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
 }
 
-.form-row-usermgmtad {
+/* Forms */
+.form-row-adminschedule {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
@@ -572,107 +466,60 @@
 }
 
 @media (max-width: 640px) {
-  .form-row-usermgmtad {
+  .form-row-adminschedule {
     grid-template-columns: 1fr;
   }
 }
 
-.form-group-usermgmtad {
+.form-group-adminschedule {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.form-group-usermgmtad label {
+.form-group-adminschedule label {
   font-size: 0.75rem;
   font-weight: 500;
   color: #666;
 }
 
-.form-group-usermgmtad input,
-.form-group-usermgmtad select {
+.form-group-adminschedule input,
+.form-group-adminschedule select,
+.form-group-adminschedule textarea {
   padding: 0.625rem 0.75rem;
   border: 1px solid #eaeaea;
   border-radius: 4px;
   font-size: 0.875rem;
+  font-family: inherit;
 }
 
-.form-group-usermgmtad input:focus,
-.form-group-usermgmtad select:focus {
+.form-group-adminschedule input:focus,
+.form-group-adminschedule select:focus,
+.form-group-adminschedule textarea:focus {
   outline: none;
   border-color: #999;
 }
 
-.form-group-usermgmtad input.error-usermgmtad {
+.form-group-adminschedule input.error-adminschedule {
   border-color: #e74c3c;
 }
 
-.form-group-usermgmtad small {
-  font-size: 0.65rem;
-  color: #999;
-}
-
-.error-text-usermgmtad {
+.error-text-adminschedule {
   font-size: 0.65rem;
   color: #e74c3c;
-}
-
-.error-message-usermgmtad {
-  padding: 0.5rem;
-  background: #ffebee;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  color: #e74c3c;
-  margin-bottom: 1rem;
-}
-
-.role-display-usermgmtad {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.role-badge-display-usermgmtad {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.role-badge-display-usermgmtad.admin-usermgmtad {
-  background: #fee2e2;
-  color: #e74c3c;
-}
-
-.role-badge-display-usermgmtad.engineer-usermgmtad {
-  background: #e3f2fd;
-  color: #3498db;
-}
-
-.role-badge-display-usermgmtad.user-usermgmtad {
-  background: #e8f5e9;
-  color: #2ecc71;
-}
-
-.role-note-display-usermgmtad {
-  font-size: 0.65rem;
-  color: #999;
 }
 
 /* Modal Actions */
-.modal-actions-usermgmtad {
+.modal-actions-adminschedule {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  margin-top: 1.5rem;
   padding-top: 1rem;
   border-top: 1px solid #eaeaea;
 }
 
-.cancel-btn-usermgmtad {
-  padding: 0.625rem 1.25rem;
+.cancel-btn-adminschedule {
+  padding: 0.5rem 1rem;
   background: #f5f5f5;
   border: 1px solid #eaeaea;
   border-radius: 4px;
@@ -681,14 +528,12 @@
   color: #666;
 }
 
-.cancel-btn-usermgmtad:hover {
+.cancel-btn-adminschedule:hover {
   background: #eaeaea;
 }
 
-.save-btn-usermgmtad,
-.verify-btn-usermgmtad,
-.assign-btn-usermgmtad {
-  padding: 0.625rem 1.25rem;
+.save-btn-adminschedule {
+  padding: 0.5rem 1rem;
   background: #1a1a1a;
   color: #ffffff;
   border: none;
@@ -697,155 +542,102 @@
   cursor: pointer;
 }
 
-.save-btn-usermgmtad:hover:not(:disabled) {
+.save-btn-adminschedule:hover:not(:disabled) {
   background: #333;
 }
 
-.save-btn-usermgmtad:disabled {
+.save-btn-adminschedule:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.delete-btn-usermgmtad {
-  padding: 0.625rem 1.25rem;
-  background: #e74c3c;
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  cursor: pointer;
-}
-
-.delete-btn-usermgmtad:hover:not(:disabled) {
-  background: #c0392b;
-}
-
-/* Confirm Modal */
-.confirm-modal-usermgmtad {
-  text-align: center;
-  max-width: 400px;
-}
-
-.confirm-icon-usermgmtad {
-  font-size: 3rem;
-  color: #f39c12;
-  margin-bottom: 1rem;
-}
-
-.warning-text-usermgmtad {
-  font-size: 0.75rem;
-  color: #e74c3c;
-  margin-top: 0.5rem;
-}
-
-/* User Info Summary */
-.user-info-summary-usermgmtad {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
-
-.user-info-summary-usermgmtad p {
-  margin: 0.25rem 0;
-  font-size: 0.875rem;
-}
-
 /* Empty State */
-.empty-state-usermgmtad {
+.empty-state-adminschedule {
   text-align: center;
   padding: 3rem;
   color: #999;
 }
 
-.empty-state-usermgmtad p {
+.empty-state-adminschedule p {
   margin: 0;
 }
 
 /* ============================================
    SKELETON LOADER
    ============================================ */
-.skeleton-line-usermgmtad {
+.skeleton-line-adminschedule {
   background: #f0f0f0;
   border-radius: 4px;
-  animation: pulse-usermgmtad 1.5s ease-in-out infinite;
+  animation: pulse-adminschedule 1.5s ease-in-out infinite;
 }
 
-.skeleton-line-usermgmtad.large-usermgmtad {
+.skeleton-line-adminschedule.large-adminschedule {
   height: 32px;
   width: 250px;
 }
 
-.skeleton-line-usermgmtad.medium-usermgmtad {
+.skeleton-line-adminschedule.medium-adminschedule {
   height: 24px;
   width: 180px;
 }
 
-.skeleton-line-usermgmtad.small-usermgmtad {
+.skeleton-line-adminschedule.small-adminschedule {
   height: 16px;
   width: 120px;
 }
 
-.skeleton-button-usermgmtad {
-  height: 38px;
-  width: 150px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  animation: pulse-usermgmtad 1.5s ease-in-out infinite;
-}
-
-.skeleton-card-usermgmtad {
+.skeleton-card-adminschedule {
   background: #ffffff;
   border: 1px solid #eaeaea;
   border-radius: 8px;
   padding: 1rem;
 }
 
-.skeleton-tabs-usermgmtad {
+.skeleton-tabs-adminschedule {
   display: flex;
   gap: 0.5rem;
 }
 
-.skeleton-tabs-usermgmtad div {
+.skeleton-tabs-adminschedule div {
   height: 36px;
-  width: 100px;
+  width: 80px;
   background: #f0f0f0;
   border-radius: 4px;
-  animation: pulse-usermgmtad 1.5s ease-in-out infinite;
+  animation: pulse-adminschedule 1.5s ease-in-out infinite;
 }
 
-.skeleton-search-usermgmtad {
+.skeleton-search-adminschedule {
   height: 38px;
   width: 280px;
   background: #f0f0f0;
   border-radius: 4px;
-  animation: pulse-usermgmtad 1.5s ease-in-out infinite;
+  animation: pulse-adminschedule 1.5s ease-in-out infinite;
 }
 
-.skeleton-table-usermgmtad {
+.skeleton-table-adminschedule {
   background: #ffffff;
   border: 1px solid #eaeaea;
   border-radius: 8px;
   padding: 1rem;
 }
 
-.skeleton-table-header-usermgmtad {
+.skeleton-table-header-adminschedule {
   height: 40px;
   background: #f0f0f0;
   border-radius: 4px;
   margin-bottom: 0.5rem;
-  animation: pulse-usermgmtad 1.5s ease-in-out infinite;
+  animation: pulse-adminschedule 1.5s ease-in-out infinite;
 }
 
-.skeleton-table-row-usermgmtad {
+.skeleton-table-row-adminschedule {
   height: 60px;
   background: #f0f0f0;
   border-radius: 4px;
   margin-bottom: 0.5rem;
-  animation: pulse-usermgmtad 1.5s ease-in-out infinite;
+  animation: pulse-adminschedule 1.5s ease-in-out infinite;
 }
 
-@keyframes pulse-usermgmtad {
+@keyframes pulse-adminschedule {
   0%, 100% {
     opacity: 1;
   }
@@ -858,28 +650,39 @@
    RESPONSIVE
    ============================================ */
 @media (max-width: 768px) {
-  .user-management-usermgmtad {
+  .schedule-container-adminschedule {
     padding: 1rem;
   }
   
-  .user-filters-section-usermgmtad {
+  .filters-section-adminschedule {
     flex-direction: column;
   }
   
-  .search-box-usermgmtad {
+  .search-box-adminschedule {
     width: 100%;
   }
   
-  .filter-tabs-usermgmtad {
+  .filter-tabs-adminschedule {
     width: 100%;
     overflow-x: auto;
   }
   
-  .actions-cell-usermgmtad {
-    flex-direction: column;
+  .schedule-table-adminschedule th,
+  .schedule-table-adminschedule td {
+    padding: 0.5rem;
   }
   
-  .modal-content-usermgmtad {
+  .modal-content-adminschedule {
     margin: 1rem;
+  }
+  
+  .modal-actions-adminschedule {
+    flex-wrap: wrap;
+  }
+  
+  .cancel-btn-adminschedule,
+  .save-btn-adminschedule {
+    flex: 1;
+    text-align: center;
   }
 }

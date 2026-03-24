@@ -1,0 +1,676 @@
+/* project.css - Admin Project Management Styles */
+
+/* ============================================
+   BASE CONTAINER
+   ============================================ */
+.project-management-adminprojectman {
+  padding: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #ffffff;
+  min-height: 100vh;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.project-header-adminprojectman {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.project-header-adminprojectman h1 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+  color: #1a1a1a;
+}
+
+.project-header-adminprojectman p {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+}
+
+/* ============================================
+   STATS CARDS
+   ============================================ */
+.project-stats-adminprojectman {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .project-stats-adminprojectman {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .project-stats-adminprojectman {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .project-stats-adminprojectman {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card-adminprojectman {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-top: 3px solid;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.stat-card-adminprojectman:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card-adminprojectman.total-adminprojectman {
+  border-top-color: #3498db;
+}
+
+.stat-card-adminprojectman.quoted-adminprojectman {
+  border-top-color: #f39c12;
+}
+
+.stat-card-adminprojectman.in-progress-adminprojectman {
+  border-top-color: #9b59b6;
+}
+
+.stat-card-adminprojectman.completed-adminprojectman {
+  border-top-color: #2ecc71;
+}
+
+.stat-card-adminprojectman.revenue-adminprojectman {
+  border-top-color: #e74c3c;
+}
+
+.stat-info-adminprojectman {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.stat-value-adminprojectman {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.stat-label-adminprojectman {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999;
+  margin-top: 0.25rem;
+}
+
+/* ============================================
+   FILTERS
+   ============================================ */
+.project-filters-adminprojectman {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-group-adminprojectman select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.search-group-adminprojectman {
+  position: relative;
+  width: 300px;
+}
+
+.search-icon-adminprojectman {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 0.875rem;
+}
+
+.search-group-adminprojectman input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.search-group-adminprojectman input:focus {
+  outline: none;
+  border-color: #999;
+}
+
+/* ============================================
+   TABLE
+   ============================================ */
+.project-table-container-adminprojectman {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.project-table-adminprojectman {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.project-table-adminprojectman th,
+.project-table-adminprojectman td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.project-table-adminprojectman th {
+  font-weight: 500;
+  color: #666;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #fafafa;
+}
+
+.project-table-adminprojectman tr:hover {
+  background: #fafafa;
+}
+
+.project-cell-adminprojectman {
+  min-width: 150px;
+}
+
+.project-name-adminprojectman {
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.project-ref-adminprojectman {
+  font-size: 0.7rem;
+  color: #999;
+  margin-top: 0.25rem;
+}
+
+.amount-adminprojectman {
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+/* Progress Bar */
+.progress-cell-adminprojectman {
+  min-width: 100px;
+}
+
+.progress-bar-container-adminprojectman {
+  height: 6px;
+  background: #eaeaea;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+}
+
+.progress-bar-adminprojectman {
+  height: 100%;
+  background: #1a1a1a;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-text-adminprojectman {
+  font-size: 0.7rem;
+  color: #666;
+}
+
+/* Status Badges */
+.status-badge-adminprojectman {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge-adminprojectman.quoted-adminprojectman {
+  background: #fff3e0;
+  color: #ed6c02;
+}
+
+.status-badge-adminprojectman.approved-adminprojectman {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge-adminprojectman.initial-paid-adminprojectman {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge-adminprojectman.in-progress-adminprojectman {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.status-badge-adminprojectman.progress-paid-adminprojectman {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge-adminprojectman.completed-adminprojectman {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge-adminprojectman.cancelled-adminprojectman {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* Action Buttons */
+.actions-cell-adminprojectman {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.action-btn-adminprojectman {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  background: none;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #666;
+}
+
+.action-btn-adminprojectman:hover {
+  background: #f5f5f5;
+  border-color: #ddd;
+}
+
+.action-btn-adminprojectman.view-adminprojectman:hover {
+  color: #3498db;
+}
+
+.action-btn-adminprojectman.approve-adminprojectman:hover {
+  color: #2ecc71;
+}
+
+.action-btn-adminprojectman.assign-adminprojectman:hover {
+  color: #9b59b6;
+}
+
+.action-btn-adminprojectman.payment-adminprojectman:hover {
+  color: #f39c12;
+}
+
+.action-btn-adminprojectman.complete-adminprojectman:hover {
+  color: #2ecc71;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+.pagination-adminprojectman {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.page-btn-adminprojectman {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #666;
+}
+
+.page-btn-adminprojectman:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #ddd;
+}
+
+.page-btn-adminprojectman:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info-adminprojectman {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+/* ============================================
+   MODALS
+   ============================================ */
+.modal-overlay-adminprojectman {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content-adminprojectman {
+  background: #ffffff;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.modal-content-adminprojectman h3 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+  color: #1a1a1a;
+}
+
+.detail-section-adminprojectman {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.detail-section-adminprojectman:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.detail-section-adminprojectman h4 {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999;
+  margin: 0 0 0.5rem 0;
+}
+
+.detail-section-adminprojectman p {
+  font-size: 0.875rem;
+  margin: 0.25rem 0;
+  color: #333;
+}
+
+/* Forms */
+.form-group-adminprojectman {
+  margin-bottom: 1rem;
+}
+
+.form-group-adminprojectman label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: #666;
+}
+
+.form-group-adminprojectman select,
+.form-group-adminprojectman input,
+.form-group-adminprojectman textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.form-group-adminprojectman select:focus,
+.form-group-adminprojectman input:focus,
+.form-group-adminprojectman textarea:focus {
+  outline: none;
+  border-color: #999;
+}
+
+/* Modal Actions */
+.modal-actions-adminprojectman {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eaeaea;
+}
+
+.cancel-btn-adminprojectman {
+  padding: 0.5rem 1rem;
+  background: #f5f5f5;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.cancel-btn-adminprojectman:hover {
+  background: #eaeaea;
+}
+
+.update-btn-adminprojectman,
+.assign-btn-adminprojectman,
+.record-btn-adminprojectman {
+  padding: 0.5rem 1rem;
+  background: #1a1a1a;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.update-btn-adminprojectman:hover:not(:disabled),
+.assign-btn-adminprojectman:hover:not(:disabled),
+.record-btn-adminprojectman:hover:not(:disabled) {
+  background: #333;
+}
+
+.update-btn-adminprojectman:disabled,
+.assign-btn-adminprojectman:disabled,
+.record-btn-adminprojectman:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Payment Schedule Table */
+.payment-schedule-table-adminprojectman {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.payment-schedule-table-adminprojectman th,
+.payment-schedule-table-adminprojectman td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.payment-schedule-table-adminprojectman th {
+  font-weight: 500;
+  color: #666;
+  background: #fafafa;
+}
+
+.capitalize-adminprojectman {
+  text-transform: capitalize;
+}
+
+/* Empty State */
+.empty-state-adminprojectman {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+}
+
+.empty-state-adminprojectman p {
+  margin: 0;
+}
+
+/* ============================================
+   SKELETON LOADER
+   ============================================ */
+.skeleton-line-adminprojectman {
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-adminprojectman 1.5s ease-in-out infinite;
+}
+
+.skeleton-line-adminprojectman.large-adminprojectman {
+  height: 32px;
+  width: 250px;
+}
+
+.skeleton-line-adminprojectman.medium-adminprojectman {
+  height: 24px;
+  width: 180px;
+}
+
+.skeleton-line-adminprojectman.small-adminprojectman {
+  height: 16px;
+  width: 120px;
+}
+
+.skeleton-card-adminprojectman {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.skeleton-select-adminprojectman {
+  height: 38px;
+  width: 150px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-adminprojectman 1.5s ease-in-out infinite;
+}
+
+.skeleton-search-adminprojectman {
+  height: 38px;
+  width: 280px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-adminprojectman 1.5s ease-in-out infinite;
+}
+
+.skeleton-table-adminprojectman {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.skeleton-table-header-adminprojectman {
+  height: 40px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  animation: pulse-adminprojectman 1.5s ease-in-out infinite;
+}
+
+.skeleton-table-row-adminprojectman {
+  height: 60px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  animation: pulse-adminprojectman 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-adminprojectman {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .project-management-adminprojectman {
+    padding: 1rem;
+  }
+  
+  .project-filters-adminprojectman {
+    flex-direction: column;
+  }
+  
+  .search-group-adminprojectman {
+    width: 100%;
+  }
+  
+  .filter-group-adminprojectman select {
+    width: 100%;
+  }
+  
+  .project-table-adminprojectman th,
+  .project-table-adminprojectman td {
+    padding: 0.5rem;
+  }
+  
+  .actions-cell-adminprojectman {
+    flex-direction: column;
+  }
+  
+  .modal-content-adminprojectman {
+    margin: 1rem;
+  }
+  
+  .modal-actions-adminprojectman {
+    flex-wrap: wrap;
+  }
+  
+  .cancel-btn-adminprojectman,
+  .update-btn-adminprojectman,
+  .assign-btn-adminprojectman,
+  .record-btn-adminprojectman {
+    flex: 1;
+    text-align: center;
+  }
+}
