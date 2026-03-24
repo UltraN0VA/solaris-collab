@@ -17,7 +17,11 @@ import {
   FaPlus,
   FaChartBar,
   FaEye,
-  FaEnvelope
+  FaEnvelope,
+  FaFileAlt,
+  FaCalendarAlt,
+  FaMoneyBillWave,
+  FaUserCheck
 } from 'react-icons/fa';
 import '../../styles/Admin/dashboard.css';
 
@@ -44,7 +48,6 @@ const AdminDashboard = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
 
-      // Fetch all required data in parallel
       const [
         freeQuotesRes,
         preAssessmentsRes,
@@ -69,18 +72,15 @@ const AdminDashboard = () => {
         }).catch(() => ({ data: { total: 0, thisMonth: 0 } }))
       ]);
 
-      // Process free quotes data
       const freeQuotes = freeQuotesRes.data.quotes || [];
       const pendingQuotes = freeQuotes.filter(q => q.status === 'pending');
       const completedQuotes = freeQuotes.filter(q => q.status === 'completed');
 
-      // Process pre-assessments data
       const assessments = preAssessmentsRes.data.assessments || [];
       const pendingAssessments = assessments.filter(a => a.paymentStatus === 'pending');
       const completedAssessments = assessments.filter(a => a.assessmentStatus === 'completed');
       const scheduledAssessments = assessments.filter(a => a.assessmentStatus === 'scheduled');
 
-      // Calculate completion rate
       const completionRate = assessments.length > 0 
         ? (completedAssessments.length / assessments.length * 100).toFixed(1)
         : 0;
@@ -103,7 +103,6 @@ const AdminDashboard = () => {
         completionRate
       });
 
-      // Generate recent activities
       const activities = generateRecentActivities(freeQuotes, assessments);
       setRecentActivities(activities);
 
@@ -118,7 +117,6 @@ const AdminDashboard = () => {
   const generateRecentActivities = (freeQuotes, assessments) => {
     const activities = [];
 
-    // Add free quote activities
     freeQuotes.slice(0, 5).forEach(quote => {
       activities.push({
         id: `quote-${quote._id}`,
@@ -126,28 +124,27 @@ const AdminDashboard = () => {
         message: `New free quote request from ${quote.clientId?.contactFirstName || 'Client'}`,
         time: new Date(quote.requestedAt).toLocaleString(),
         status: quote.status,
-        icon: '📄',
+        icon: <FaFileAlt />,
         action: `/dashboard/free-quotes/${quote._id}`
       });
     });
 
-    // Add pre-assessment activities
     assessments.slice(0, 5).forEach(assessment => {
       let message = '';
-      let icon = '';
+      let icon = null;
       
       if (assessment.paymentStatus === 'for_verification') {
         message = `Payment verification needed for ${assessment.bookingReference}`;
-        icon = '💰';
+        icon = <FaMoneyBillWave />;
       } else if (assessment.assessmentStatus === 'scheduled') {
         message = `Assessment scheduled: ${assessment.bookingReference}`;
-        icon = '📅';
+        icon = <FaCalendarAlt />;
       } else if (assessment.assessmentStatus === 'completed') {
         message = `Assessment completed: ${assessment.bookingReference}`;
-        icon = '✅';
+        icon = <FaCheckCircle />;
       } else {
         message = `New pre-assessment booking: ${assessment.bookingReference}`;
-        icon = '📋';
+        icon = <FaClipboardList />;
       }
       
       activities.push({
@@ -161,7 +158,6 @@ const AdminDashboard = () => {
       });
     });
 
-    // Sort by time (newest first)
     return activities.sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 10);
   };
 
@@ -238,21 +234,21 @@ const AdminDashboard = () => {
     ];
 
     return (
-      <div className="stats-cards-grid">
+      <div className="stats-cards-grid-admindash">
         {cards.map((card, index) => (
-          <div key={index} className="stat-card" style={{ borderTopColor: card.color }}>
-            <div className="stat-card-header">
-              <div className="stat-icon" style={{ color: card.color }}>
+          <div key={index} className="stat-card-admindash" style={{ borderTopColor: card.color }}>
+            <div className="stat-card-header-admindash">
+              <div className="stat-icon-admindash" style={{ color: card.color }}>
                 {card.icon}
               </div>
-              <div className="stat-value">{card.value}</div>
+              <div className="stat-value-admindash">{card.value}</div>
             </div>
-            <div className="stat-title">{card.title}</div>
-            <div className="stat-details">
+            <div className="stat-title-admindash">{card.title}</div>
+            <div className="stat-details-admindash">
               {card.details.map((detail, idx) => (
-                <div key={idx} className="stat-detail-item">
-                  <span className="detail-label">{detail.label}</span>
-                  <span className="detail-value" style={{ color: detail.color }}>
+                <div key={idx} className="stat-detail-item-admindash">
+                  <span className="detail-label-admindash">{detail.label}</span>
+                  <span className="detail-value-admindash" style={{ color: detail.color }}>
                     {detail.value}
                   </span>
                 </div>
@@ -266,7 +262,6 @@ const AdminDashboard = () => {
 
   // Charts Component
   const Charts = () => {
-    // Mock data for charts - will be replaced with real API data
     const monthlyData = {
       labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
       assessments: [5, 8, 12, 15, 20, 25, 30, 35, 40, 45, 50, 55],
@@ -278,52 +273,52 @@ const AdminDashboard = () => {
     };
 
     return (
-      <div className="charts-container">
-        <div className="chart-card">
-          <div className="chart-header">
+      <div className="charts-container-admindash">
+        <div className="chart-card-admindash">
+          <div className="chart-header-admindash">
             <h3>
               <FaChartLine /> Assessment Trends
             </h3>
-            <button className="export-btn" onClick={handleExport}>
+            <button className="export-btn-admindash" onClick={handleExport}>
               <FaDownload /> Export
             </button>
           </div>
-          <div className="chart-placeholder">
-            <div className="chart-bars">
+          <div className="chart-placeholder-admindash">
+            <div className="chart-bars-admindash">
               {monthlyData.assessments.map((value, index) => (
-                <div key={index} className="chart-bar-wrapper">
+                <div key={index} className="chart-bar-wrapper-admindash">
                   <div 
-                    className="chart-bar" 
+                    className="chart-bar-admindash" 
                     style={{ height: `${(value / 60) * 100}%` }}
                     title={`${value} assessments`}
                   >
-                    <span className="bar-value">{value}</span>
+                    <span className="bar-value-admindash">{value}</span>
                   </div>
-                  <span className="bar-label">{monthlyData.labels[index]}</span>
+                  <span className="bar-label-admindash">{monthlyData.labels[index]}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="chart-card">
-          <div className="chart-header">
+        <div className="chart-card-admindash">
+          <div className="chart-header-admindash">
             <h3>
               <FaChartBar /> Revenue Overview
             </h3>
           </div>
-          <div className="chart-placeholder">
-            <div className="revenue-bars">
+          <div className="chart-placeholder-admindash">
+            <div className="revenue-bars-admindash">
               {monthlyData.revenue.map((value, index) => (
-                <div key={index} className="revenue-bar-wrapper">
+                <div key={index} className="revenue-bar-wrapper-admindash">
                   <div 
-                    className="revenue-bar" 
+                    className="revenue-bar-admindash" 
                     style={{ height: `${(value / 60000) * 100}%` }}
                     title={formatCurrency(value)}
                   >
-                    <span className="bar-value">{formatCurrency(value)}</span>
+                    <span className="bar-value-admindash">{formatCurrency(value)}</span>
                   </div>
-                  <span className="bar-label">{monthlyData.labels[index]}</span>
+                  <span className="bar-label-admindash">{monthlyData.labels[index]}</span>
                 </div>
               ))}
             </div>
@@ -345,20 +340,20 @@ const AdminDashboard = () => {
     ];
 
     return (
-      <div className="quick-actions-card">
+      <div className="quick-actions-card-admindash">
         <h3>Quick Actions</h3>
-        <div className="actions-grid">
+        <div className="actions-grid-admindash">
           {actions.map((action, index) => (
             <button
               key={index}
-              className="action-btn"
+              className="action-btn-admindash"
               style={{ borderColor: action.color }}
               onClick={() => navigate(action.path)}
             >
-              <span className="action-icon" style={{ color: action.color }}>
+              <span className="action-icon-admindash" style={{ color: action.color }}>
                 {action.icon}
               </span>
-              <span className="action-label">{action.label}</span>
+              <span className="action-label-admindash">{action.label}</span>
             </button>
           ))}
         </div>
@@ -371,14 +366,14 @@ const AdminDashboard = () => {
     const getStatusIcon = (status) => {
       switch(status) {
         case 'completed':
-          return <FaCheckCircle className="status-icon completed" />;
+          return <FaCheckCircle className="status-icon-admindash completed-admindash" />;
         case 'pending':
         case 'for_verification':
-          return <FaClock className="status-icon pending" />;
+          return <FaClock className="status-icon-admindash pending-admindash" />;
         case 'cancelled':
-          return <FaExclamationTriangle className="status-icon cancelled" />;
+          return <FaExclamationTriangle className="status-icon-admindash cancelled-admindash" />;
         default:
-          return <FaClock className="status-icon" />;
+          return <FaClock className="status-icon-admindash" />;
       }
     };
 
@@ -394,34 +389,34 @@ const AdminDashboard = () => {
     };
 
     return (
-      <div className="recent-activity-card">
-        <div className="card-header">
+      <div className="recent-activity-card-admindash">
+        <div className="card-header-admindash">
           <h3>Recent Activity</h3>
-          <button className="view-all-btn" onClick={() => navigate('/dashboard/activities')}>
+          <button className="view-all-btn-admindash" onClick={() => navigate('/dashboard/activities')}>
             View All
           </button>
         </div>
         
-        <div className="activity-list">
+        <div className="activity-list-admindash">
           {recentActivities.length === 0 ? (
-            <div className="empty-state">
+            <div className="empty-state-admindash">
               <p>No recent activities</p>
             </div>
           ) : (
             recentActivities.map((activity) => (
               <div 
                 key={activity.id} 
-                className="activity-item"
+                className="activity-item-admindash"
                 onClick={() => activity.action && navigate(activity.action)}
               >
-                <div className="activity-icon">{activity.icon || '📋'}</div>
-                <div className="activity-content">
-                  <p className="activity-message">{activity.message}</p>
-                  <span className="activity-time">{activity.time}</span>
+                <div className="activity-icon-admindash">{activity.icon}</div>
+                <div className="activity-content-admindash">
+                  <p className="activity-message-admindash">{activity.message}</p>
+                  <span className="activity-time-admindash">{activity.time}</span>
                 </div>
-                <div className="activity-status">
+                <div className="activity-status-admindash">
                   {getStatusIcon(activity.status)}
-                  <span className="status-text">{getStatusText(activity.status)}</span>
+                  <span className="status-text-admindash">{getStatusText(activity.status)}</span>
                 </div>
               </div>
             ))
@@ -431,22 +426,53 @@ const AdminDashboard = () => {
     );
   };
 
+  // Skeleton Loader
+  const SkeletonLoader = () => (
+    <div className="admin-dashboard-admindash">
+      <div className="dashboard-header-admindash">
+        <div className="skeleton-line-admindash large-admindash"></div>
+        <div className="skeleton-line-admindash medium-admindash"></div>
+      </div>
+      <div className="stats-cards-grid-admindash">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div key={i} className="stat-card-admindash skeleton-card-admindash">
+            <div className="skeleton-line-admindash small-admindash"></div>
+            <div className="skeleton-line-admindash large-admindash"></div>
+            <div className="skeleton-line-admindash tiny-admindash"></div>
+          </div>
+        ))}
+      </div>
+      <div className="dashboard-row-admindash">
+        <div className="chart-card-admindash skeleton-card-admindash">
+          <div className="skeleton-line-admindash medium-admindash"></div>
+          <div className="skeleton-chart-admindash"></div>
+        </div>
+        <div className="quick-actions-card-admindash skeleton-card-admindash">
+          <div className="skeleton-line-admindash medium-admindash"></div>
+          <div className="skeleton-line-admindash small-admindash"></div>
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="admin-dashboard-loading">
-        <FaSpinner className="spinner" />
-        <p>Loading dashboard...</p>
-      </div>
+      <>
+        <Helmet>
+          <title>Admin Dashboard | Salfer Engineering</title>
+        </Helmet>
+        <SkeletonLoader />
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="admin-dashboard-error">
-        <FaExclamationTriangle className="error-icon" />
+      <div className="admin-dashboard-error-admindash">
+        <FaExclamationTriangle className="error-icon-admindash" />
         <h2>Error Loading Dashboard</h2>
         <p>{error}</p>
-        <button onClick={fetchDashboardData} className="retry-btn">Retry</button>
+        <button onClick={fetchDashboardData} className="retry-btn-admindash">Retry</button>
       </div>
     );
   }
@@ -457,22 +483,19 @@ const AdminDashboard = () => {
         <title>Admin Dashboard | Salfer Engineering</title>
       </Helmet>
 
-      <div className="admin-dashboard">
-        <div className="dashboard-header">
+      <div className="admin-dashboard-admindash">
+        <div className="dashboard-header-admindash">
           <h1>Admin Dashboard</h1>
           <p>Welcome back! Here's what's happening with your solar business today.</p>
         </div>
 
-        {/* Stats Cards */}
         <StatsCards />
 
-        {/* Charts Section */}
-        <div className="dashboard-row">
+        <div className="dashboard-row-admindash">
           <Charts />
           <QuickActions />
         </div>
 
-        {/* Recent Activity */}
         <RecentActivity />
       </div>
     </>

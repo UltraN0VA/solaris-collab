@@ -1,4 +1,4 @@
-// pages/Admin/UserManagement.jsx - Updated with password reset in edit mode
+// pages/Admin/UserManagement.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
@@ -50,7 +50,7 @@ const UserManagement = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [modalMode, setModalMode] = useState('view'); // view, edit, create
+  const [modalMode, setModalMode] = useState('view');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -318,18 +318,18 @@ const UserManagement = () => {
 
   const getRoleBadge = (role) => {
     const badges = {
-      admin: <span className="role-badge admin">Admin</span>,
-      engineer: <span className="role-badge engineer">Engineer</span>,
-      user: <span className="role-badge user">Customer</span>
+      admin: <span className="role-badge-usermgmtad admin-usermgmtad">Admin</span>,
+      engineer: <span className="role-badge-usermgmtad engineer-usermgmtad">Engineer</span>,
+      user: <span className="role-badge-usermgmtad user-usermgmtad">Customer</span>
     };
-    return badges[role] || <span className="role-badge">{role}</span>;
+    return badges[role] || <span className="role-badge-usermgmtad">{role}</span>;
   };
 
   const getStatusBadge = (isActive) => {
     if (isActive) {
-      return <span className="status-badge active"><FaCheckCircle /> Active</span>;
+      return <span className="status-badge-usermgmtad active-usermgmtad"><FaCheckCircle /> Active</span>;
     }
-    return <span className="status-badge inactive"><FaTimesCircle /> Inactive</span>;
+    return <span className="status-badge-usermgmtad inactive-usermgmtad"><FaTimesCircle /> Inactive</span>;
   };
 
   const formatDate = (date) => {
@@ -341,13 +341,38 @@ const UserManagement = () => {
     });
   };
 
-  if (loading && users.length === 0) {
-    return (
-      <div className="user-management-loading">
-        <FaSpinner className="spinner" />
-        <p>Loading users...</p>
+  // Skeleton Loader
+  const SkeletonLoader = () => (
+    <div className="user-management-usermgmtad">
+      <div className="user-management-header-usermgmtad">
+        <div className="skeleton-line-usermgmtad large-usermgmtad"></div>
+        <div className="skeleton-button-usermgmtad"></div>
       </div>
-    );
+      <div className="user-stats-cards-usermgmtad">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="stat-card-usermgmtad skeleton-card-usermgmtad">
+            <div className="skeleton-line-usermgmtad small-usermgmtad"></div>
+            <div className="skeleton-line-usermgmtad large-usermgmtad"></div>
+          </div>
+        ))}
+      </div>
+      <div className="user-filters-section-usermgmtad">
+        <div className="skeleton-tabs-usermgmtad"></div>
+        <div className="skeleton-search-usermgmtad"></div>
+      </div>
+      <div className="users-table-container-usermgmtad">
+        <div className="skeleton-table-usermgmtad">
+          <div className="skeleton-table-header-usermgmtad"></div>
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="skeleton-table-row-usermgmtad"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading && users.length === 0) {
+    return <SkeletonLoader />;
   }
 
   return (
@@ -356,109 +381,77 @@ const UserManagement = () => {
         <title>User Management | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="user-management">
+      <div className="user-management-usermgmtad">
         {/* Header */}
-        <div className="user-management-header">
+        <div className="user-management-header-usermgmtad">
           <div>
-            <h1><FaUsers /> User Management</h1>
+            <h1>User Management</h1>
             <p>Manage system users, roles, and permissions</p>
           </div>
-          <button className="create-user-btn" onClick={handleOpenCreateModal}>
+          <button className="create-user-btn-usermgmtad" onClick={handleOpenCreateModal}>
             <FaUserPlus /> Create New User
           </button>
         </div>
 
         {/* Stats Cards */}
-        <div className="user-stats-cards">
-          <div className="stat-card total">
-            <div className="stat-icon"><FaUsers /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.total}</span>
-              <span className="stat-label">Total Users</span>
+        <div className="user-stats-cards-usermgmtad">
+          <div className="stat-card-usermgmtad total-usermgmtad">
+            <div className="stat-info-usermgmtad">
+              <span className="stat-value-usermgmtad">{stats.total}</span>
+              <span className="stat-label-usermgmtad">Total Users</span>
             </div>
           </div>
-          <div className="stat-card active">
-            <div className="stat-icon"><FaCheckCircle /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.activeUsers}</span>
-              <span className="stat-label">Active Users</span>
+          <div className="stat-card-usermgmtad active-usermgmtad">
+            <div className="stat-info-usermgmtad">
+              <span className="stat-value-usermgmtad">{stats.activeUsers}</span>
+              <span className="stat-label-usermgmtad">Active Users</span>
             </div>
           </div>
-          <div className="stat-card inactive">
-            <div className="stat-icon"><FaTimesCircle /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.inactiveUsers}</span>
-              <span className="stat-label">Inactive Users</span>
+          <div className="stat-card-usermgmtad inactive-usermgmtad">
+            <div className="stat-info-usermgmtad">
+              <span className="stat-value-usermgmtad">{stats.inactiveUsers}</span>
+              <span className="stat-label-usermgmtad">Inactive Users</span>
             </div>
           </div>
-          <div className="stat-card new">
-            <div className="stat-icon"><FaCalendarAlt /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.newThisMonth}</span>
-              <span className="stat-label">New This Month</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Role Distribution */}
-        <div className="role-distribution">
-          <h3>Role Distribution</h3>
-          <div className="role-bars">
-            <div className="role-bar-item">
-              <span className="role-label">Admin</span>
-              <div className="role-bar-container">
-                <div className="role-bar admin" style={{ width: `${(stats.byRole.admin / stats.total) * 100 || 0}%` }}></div>
-              </div>
-              <span className="role-count">{stats.byRole.admin || 0}</span>
-            </div>
-            <div className="role-bar-item">
-              <span className="role-label">Engineer</span>
-              <div className="role-bar-container">
-                <div className="role-bar engineer" style={{ width: `${(stats.byRole.engineer / stats.total) * 100 || 0}%` }}></div>
-              </div>
-              <span className="role-count">{stats.byRole.engineer || 0}</span>
-            </div>
-            <div className="role-bar-item">
-              <span className="role-label">Customer</span>
-              <div className="role-bar-container">
-                <div className="role-bar user" style={{ width: `${(stats.byRole.user / stats.total) * 100 || 0}%` }}></div>
-              </div>
-              <span className="role-count">{stats.byRole.user || 0}</span>
+          <div className="stat-card-usermgmtad new-usermgmtad">
+            <div className="stat-info-usermgmtad">
+              <span className="stat-value-usermgmtad">{stats.newThisMonth}</span>
+              <span className="stat-label-usermgmtad">New This Month</span>
             </div>
           </div>
         </div>
 
         {/* Filters and Search */}
-        <div className="user-filters-section">
-          <div className="filter-tabs">
+        <div className="user-filters-section-usermgmtad">
+          <div className="filter-tabs-usermgmtad">
             <button
-              className={`filter-tab ${filterRole === 'all' ? 'active' : ''}`}
+              className={`filter-tab-usermgmtad ${filterRole === 'all' ? 'active-usermgmtad' : ''}`}
               onClick={() => setFilterRole('all')}
             >
               All Users
             </button>
             <button
-              className={`filter-tab ${filterRole === 'admin' ? 'active' : ''}`}
+              className={`filter-tab-usermgmtad ${filterRole === 'admin' ? 'active-usermgmtad' : ''}`}
               onClick={() => setFilterRole('admin')}
             >
               Admins
             </button>
             <button
-              className={`filter-tab ${filterRole === 'engineer' ? 'active' : ''}`}
+              className={`filter-tab-usermgmtad ${filterRole === 'engineer' ? 'active-usermgmtad' : ''}`}
               onClick={() => setFilterRole('engineer')}
             >
               Engineers
             </button>
             <button
-              className={`filter-tab ${filterRole === 'user' ? 'active' : ''}`}
+              className={`filter-tab-usermgmtad ${filterRole === 'user' ? 'active-usermgmtad' : ''}`}
               onClick={() => setFilterRole('user')}
             >
               Customers
             </button>
           </div>
 
-          <div className="search-box">
-            <FaSearch className="search-icon" />
+          <div className="search-box-usermgmtad">
+            <FaSearch className="search-icon-usermgmtad" />
             <input
               type="text"
               placeholder="Search by name, email, or contact number..."
@@ -469,8 +462,8 @@ const UserManagement = () => {
         </div>
 
         {/* Users Table */}
-        <div className="users-table-container">
-          <table className="users-table">
+        <div className="users-table-container-usermgmtad">
+          <table className="users-table-usermgmtad">
             <thead>
               <tr>
                 <th>User</th>
@@ -486,75 +479,74 @@ const UserManagement = () => {
             <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="empty-state">
-                    <FaUsers className="empty-icon" />
+                  <td colSpan="8" className="empty-state-usermgmtad">
                     <p>No users found</p>
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map(user => (
                   <tr key={user._id}>
-                    <td className="user-cell">
-                      <div className="user-avatar">
+                    <td className="user-cell-usermgmtad">
+                      <div className="user-avatar-usermgmtad">
                         {user.clientInfo?.firstName ? (
-                          <div className="avatar-initials">
+                          <div className="avatar-initials-usermgmtad">
                             {user.clientInfo.firstName[0]}{user.clientInfo.lastName?.[0]}
                           </div>
                         ) : (
                           <FaUserCircle />
                         )}
                       </div>
-                      <div className="user-info">
-                        <div className="user-name">{user.fullName}</div>
+                      <div className="user-info-usermgmtad">
+                        <div className="user-name-usermgmtad">{user.fullName}</div>
                         {user.clientInfo?.firstName && (
-                          <div className="user-detail">
+                          <div className="user-detail-usermgmtad">
                             {user.clientInfo.firstName} {user.clientInfo.lastName}
                           </div>
                         )}
                       </div>
                     </td>
-                    <td className="email-cell">
-                      <FaEnvelope className="email-icon" />
+                    <td className="email-cell-usermgmtad">
+                      <FaEnvelope className="email-icon-usermgmtad" />
                       {user.email}
                     </td>
-                    <td className="contact-cell">
+                    <td className="contact-cell-usermgmtad">
                       {user.clientInfo?.contactNumber || '—'}
                     </td>
                     <td>{getRoleBadge(user.role)}</td>
                     <td>{getStatusBadge(user.isActive)}</td>
                     <td>{formatDate(user.createdAt)}</td>
                     <td>{formatDate(user.lastLogin)}</td>
-                    <td className="actions-cell">
+                    <td className="actions-cell-usermgmtad">
                       <button
-                        className="action-btn view"
+                        className="action-btn-usermgmtad view-usermgmtad"
                         onClick={() => handleOpenViewModal(user)}
                         title="View Details"
                       >
                         <FaEye />
                       </button>
                       <button
-                        className="action-btn edit"
+                        className="action-btn-usermgmtad edit-usermgmtad"
                         onClick={() => handleOpenEditModal(user)}
                         title="Edit User"
                       >
                         <FaEdit />
                       </button>
                       <button
-                        className="action-btn reset-password"
+                        className="action-btn-usermgmtad reset-password-usermgmtad"
                         onClick={() => handleOpenPasswordModal(user)}
                         title="Reset Password"
                       >
                         <FaKey />
                       </button>
                       <button
-                        className="action-btn toggle"
+                        className="action-btn-usermgmtad toggle-usermgmtad"
                         onClick={() => handleToggleStatus(user)}
                         title={user.isActive ? 'Deactivate User' : 'Activate User'}
                       >
                         {user.isActive ? <FaBan /> : <FaCheck />}
                       </button>
                       <button
-                        className="action-btn delete"
+                        className="action-btn-usermgmtad delete-usermgmtad"
                         onClick={() => {
                           setSelectedUser(user);
                           setShowDeleteConfirm(true);
@@ -573,17 +565,17 @@ const UserManagement = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="pagination">
+          <div className="pagination-usermgmtad">
             <button
-              className="page-btn"
+              className="page-btn-usermgmtad"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
               <FaChevronLeft /> Previous
             </button>
-            <span className="page-info">Page {currentPage} of {totalPages}</span>
+            <span className="page-info-usermgmtad">Page {currentPage} of {totalPages}</span>
             <button
-              className="page-btn"
+              className="page-btn-usermgmtad"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
             >
@@ -592,82 +584,82 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* User Modal (View/Edit/Create) */}
+        {/* User Modal */}
         {showUserModal && (
-          <div className="modal-overlay" onClick={() => setShowUserModal(false)}>
-            <div className={`modal-content user-modal ${modalMode}`} onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
+          <div className="modal-overlay-usermgmtad" onClick={() => setShowUserModal(false)}>
+            <div className={`modal-content-usermgmtad user-modal-usermgmtad ${modalMode}`} onClick={e => e.stopPropagation()}>
+              <div className="modal-header-usermgmtad">
                 <h3>
-                  {modalMode === 'view' && <><FaEye /> User Details</>}
-                  {modalMode === 'edit' && <><FaEdit /> Edit User</>}
-                  {modalMode === 'create' && <><FaUserPlus /> Create New User</>}
+                  {modalMode === 'view' && <>User Details</>}
+                  {modalMode === 'edit' && <>Edit User</>}
+                  {modalMode === 'create' && <>Create New User</>}
                 </h3>
-                <button className="modal-close" onClick={() => setShowUserModal(false)}>×</button>
+                <button className="modal-close-usermgmtad" onClick={() => setShowUserModal(false)}>×</button>
               </div>
 
-              <div className="modal-body">
+              <div className="modal-body-usermgmtad">
                 {modalMode === 'view' && selectedUser && (
-                  <div className="user-details-view">
-                    <div className="detail-section">
+                  <div className="user-details-view-usermgmtad">
+                    <div className="detail-section-usermgmtad">
                       <h4>Account Information</h4>
-                      <div className="detail-row">
+                      <div className="detail-row-usermgmtad">
                         <span>Full Name:</span>
                         <strong>{selectedUser.fullName || '—'}</strong>
                       </div>
-                      <div className="detail-row">
+                      <div className="detail-row-usermgmtad">
                         <span>Email:</span>
                         <strong>{selectedUser.email}</strong>
                       </div>
-                      <div className="detail-row">
+                      <div className="detail-row-usermgmtad">
                         <span>Role:</span>
                         <strong>{getRoleBadge(selectedUser.role)}</strong>
                       </div>
-                      <div className="detail-row">
+                      <div className="detail-row-usermgmtad">
                         <span>Status:</span>
                         <strong>{getStatusBadge(selectedUser.isActive)}</strong>
                       </div>
-                      <div className="detail-row">
+                      <div className="detail-row-usermgmtad">
                         <span>Created:</span>
                         <strong>{formatDate(selectedUser.createdAt)}</strong>
                       </div>
-                      <div className="detail-row">
+                      <div className="detail-row-usermgmtad">
                         <span>Last Login:</span>
                         <strong>{formatDate(selectedUser.lastLogin)}</strong>
                       </div>
                     </div>
 
                     {selectedUser.clientInfo && (
-                      <div className="detail-section">
+                      <div className="detail-section-usermgmtad">
                         <h4>Client Information</h4>
-                        <div className="detail-row">
+                        <div className="detail-row-usermgmtad">
                           <span>First Name:</span>
                           <strong>{selectedUser.clientInfo.firstName || '—'}</strong>
                         </div>
-                        <div className="detail-row">
+                        <div className="detail-row-usermgmtad">
                           <span>Last Name:</span>
                           <strong>{selectedUser.clientInfo.lastName || '—'}</strong>
                         </div>
-                        <div className="detail-row">
+                        <div className="detail-row-usermgmtad">
                           <span>Middle Name:</span>
                           <strong>{selectedUser.clientInfo.middleName || '—'}</strong>
                         </div>
-                        <div className="detail-row">
+                        <div className="detail-row-usermgmtad">
                           <span>Contact Number:</span>
                           <strong>{selectedUser.clientInfo.contactNumber || '—'}</strong>
                         </div>
-                        <div className="detail-row">
+                        <div className="detail-row-usermgmtad">
                           <span>Birthday:</span>
                           <strong>{selectedUser.clientInfo.birthday ? new Date(selectedUser.clientInfo.birthday).toLocaleDateString() : '—'}</strong>
                         </div>
-                        <div className="detail-row">
+                        <div className="detail-row-usermgmtad">
                           <span>Company Name:</span>
                           <strong>{selectedUser.clientInfo.companyName || '—'}</strong>
                         </div>
-                        <div className="detail-row">
+                        <div className="detail-row-usermgmtad">
                           <span>Client Type:</span>
                           <strong>{selectedUser.clientInfo.client_type || '—'}</strong>
                         </div>
-                        <div className="detail-row">
+                        <div className="detail-row-usermgmtad">
                           <span>Account Setup:</span>
                           <strong>{selectedUser.clientInfo.account_setup ? 'Completed' : 'Pending'}</strong>
                         </div>
@@ -677,9 +669,9 @@ const UserManagement = () => {
                 )}
 
                 {(modalMode === 'edit' || modalMode === 'create') && (
-                  <form className="user-form">
-                    <div className="form-row">
-                      <div className="form-group">
+                  <form className="user-form-usermgmtad">
+                    <div className="form-row-usermgmtad">
+                      <div className="form-group-usermgmtad">
                         <label>Full Name</label>
                         <input
                           type="text"
@@ -691,8 +683,8 @@ const UserManagement = () => {
                       </div>
                     </div>
 
-                    <div className="form-row">
-                      <div className="form-group">
+                    <div className="form-row-usermgmtad">
+                      <div className="form-group-usermgmtad">
                         <label>First Name</label>
                         <input
                           type="text"
@@ -701,7 +693,7 @@ const UserManagement = () => {
                           placeholder="First name"
                         />
                       </div>
-                      <div className="form-group">
+                      <div className="form-group-usermgmtad">
                         <label>Last Name</label>
                         <input
                           type="text"
@@ -712,8 +704,8 @@ const UserManagement = () => {
                       </div>
                     </div>
 
-                    <div className="form-row">
-                      <div className="form-group">
+                    <div className="form-row-usermgmtad">
+                      <div className="form-group-usermgmtad">
                         <label>Email Address *</label>
                         <input
                           type="email"
@@ -721,12 +713,12 @@ const UserManagement = () => {
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           placeholder="user@example.com"
                           disabled={modalMode === 'edit'}
-                          className={formErrors.email ? 'error' : ''}
+                          className={formErrors.email ? 'error-usermgmtad' : ''}
                         />
-                        {formErrors.email && <span className="error-text">{formErrors.email}</span>}
+                        {formErrors.email && <span className="error-text-usermgmtad">{formErrors.email}</span>}
                         {modalMode === 'edit' && <small>Email cannot be changed</small>}
                       </div>
-                      <div className="form-group">
+                      <div className="form-group-usermgmtad">
                         <label>Contact Number</label>
                         <input
                           type="tel"
@@ -737,9 +729,8 @@ const UserManagement = () => {
                       </div>
                     </div>
 
-                    {/* Role Field - Read-only in edit mode */}
-                    <div className="form-row">
-                      <div className="form-group">
+                    <div className="form-row-usermgmtad">
+                      <div className="form-group-usermgmtad">
                         <label>Role</label>
                         {modalMode === 'create' ? (
                           <select
@@ -751,58 +742,58 @@ const UserManagement = () => {
                             <option value="admin">Admin</option>
                           </select>
                         ) : (
-                          <div className="role-display">
-                            <span className={`role-badge-display ${formData.role}`}>
+                          <div className="role-display-usermgmtad">
+                            <span className={`role-badge-display-usermgmtad ${formData.role}-usermgmtad`}>
                               {formData.role === 'admin' ? 'Admin' : formData.role === 'engineer' ? 'Engineer' : 'Customer'}
                             </span>
-                            <small className="role-note-display">Role cannot be changed</small>
+                            <small className="role-note-display-usermgmtad">Role cannot be changed</small>
                           </div>
                         )}
                       </div>
-                      <div className="form-group"></div>
+                      <div className="form-group-usermgmtad"></div>
                     </div>
 
                     {modalMode === 'create' && (
                       <>
-                        <div className="form-row">
-                          <div className="form-group">
+                        <div className="form-row-usermgmtad">
+                          <div className="form-group-usermgmtad">
                             <label>Password *</label>
                             <input
                               type="password"
                               value={formData.password}
                               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                               placeholder="Enter password"
-                              className={formErrors.password ? 'error' : ''}
+                              className={formErrors.password ? 'error-usermgmtad' : ''}
                             />
-                            {formErrors.password && <span className="error-text">{formErrors.password}</span>}
+                            {formErrors.password && <span className="error-text-usermgmtad">{formErrors.password}</span>}
                           </div>
-                          <div className="form-group">
+                          <div className="form-group-usermgmtad">
                             <label>Confirm Password *</label>
                             <input
                               type="password"
                               value={formData.confirmPassword}
                               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                               placeholder="Confirm password"
-                              className={formErrors.confirmPassword ? 'error' : ''}
+                              className={formErrors.confirmPassword ? 'error-usermgmtad' : ''}
                             />
-                            {formErrors.confirmPassword && <span className="error-text">{formErrors.confirmPassword}</span>}
+                            {formErrors.confirmPassword && <span className="error-text-usermgmtad">{formErrors.confirmPassword}</span>}
                           </div>
                         </div>
                       </>
                     )}
 
-                    {formErrors.name && <div className="error-message">{formErrors.name}</div>}
+                    {formErrors.name && <div className="error-message-usermgmtad">{formErrors.name}</div>}
                   </form>
                 )}
               </div>
 
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowUserModal(false)}>
+              <div className="modal-actions-usermgmtad">
+                <button className="cancel-btn-usermgmtad" onClick={() => setShowUserModal(false)}>
                   Cancel
                 </button>
                 {(modalMode === 'edit' || modalMode === 'create') && (
-                  <button className="save-btn" onClick={handleSaveUser} disabled={isSubmitting}>
-                    {isSubmitting ? <><FaSpinner className="spinner" /> Saving...</> : 'Save User'}
+                  <button className="save-btn-usermgmtad" onClick={handleSaveUser} disabled={isSubmitting}>
+                    {isSubmitting ? 'Saving...' : 'Save User'}
                   </button>
                 )}
               </div>
@@ -812,55 +803,55 @@ const UserManagement = () => {
 
         {/* Password Reset Modal */}
         {showPasswordModal && selectedUser && (
-          <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
-            <div className="modal-content password-modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3><FaKey /> Reset Password</h3>
-                <button className="modal-close" onClick={() => setShowPasswordModal(false)}>×</button>
+          <div className="modal-overlay-usermgmtad" onClick={() => setShowPasswordModal(false)}>
+            <div className="modal-content-usermgmtad password-modal-usermgmtad" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-usermgmtad">
+                <h3>Reset Password</h3>
+                <button className="modal-close-usermgmtad" onClick={() => setShowPasswordModal(false)}>×</button>
               </div>
 
-              <div className="modal-body">
-                <div className="user-info-summary">
+              <div className="modal-body-usermgmtad">
+                <div className="user-info-summary-usermgmtad">
                   <p><strong>User:</strong> {selectedUser.fullName || selectedUser.email}</p>
                   <p><strong>Role:</strong> {getRoleBadge(selectedUser.role)}</p>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
+                <div className="form-row-usermgmtad">
+                  <div className="form-group-usermgmtad">
                     <label>New Password *</label>
                     <input
                       type="password"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       placeholder="Enter new password"
-                      className={passwordErrors.password ? 'error' : ''}
+                      className={passwordErrors.password ? 'error-usermgmtad' : ''}
                     />
-                    {passwordErrors.password && <span className="error-text">{passwordErrors.password}</span>}
+                    {passwordErrors.password && <span className="error-text-usermgmtad">{passwordErrors.password}</span>}
                     <small>Password must be at least 6 characters</small>
                   </div>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
+                <div className="form-row-usermgmtad">
+                  <div className="form-group-usermgmtad">
                     <label>Confirm Password *</label>
                     <input
                       type="password"
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                       placeholder="Confirm new password"
-                      className={passwordErrors.confirmPassword ? 'error' : ''}
+                      className={passwordErrors.confirmPassword ? 'error-usermgmtad' : ''}
                     />
-                    {passwordErrors.confirmPassword && <span className="error-text">{passwordErrors.confirmPassword}</span>}
+                    {passwordErrors.confirmPassword && <span className="error-text-usermgmtad">{passwordErrors.confirmPassword}</span>}
                   </div>
                 </div>
               </div>
 
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowPasswordModal(false)}>
+              <div className="modal-actions-usermgmtad">
+                <button className="cancel-btn-usermgmtad" onClick={() => setShowPasswordModal(false)}>
                   Cancel
                 </button>
-                <button className="save-btn" onClick={handleResetPassword} disabled={isSubmitting}>
-                  {isSubmitting ? <><FaSpinner className="spinner" /> Resetting...</> : 'Reset Password'}
+                <button className="save-btn-usermgmtad" onClick={handleResetPassword} disabled={isSubmitting}>
+                  {isSubmitting ? 'Resetting...' : 'Reset Password'}
                 </button>
               </div>
             </div>
@@ -869,20 +860,20 @@ const UserManagement = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && selectedUser && (
-          <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
-            <div className="modal-content confirm-modal" onClick={e => e.stopPropagation()}>
-              <div className="confirm-icon">
+          <div className="modal-overlay-usermgmtad" onClick={() => setShowDeleteConfirm(false)}>
+            <div className="modal-content-usermgmtad confirm-modal-usermgmtad" onClick={e => e.stopPropagation()}>
+              <div className="confirm-icon-usermgmtad">
                 <FaExclamationTriangle />
               </div>
               <h3>Delete User</h3>
               <p>Are you sure you want to delete <strong>{selectedUser.fullName || selectedUser.email}</strong>?</p>
-              <p className="warning-text">This action cannot be undone. All associated client data will also be deleted.</p>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowDeleteConfirm(false)}>
+              <p className="warning-text-usermgmtad">This action cannot be undone. All associated client data will also be deleted.</p>
+              <div className="modal-actions-usermgmtad">
+                <button className="cancel-btn-usermgmtad" onClick={() => setShowDeleteConfirm(false)}>
                   Cancel
                 </button>
-                <button className="delete-btn" onClick={handleDeleteUser} disabled={isSubmitting}>
-                  {isSubmitting ? <><FaSpinner className="spinner" /> Deleting...</> : 'Delete User'}
+                <button className="delete-btn-usermgmtad" onClick={handleDeleteUser} disabled={isSubmitting}>
+                  {isSubmitting ? 'Deleting...' : 'Delete User'}
                 </button>
               </div>
             </div>

@@ -1,0 +1,650 @@
+/* siteAssessment.css - Admin Site Assessment Styles */
+
+/* ============================================
+   BASE CONTAINER
+   ============================================ */
+.site-assessment-siteassesad {
+  padding: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: white;
+  min-height: 100vh;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.assessment-header-siteassesad {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.assessment-header-siteassesad h1 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+  color: #1a1a1a;
+}
+
+.assessment-header-siteassesad p {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+}
+
+/* ============================================
+   STATS CARDS
+   ============================================ */
+.assessment-stats-siteassesad {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 640px) {
+  .assessment-stats-siteassesad {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card-siteassesad {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.stat-card-siteassesad:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stat-info-siteassesad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-value-siteassesad {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.stat-label-siteassesad {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999;
+}
+
+.stat-detail-siteassesad {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #eaeaea;
+  font-size: 0.7rem;
+  color: #666;
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+.assessment-tabs-siteassesad {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 0.5rem;
+}
+
+.tab-btn-siteassesad {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.tab-btn-siteassesad:hover {
+  background: #f5f5f5;
+  color: #1a1a1a;
+}
+
+.tab-btn-siteassesad.active-siteassesad {
+  color: #1a1a1a;
+  font-weight: 500;
+  background: #f5f5f5;
+}
+
+/* ============================================
+   FILTERS
+   ============================================ */
+.assessment-filters-siteassesad {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-group-siteassesad select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.search-group-siteassesad {
+  position: relative;
+  flex: 1;
+  max-width: 300px;
+}
+
+.search-icon-siteassesad {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 0.875rem;
+}
+
+.search-group-siteassesad input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.search-group-siteassesad input:focus {
+  outline: none;
+  border-color: #999;
+}
+
+/* ============================================
+   TABLE
+   ============================================ */
+.assessment-table-container-siteassesad {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.assessment-table-siteassesad {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.assessment-table-siteassesad th,
+.assessment-table-siteassesad td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.assessment-table-siteassesad th {
+  font-weight: 500;
+  color: #666;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #fafafa;
+}
+
+.assessment-table-siteassesad tr:hover {
+  background: #fafafa;
+}
+
+.ref-cell-siteassesad {
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.email-cell-siteassesad {
+  font-size: 0.7rem;
+  color: #999;
+  margin-top: 0.25rem;
+}
+
+.empty-state-siteassesad {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+}
+
+.empty-state-siteassesad p {
+  margin: 0;
+}
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+.status-badge-siteassesad {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge-siteassesad.pending-siteassesad {
+  background: #fff3e0;
+  color: #ed6c02;
+}
+
+.status-badge-siteassesad.processing-siteassesad {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge-siteassesad.completed-siteassesad {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge-siteassesad.cancelled-siteassesad {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-badge-siteassesad.for-verification-siteassesad {
+  background: #fff3e0;
+  color: #ed6c02;
+}
+
+.status-badge-siteassesad.paid-siteassesad {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge-siteassesad.scheduled-siteassesad {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge-siteassesad.deployed-siteassesad {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.status-badge-siteassesad.collecting-siteassesad {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
+.actions-cell-siteassesad {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.action-btn-siteassesad {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  background: none;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #666;
+}
+
+.action-btn-siteassesad:hover {
+  background: #f5f5f5;
+  border-color: #ddd;
+}
+
+.action-btn-siteassesad.view-siteassesad:hover {
+  color: #3498db;
+}
+
+.action-btn-siteassesad.process-siteassesad:hover {
+  color: #f39c12;
+}
+
+.action-btn-siteassesad.upload-siteassesad:hover {
+  color: #2ecc71;
+}
+
+.action-btn-siteassesad.verify-siteassesad:hover {
+  color: #2ecc71;
+}
+
+.action-btn-siteassesad.reject-siteassesad:hover {
+  color: #e74c3c;
+}
+
+.action-btn-siteassesad.assign-siteassesad:hover {
+  color: #9b59b6;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+.pagination-siteassesad {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.page-btn-siteassesad {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #666;
+}
+
+.page-btn-siteassesad:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #ddd;
+}
+
+.page-btn-siteassesad:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info-siteassesad {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+/* ============================================
+   MODALS
+   ============================================ */
+.modal-overlay-siteassesad {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content-siteassesad {
+  background: #ffffff;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.modal-content-siteassesad h3 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+  color: #1a1a1a;
+}
+
+.detail-section-siteassesad {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.detail-section-siteassesad h4 {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999;
+  margin: 0 0 0.5rem 0;
+}
+
+.detail-section-siteassesad p {
+  font-size: 0.875rem;
+  margin: 0.25rem 0;
+  color: #333;
+}
+
+.payment-info-siteassesad,
+.quote-summary-siteassesad,
+.assessment-summary-siteassesad {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.payment-info-siteassesad p,
+.quote-summary-siteassesad p,
+.assessment-summary-siteassesad p {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+}
+
+/* Form Group */
+.form-group-siteassesad {
+  margin-bottom: 1rem;
+}
+
+.form-group-siteassesad label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: #666;
+}
+
+.form-group-siteassesad select,
+.form-group-siteassesad input,
+.form-group-siteassesad textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.form-group-siteassesad select:focus,
+.form-group-siteassesad input:focus,
+.form-group-siteassesad textarea:focus {
+  outline: none;
+  border-color: #999;
+}
+
+.form-group-siteassesad small {
+  font-size: 0.7rem;
+  color: #999;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* Modal Actions */
+.modal-actions-siteassesad {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.cancel-btn-siteassesad {
+  padding: 0.625rem 1.25rem;
+  background: #f5f5f5;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.cancel-btn-siteassesad:hover {
+  background: #eaeaea;
+}
+
+.verify-btn-siteassesad,
+.assign-btn-siteassesad,
+.upload-btn-siteassesad {
+  padding: 0.625rem 1.25rem;
+  background: #2ecc71;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.verify-btn-siteassesad:hover,
+.assign-btn-siteassesad:hover,
+.upload-btn-siteassesad:hover:not(:disabled) {
+  background: #27ae60;
+}
+
+.reject-btn-siteassesad {
+  padding: 0.625rem 1.25rem;
+  background: #e74c3c;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.reject-btn-siteassesad:hover {
+  background: #c0392b;
+}
+
+.upload-btn-siteassesad:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   SKELETON LOADER
+   ============================================ */
+.skeleton-line-siteassesad {
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-siteassesad 1.5s ease-in-out infinite;
+}
+
+.skeleton-line-siteassesad.large-siteassesad {
+  height: 32px;
+  width: 250px;
+}
+
+.skeleton-line-siteassesad.medium-siteassesad {
+  height: 24px;
+  width: 180px;
+}
+
+.skeleton-line-siteassesad.small-siteassesad {
+  height: 16px;
+  width: 120px;
+}
+
+.skeleton-card-siteassesad {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.skeleton-button-siteassesad {
+  height: 36px;
+  width: 100px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-siteassesad 1.5s ease-in-out infinite;
+}
+
+.skeleton-table-siteassesad {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.skeleton-table-header-siteassesad {
+  height: 40px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  animation: pulse-siteassesad 1.5s ease-in-out infinite;
+}
+
+.skeleton-table-row-siteassesad {
+  height: 50px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  animation: pulse-siteassesad 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-siteassesad {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .site-assessment-siteassesad {
+    padding: 1rem;
+  }
+  
+  .assessment-filters-siteassesad {
+    flex-direction: column;
+  }
+  
+  .search-group-siteassesad {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .actions-cell-siteassesad {
+    flex-direction: column;
+  }
+  
+  .assessment-table-siteassesad th,
+  .assessment-table-siteassesad td {
+    padding: 0.5rem;
+  }
+  
+  .modal-content-siteassesad {
+    margin: 1rem;
+  }
+}

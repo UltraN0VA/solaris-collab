@@ -36,7 +36,7 @@ import '../../styles/Admin/siteAssessment.css';
 
 const SiteAssessment = () => {
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('free-quotes'); // 'free-quotes' or 'pre-assessments'
+  const [activeTab, setActiveTab] = useState('free-quotes');
   const [freeQuotes, setFreeQuotes] = useState([]);
   const [preAssessments, setPreAssessments] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -109,13 +109,11 @@ const SiteAssessment = () => {
     try {
       const token = sessionStorage.getItem('token');
       
-      // Fetch free quotes stats
       const freeQuotesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const quotes = freeQuotesRes.data.quotes || [];
       
-      // Fetch pre-assessments stats
       const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -254,23 +252,23 @@ const SiteAssessment = () => {
   const getStatusBadge = (status, type) => {
     const badges = {
       'free-quote': {
-        'pending': <span className="status-badge pending">Pending</span>,
-        'processing': <span className="status-badge processing">Processing</span>,
-        'completed': <span className="status-badge completed">Completed</span>,
-        'cancelled': <span className="status-badge cancelled">Cancelled</span>
+        'pending': <span className="status-badge-siteassesad pending-siteassesad">Pending</span>,
+        'processing': <span className="status-badge-siteassesad processing-siteassesad">Processing</span>,
+        'completed': <span className="status-badge-siteassesad completed-siteassesad">Completed</span>,
+        'cancelled': <span className="status-badge-siteassesad cancelled-siteassesad">Cancelled</span>
       },
       'pre-assessment': {
-        'pending_payment': <span className="status-badge pending">Pending Payment</span>,
-        'pending': <span className="status-badge pending">Pending</span>,
-        'for_verification': <span className="status-badge for-verification">For Verification</span>,
-        'paid': <span className="status-badge paid">Paid</span>,
-        'scheduled': <span className="status-badge scheduled">Scheduled</span>,
-        'device_deployed': <span className="status-badge deployed">Device Deployed</span>,
-        'data_collecting': <span className="status-badge collecting">Data Collecting</span>,
-        'completed': <span className="status-badge completed">Completed</span>
+        'pending_payment': <span className="status-badge-siteassesad pending-siteassesad">Pending Payment</span>,
+        'pending': <span className="status-badge-siteassesad pending-siteassesad">Pending</span>,
+        'for_verification': <span className="status-badge-siteassesad for-verification-siteassesad">For Verification</span>,
+        'paid': <span className="status-badge-siteassesad paid-siteassesad">Paid</span>,
+        'scheduled': <span className="status-badge-siteassesad scheduled-siteassesad">Scheduled</span>,
+        'device_deployed': <span className="status-badge-siteassesad deployed-siteassesad">Device Deployed</span>,
+        'data_collecting': <span className="status-badge-siteassesad collecting-siteassesad">Data Collecting</span>,
+        'completed': <span className="status-badge-siteassesad completed-siteassesad">Completed</span>
       }
     };
-    return badges[type]?.[status] || <span className="status-badge">{status}</span>;
+    return badges[type]?.[status] || <span className="status-badge-siteassesad">{status}</span>;
   };
 
   const filteredItems = (activeTab === 'free-quotes' ? freeQuotes : preAssessments).filter(item => {
@@ -281,13 +279,38 @@ const SiteAssessment = () => {
            (activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference)?.toLowerCase().includes(searchLower);
   });
 
-  if (loading && (activeTab === 'free-quotes' ? freeQuotes.length === 0 : preAssessments.length === 0)) {
-    return (
-      <div className="site-assessment-loading">
-        <FaSpinner className="spinner" />
-        <p>Loading site assessments...</p>
+  // Skeleton Loader
+  const SkeletonLoader = () => (
+    <div className="site-assessment-siteassesad">
+      <div className="assessment-header-siteassesad">
+        <div className="skeleton-line-siteassesad large-siteassesad"></div>
+        <div className="skeleton-line-siteassesad medium-siteassesad"></div>
       </div>
-    );
+      <div className="assessment-stats-siteassesad">
+        {[1, 2].map(i => (
+          <div key={i} className="stat-card-siteassesad skeleton-card-siteassesad">
+            <div className="skeleton-line-siteassesad small-siteassesad"></div>
+            <div className="skeleton-line-siteassesad large-siteassesad"></div>
+          </div>
+        ))}
+      </div>
+      <div className="assessment-tabs-siteassesad">
+        <div className="skeleton-button-siteassesad"></div>
+        <div className="skeleton-button-siteassesad"></div>
+      </div>
+      <div className="assessment-table-container-siteassesad">
+        <div className="skeleton-table-siteassesad">
+          <div className="skeleton-table-header-siteassesad"></div>
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="skeleton-table-row-siteassesad"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading && (activeTab === 'free-quotes' ? freeQuotes.length === 0 : preAssessments.length === 0)) {
+    return <SkeletonLoader />;
   }
 
   return (
@@ -296,32 +319,30 @@ const SiteAssessment = () => {
         <title>Site Assessment | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="site-assessment">
+      <div className="site-assessment-siteassesad">
         {/* Header */}
-        <div className="assessment-header">
-          <h1><FaClipboardList /> Site Assessment Management</h1>
+        <div className="assessment-header-siteassesad">
+          <h1>Site Assessment Management</h1>
           <p>Manage free quote requests and pre-assessment bookings</p>
         </div>
 
         {/* Stats Summary */}
-        <div className="assessment-stats">
-          <div className="stat-card free-quote">
-            <div className="stat-icon"><FaRegFileAlt /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.freeQuotes.total}</span>
-              <span className="stat-label">Free Quotes</span>
-              <div className="stat-detail">
+        <div className="assessment-stats-siteassesad">
+          <div className="stat-card-siteassesad free-quote-siteassesad">
+            <div className="stat-info-siteassesad">
+              <span className="stat-value-siteassesad">{stats.freeQuotes.total}</span>
+              <span className="stat-label-siteassesad">Free Quotes</span>
+              <div className="stat-detail-siteassesad">
                 <span>Pending: {stats.freeQuotes.pending}</span>
                 <span>Completed: {stats.freeQuotes.completed}</span>
               </div>
             </div>
           </div>
-          <div className="stat-card pre-assessment">
-            <div className="stat-icon"><FaClipboardList /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.preAssessments.total}</span>
-              <span className="stat-label">Pre-Assessments</span>
-              <div className="stat-detail">
+          <div className="stat-card-siteassesad pre-assessment-siteassesad">
+            <div className="stat-info-siteassesad">
+              <span className="stat-value-siteassesad">{stats.preAssessments.total}</span>
+              <span className="stat-label-siteassesad">Pre-Assessments</span>
+              <div className="stat-detail-siteassesad">
                 <span>Pending: {stats.preAssessments.pending}</span>
                 <span>For Verification: {stats.preAssessments.forVerification}</span>
                 <span>Completed: {stats.preAssessments.completed}</span>
@@ -331,24 +352,24 @@ const SiteAssessment = () => {
         </div>
 
         {/* Tabs */}
-        <div className="assessment-tabs">
+        <div className="assessment-tabs-siteassesad">
           <button 
-            className={`tab-btn ${activeTab === 'free-quotes' ? 'active' : ''}`}
+            className={`tab-btn-siteassesad ${activeTab === 'free-quotes' ? 'active-siteassesad' : ''}`}
             onClick={() => { setActiveTab('free-quotes'); setFilter('all'); setCurrentPage(1); }}
           >
-            <FaRegFileAlt /> Free Quotes
+            Free Quotes
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'pre-assessments' ? 'active' : ''}`}
+            className={`tab-btn-siteassesad ${activeTab === 'pre-assessments' ? 'active-siteassesad' : ''}`}
             onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}
           >
-            <FaClipboardList /> Pre-Assessments
+            Pre-Assessments
           </button>
         </div>
 
         {/* Filters */}
-        <div className="assessment-filters">
-          <div className="filter-group">
+        <div className="assessment-filters-siteassesad">
+          <div className="filter-group-siteassesad">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Status</option>
               {activeTab === 'free-quotes' ? (
@@ -368,8 +389,8 @@ const SiteAssessment = () => {
               )}
             </select>
           </div>
-          <div className="search-group">
-            <FaSearch className="search-icon" />
+          <div className="search-group-siteassesad">
+            <FaSearch className="search-icon-siteassesad" />
             <input
               type="text"
               placeholder="Search by client name or reference..."
@@ -380,8 +401,8 @@ const SiteAssessment = () => {
         </div>
 
         {/* Table */}
-        <div className="assessment-table-container">
-          <table className="assessment-table">
+        <div className="assessment-table-container-siteassesad">
+          <table className="assessment-table-siteassesad">
             <thead>
               <tr>
                 <th>Reference</th>
@@ -397,23 +418,22 @@ const SiteAssessment = () => {
             <tbody>
               {filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="empty-state">
-                    <FaClipboardList className="empty-icon" />
+                  <td colSpan="8" className="empty-state-siteassesad">
                     <p>No {activeTab === 'free-quotes' ? 'free quotes' : 'pre-assessments'} found</p>
                   </td>
                 </tr>
               ) : (
                 filteredItems.map(item => (
                   <tr key={item._id}>
-                    <td className="ref-cell">
+                    <td className="ref-cell-siteassesad">
                       {activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference}
                     </td>
                     <td>
                       {item.clientId?.contactFirstName} {item.clientId?.contactLastName}
                     </td>
                     <td>
-                      <div><FaPhone /> {item.clientId?.contactNumber || 'N/A'}</div>
-                      <div><FaEnvelope /> {item.clientId?.userId?.email || 'N/A'}</div>
+                      <div>{item.clientId?.contactNumber || 'N/A'}</div>
+                      <div className="email-cell-siteassesad">{item.clientId?.userId?.email || 'N/A'}</div>
                     </td>
                     <td>{formatDate(activeTab === 'free-quotes' ? item.requestedAt : item.bookedAt)}</td>
                     {activeTab === 'free-quotes' ? (
@@ -428,9 +448,9 @@ const SiteAssessment = () => {
                       </>
                     )}
                     <td>{getStatusBadge(activeTab === 'free-quotes' ? item.status : item.paymentStatus || item.assessmentStatus, activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
-                    <td className="actions-cell">
+                    <td className="actions-cell-siteassesad">
                       <button 
-                        className="action-btn view"
+                        className="action-btn-siteassesad view-siteassesad"
                         onClick={() => { setSelectedItem(item); setShowDetailModal(true); }}
                         title="View Details"
                       >
@@ -439,14 +459,14 @@ const SiteAssessment = () => {
                       {activeTab === 'free-quotes' && item.status === 'pending' && (
                         <>
                           <button 
-                            className="action-btn process"
+                            className="action-btn-siteassesad process-siteassesad"
                             onClick={() => handleUpdateStatus(item._id, 'processing')}
                             title="Mark as Processing"
                           >
                             <FaTools />
                           </button>
                           <button 
-                            className="action-btn upload"
+                            className="action-btn-siteassesad upload-siteassesad"
                             onClick={() => { setSelectedItem(item); setShowUploadModal(true); }}
                             title="Upload Quotation"
                           >
@@ -457,14 +477,14 @@ const SiteAssessment = () => {
                       {activeTab === 'pre-assessments' && item.paymentStatus === 'for_verification' && (
                         <>
                           <button 
-                            className="action-btn verify"
+                            className="action-btn-siteassesad verify-siteassesad"
                             onClick={() => { setSelectedItem(item); setShowVerifyModal(true); }}
                             title="Verify Payment"
                           >
                             <FaCheckCircle />
                           </button>
                           <button 
-                            className="action-btn reject"
+                            className="action-btn-siteassesad reject-siteassesad"
                             onClick={() => handleVerifyPayment(false)}
                             title="Reject Payment"
                           >
@@ -474,7 +494,7 @@ const SiteAssessment = () => {
                       )}
                       {activeTab === 'pre-assessments' && item.paymentStatus === 'paid' && item.assessmentStatus === 'scheduled' && (
                         <button 
-                          className="action-btn assign"
+                          className="action-btn-siteassesad assign-siteassesad"
                           onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }}
                           title="Assign Engineer"
                         >
@@ -491,17 +511,17 @@ const SiteAssessment = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="pagination">
+          <div className="pagination-siteassesad">
             <button 
-              className="page-btn"
+              className="page-btn-siteassesad"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
               <FaChevronLeft /> Previous
             </button>
-            <span className="page-info">Page {currentPage} of {totalPages}</span>
+            <span className="page-info-siteassesad">Page {currentPage} of {totalPages}</span>
             <button 
-              className="page-btn"
+              className="page-btn-siteassesad"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
             >
@@ -512,10 +532,10 @@ const SiteAssessment = () => {
 
         {/* Detail Modal */}
         {showDetailModal && selectedItem && (
-          <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
-            <div className="modal-content detail-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-siteassesad" onClick={() => setShowDetailModal(false)}>
+            <div className="modal-content-siteassesad detail-modal-siteassesad" onClick={e => e.stopPropagation()}>
               <h3>Assessment Details</h3>
-              <div className="detail-section">
+              <div className="detail-section-siteassesad">
                 <h4>Client Information</h4>
                 <p><strong>Name:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
                 <p><strong>Email:</strong> {selectedItem.clientId?.userId?.email}</p>
@@ -523,7 +543,7 @@ const SiteAssessment = () => {
                 <p><strong>Address:</strong> {selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}, {selectedItem.addressId?.cityMunicipality}</p>
               </div>
               {activeTab === 'free-quotes' ? (
-                <div className="detail-section">
+                <div className="detail-section-siteassesad">
                   <h4>Quote Details</h4>
                   <p><strong>Reference:</strong> {selectedItem.quotationReference}</p>
                   <p><strong>Monthly Bill:</strong> {formatCurrency(selectedItem.monthlyBill)}</p>
@@ -533,7 +553,7 @@ const SiteAssessment = () => {
                   <p><strong>Requested:</strong> {formatDate(selectedItem.requestedAt)}</p>
                 </div>
               ) : (
-                <div className="detail-section">
+                <div className="detail-section-siteassesad">
                   <h4>Assessment Details</h4>
                   <p><strong>Reference:</strong> {selectedItem.bookingReference}</p>
                   <p><strong>Invoice:</strong> {selectedItem.invoiceNumber}</p>
@@ -545,8 +565,8 @@ const SiteAssessment = () => {
                   <p><strong>Assessment Status:</strong> {selectedItem.assessmentStatus}</p>
                 </div>
               )}
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowDetailModal(false)}>Close</button>
+              <div className="modal-actions-siteassesad">
+                <button className="cancel-btn-siteassesad" onClick={() => setShowDetailModal(false)}>Close</button>
               </div>
             </div>
           </div>
@@ -554,16 +574,16 @@ const SiteAssessment = () => {
 
         {/* Verify Payment Modal */}
         {showVerifyModal && selectedItem && (
-          <div className="modal-overlay" onClick={() => setShowVerifyModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-siteassesad" onClick={() => setShowVerifyModal(false)}>
+            <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
               <h3>Verify Payment</h3>
-              <div className="payment-info">
+              <div className="payment-info-siteassesad">
                 <p><strong>Reference:</strong> {selectedItem.bookingReference}</p>
                 <p><strong>Amount:</strong> {formatCurrency(selectedItem.assessmentFee)}</p>
                 <p><strong>Method:</strong> {selectedItem.paymentMethod?.toUpperCase()}</p>
                 <p><strong>Reference #:</strong> {selectedItem.paymentReference || 'N/A'}</p>
               </div>
-              <div className="form-group">
+              <div className="form-group-siteassesad">
                 <label>Verification Notes (Optional)</label>
                 <textarea
                   rows="3"
@@ -572,10 +592,10 @@ const SiteAssessment = () => {
                   placeholder="Add any notes about this verification..."
                 />
               </div>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowVerifyModal(false)}>Cancel</button>
-                <button className="reject-btn" onClick={() => handleVerifyPayment(false)}>Reject</button>
-                <button className="verify-btn" onClick={() => handleVerifyPayment(true)}>Verify & Confirm</button>
+              <div className="modal-actions-siteassesad">
+                <button className="cancel-btn-siteassesad" onClick={() => setShowVerifyModal(false)}>Cancel</button>
+                <button className="reject-btn-siteassesad" onClick={() => handleVerifyPayment(false)}>Reject</button>
+                <button className="verify-btn-siteassesad" onClick={() => handleVerifyPayment(true)}>Verify & Confirm</button>
               </div>
             </div>
           </div>
@@ -583,15 +603,15 @@ const SiteAssessment = () => {
 
         {/* Assign Engineer Modal */}
         {showAssignEngineerModal && selectedItem && (
-          <div className="modal-overlay" onClick={() => setShowAssignEngineerModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-siteassesad" onClick={() => setShowAssignEngineerModal(false)}>
+            <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
               <h3>Assign Engineer</h3>
-              <div className="assessment-summary">
+              <div className="assessment-summary-siteassesad">
                 <p><strong>Assessment:</strong> {selectedItem.bookingReference}</p>
                 <p><strong>Client:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
                 <p><strong>Address:</strong> {selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}</p>
               </div>
-              <div className="form-group">
+              <div className="form-group-siteassesad">
                 <label>Select Engineer</label>
                 <select value={engineerId} onChange={(e) => setEngineerId(e.target.value)}>
                   <option value="">Select an engineer...</option>
@@ -600,17 +620,17 @@ const SiteAssessment = () => {
                   ))}
                 </select>
               </div>
-              <div className="form-group">
+              <div className="form-group-siteassesad">
                 <label>Site Visit Date</label>
                 <input type="date" value={siteVisitDate} onChange={(e) => setSiteVisitDate(e.target.value)} />
               </div>
-              <div className="form-group">
+              <div className="form-group-siteassesad">
                 <label>Site Visit Notes</label>
                 <textarea rows="3" value={siteVisitNotes} onChange={(e) => setSiteVisitNotes(e.target.value)} placeholder="Add any notes for the engineer..." />
               </div>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
-                <button className="assign-btn" onClick={handleAssignEngineer}>Assign Engineer</button>
+              <div className="modal-actions-siteassesad">
+                <button className="cancel-btn-siteassesad" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
+                <button className="assign-btn-siteassesad" onClick={handleAssignEngineer}>Assign Engineer</button>
               </div>
             </div>
           </div>
@@ -618,23 +638,23 @@ const SiteAssessment = () => {
 
         {/* Upload Quotation Modal */}
         {showUploadModal && selectedItem && (
-          <div className="modal-overlay" onClick={() => setShowUploadModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-siteassesad" onClick={() => setShowUploadModal(false)}>
+            <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
               <h3>Upload Quotation</h3>
-              <div className="quote-summary">
+              <div className="quote-summary-siteassesad">
                 <p><strong>Quote Reference:</strong> {selectedItem.quotationReference}</p>
                 <p><strong>Client:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
                 <p><strong>Monthly Bill:</strong> {formatCurrency(selectedItem.monthlyBill)}</p>
               </div>
-              <div className="form-group">
+              <div className="form-group-siteassesad">
                 <label>Quotation File (PDF)</label>
                 <input type="file" accept=".pdf" onChange={(e) => setQuotationFile(e.target.files[0])} />
                 <small>Upload the quotation PDF. This will be sent to the customer via email.</small>
               </div>
-              <div className="modal-actions">
-                <button className="cancel-btn" onClick={() => setShowUploadModal(false)}>Cancel</button>
-                <button className="upload-btn" onClick={handleUploadQuotation} disabled={!quotationFile || uploading}>
-                  {uploading ? <><FaSpinner className="spinner" /> Uploading...</> : 'Upload & Send'}
+              <div className="modal-actions-siteassesad">
+                <button className="cancel-btn-siteassesad" onClick={() => setShowUploadModal(false)}>Cancel</button>
+                <button className="upload-btn-siteassesad" onClick={handleUploadQuotation} disabled={!quotationFile || uploading}>
+                  {uploading ? 'Uploading...' : 'Upload & Send'}
                 </button>
               </div>
             </div>
