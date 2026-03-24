@@ -9,7 +9,7 @@ const Reports = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
-  const [selectedReportType, setSelectedReportType] = useState('assessment');
+  const [selectedReportType, setSelectedReportType] = useState('all');
   const [selectedProject, setSelectedProject] = useState(null);
   const [reports, setReports] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -25,34 +25,103 @@ const Reports = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
       
-      // Fetch projects
+      // Fetch projects - using correct endpoint
       const projectsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/my-projects`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProjects(projectsRes.data.projects || []);
       
-      // Fetch completed assessments
-      const assessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-assessments`, {
+      // Fetch completed assessments - using correct endpoint (my-bookings, filter for completed)
+      const assessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const completedAssessments = assessmentsRes.data.assessments?.filter(a => a.status === 'completed') || [];
+      // Filter for completed assessments
+      const completedAssessments = assessmentsRes.data.assessments?.filter(a => a.assessmentStatus === 'completed') || [];
       setAssessments(completedAssessments);
       
       // Fetch IoT device data
-      const deviceRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/device-data/my-data`, {
+      const deviceRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/sensor/my-data`, {
         headers: { Authorization: `Bearer ${token}` }
-      });
+      }).catch(() => ({ data: { data: [] } }));
       setDeviceData(deviceRes.data.data || []);
       
-      // Generate mock reports data
-      generateMockReports();
+      // Generate reports from real data
+      generateReportsFromData(projects, completedAssessments, deviceRes.data.data);
       
       setLoading(false);
     } catch (err) {
       console.error('Error fetching reports data:', err);
+      // Fallback to mock data
       generateMockReports();
       setLoading(false);
     }
+  };
+
+  const generateReportsFromData = (projects, assessments, deviceData) => {
+    const generatedReports = [];
+    
+    // Generate assessment reports from real data
+    assessments.forEach(assessment => {
+      generatedReports.push({
+        id: assessment._id,
+        type: 'assessment',
+        title: `Site Assessment Report - ${assessment.bookingReference}`,
+        reference: assessment.bookingReference,
+        date: assessment.completedAt || assessment.bookedAt,
+        author: 'System Generated',
+        status: 'completed',
+        description: `7-day IoT site assessment results from ${new Date(assessment.dataCollectionStart).toLocaleDateString()} to ${new Date(assessment.dataCollectionEnd).toLocaleDateString()}`,
+        downloadUrl: `/api/pre-assessments/${assessment._id}/report`
+      });
+    });
+    
+    // Generate project reports from real data
+    projects.forEach(project => {
+      generatedReports.push({
+        id: project._id,
+        type: 'project',
+        title: `Project Progress Report - ${project.projectReference}`,
+        reference: project.projectReference,
+        date: project.updatedAt,
+        author: project.assignedEngineerId?.firstName || 'System',
+        status: project.status,
+        description: `${project.systemSize} Solar System - ${project.status} | ${project.amountPaid}/${project.totalCost} paid`,
+        downloadUrl: `/api/projects/${project._id}/report`
+      });
+    });
+    
+    // Add mock device reports if no real data
+    if (deviceData.length === 0) {
+      generatedReports.push({
+        id: 'dev-001',
+        type: 'device',
+        title: 'IoT Device Weekly Report - Latest',
+        reference: 'DEV-WEEKLY-001',
+        date: new Date().toISOString(),
+        author: 'System',
+        status: 'completed',
+        description: 'Weekly summary of IoT device readings including irradiance, temperature, and humidity data.',
+        downloadUrl: '#'
+      });
+    }
+    
+    // Add mock financial report
+    generatedReports.push({
+      id: 'fin-001',
+      type: 'financial',
+      title: 'Financial Transaction Report',
+      reference: 'FIN-001',
+      date: new Date().toISOString(),
+      author: 'System',
+      status: 'completed',
+      description: `Summary of ${generatedReports.filter(r => r.type === 'assessment').length} assessments and ${generatedReports.filter(r => r.type === 'project').length} projects.`,
+      downloadUrl: '#'
+    });
+    
+    // Sort by date (newest first)
+    generatedReports.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    setReports(generatedReports);
   };
 
   const generateMockReports = () => {
@@ -100,28 +169,6 @@ const Reports = () => {
         status: 'completed',
         description: 'Weekly summary of IoT device readings including irradiance, temperature, and humidity data.',
         downloadUrl: '#'
-      },
-      {
-        id: 5,
-        type: 'assessment',
-        title: 'Site Assessment Report - ASM-2024-002',
-        reference: 'ASM-2024-002',
-        date: '2024-02-25',
-        author: 'Engr. Maria Santos',
-        status: 'completed',
-        description: '7-day IoT site assessment for commercial property.',
-        downloadUrl: '#'
-      },
-      {
-        id: 6,
-        type: 'project',
-        title: 'Project Completion Report - PRJ-2024-001',
-        reference: 'PRJ-2024-001',
-        date: '2024-03-28',
-        author: 'Engr. Juan Dela Cruz',
-        status: 'completed',
-        description: 'Final project report with system specifications and turnover documentation.',
-        downloadUrl: '#'
       }
     ];
     
@@ -153,10 +200,16 @@ const Reports = () => {
   const handleExportReport = async (report) => {
     setExporting(true);
     try {
-      // Simulate download
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      alert(`${report.title} downloaded successfully!`);
+      if (report.downloadUrl && report.downloadUrl !== '#') {
+        const token = sessionStorage.getItem('token');
+        window.open(`${import.meta.env.VITE_API_URL}${report.downloadUrl}?token=${token}`, '_blank');
+      } else {
+        // Simulate download
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        alert(`${report.title} downloaded successfully!`);
+      }
     } catch (err) {
+      console.error('Error downloading report:', err);
       alert('Failed to download report. Please try again.');
     } finally {
       setExporting(false);
@@ -166,8 +219,11 @@ const Reports = () => {
   const handleGenerateReport = async () => {
     setExporting(true);
     try {
+      // This would call an API to generate a new report
       await new Promise(resolve => setTimeout(resolve, 2000));
       alert('Report generation started. You will be notified when ready.');
+      // Refresh reports
+      fetchReportsData();
     } catch (err) {
       alert('Failed to generate report. Please try again.');
     } finally {

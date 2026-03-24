@@ -24,7 +24,7 @@ const SystemPerformance = () => {
       const token = sessionStorage.getItem('token');
       
       // Fetch completed assessments for the customer
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-assessments`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments/my-bookings`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -269,7 +269,7 @@ const SystemPerformance = () => {
       <div className="performance-empty-cusset">
         <h2>No Assessment Data Available</h2>
         <p>You don't have any completed site assessments yet. Book an assessment to view your site's solar potential data.</p>
-        <button className="btn-primary-cusset" onClick={() => navigate('/dashboard/schedule')}>
+        <button className="btn-primary-cusset" onClick={() => navigate('/app/customer/book-assessment')}>
           Book an Assessment
         </button>
       </div>
@@ -555,7 +555,7 @@ const SystemPerformance = () => {
           <button className="action-btn-cusset" onClick={() => handleExportData('csv')} disabled={exporting}>
             {exporting ? 'Exporting...' : 'Export Raw Data (CSV)'}
           </button>
-          <button className="action-btn-cusset primary-cusset" onClick={() => navigate('/dashboard/quotation')}>
+          <button className="action-btn-cusset primary-cusset" onClick={() => navigate('/app/customer/billing')}>
             View Quotation
           </button>
         </div>

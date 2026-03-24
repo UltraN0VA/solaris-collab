@@ -44,6 +44,7 @@ const installationRoutes = require("./routes/installationRoutes");
 const emailRoutes = require("./routes/emailRoutes");
 const clientRoutes = require('./routes/clientRoutes');
 const solarInvoiceRoutes = require('./routes/solarInvoiceRoutes');
+const projectRoutes = require('./routes/projectRoutes');
 
 // Admin Routes
 const adminRoutes = require('./routes/adminRoutes');
@@ -65,6 +66,7 @@ app.use('/api/free-quotes', freeQuoteRoutes);
 app.use('/api/pre-assessments', preAssessmentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/solar-invoices', solarInvoiceRoutes);
+app.use('/api/projects', projectRoutes);
 
 // Test Route
 app.get("/", (req, res) => {

@@ -21,7 +21,7 @@ const AddressSchema = new mongoose.Schema({
   label: { 
     type: String, 
     default: "Primary",
-    enum: ["Primary", "Secondary", "Office", "Other"]
+    enum: ["Primary", "Secondary", "Home", "Office", "Other"]
   },
   
   isPrimary: { 

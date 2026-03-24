@@ -19,24 +19,32 @@ const {
   generateReport,
   cancelPreAssessment,
   getPaymentHistory,
-  getPreAssessmentStats  // Add this import
+  getPreAssessmentStats
 } = require('../controllers/preAssessmentControllers');
 
 const { verifyToken } = authMiddleware;
 
 // ============ CUSTOMER ROUTES ============
-// Specific routes must come before /:id
+// IMPORTANT: Specific routes MUST come before /:id
+
+// Payment history
 router.get('/payments', verifyToken, getPaymentHistory);
+
+// My bookings - for customer
 router.get('/my-bookings', verifyToken, getMyPreAssessments);
 
+// My assessments - ADD THIS ROUTE (for engineer dashboard)
+router.get('/my-assessments', verifyToken, engineer, getMyPreAssessments);
+
 // ============ ADMIN ROUTES ============
-// IMPORTANT: /stats MUST come before /:id
+// Stats route - must come before /:id
 router.get('/stats', verifyToken, admin, getPreAssessmentStats);
 
 // Get all pre-assessments
 router.get('/', verifyToken, admin, getAllPreAssessments);
 
-// Get by ID - dynamic route, should be LAST among GET routes
+// ============ DYNAMIC ROUTES (must be LAST) ============
+// Get by ID - dynamic route
 router.get('/:id', verifyToken, getPreAssessmentById);
 
 // Create booking
@@ -51,11 +59,11 @@ router.post('/cash-payment', verifyToken, cashPayment);
 // Cancel booking
 router.put('/:id/cancel', verifyToken, cancelPreAssessment);
 
-// ============ ADMIN ROUTES ============
+// ============ ADMIN ROUTES (dynamic) ============
 router.put('/:id/verify-payment', verifyToken, admin, verifyPayment);
 router.put('/:id/assign-engineer', verifyToken, admin, assignEngineer);
 
-// ============ ENGINEER ROUTES ============
+// ============ ENGINEER ROUTES (dynamic) ============
 router.post('/:id/deploy-device', verifyToken, engineer, deployDevice);
 router.post('/:id/retrieve-device', verifyToken, engineer, retrieveDevice);
 router.post('/:id/generate-report', verifyToken, engineer, generateReport);

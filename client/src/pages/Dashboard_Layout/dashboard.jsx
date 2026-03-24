@@ -141,8 +141,8 @@ const Dashboard = () => {
   const menuItems = {
     admin: [
       { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/admin' },
-      { icon: <FaClipboardList />, label: 'Free Quotes', path: '/app/admin/freequotes' },
-      { icon: <FaClipboardList />, label: 'Pre-Assessments', path: '/app/admin/preassessments' },
+      //{ icon: <FaClipboardList />, label: 'Free Quotes', path: '/app/admin/freequotes' },
+      //{ icon: <FaClipboardList />, label: 'Pre-Assessments', path: '/app/admin/preassessments' },
       { icon: <FaClipboardList />, label: 'Site Assessments', path: '/app/admin/siteassessment' },
       { icon: <FaProjectDiagram />, label: 'Projects', path: '/app/admin/project' },
       { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/admin/billing' },

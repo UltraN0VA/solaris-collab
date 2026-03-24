@@ -90,6 +90,7 @@ exports.getUserById = async (req, res) => {
 // @desc    Create new user
 // @route   POST /api/admin/users
 // @access  Private (Admin)
+// controllers/userManagementControllers.js - Fixed createUser function
 exports.createUser = async (req, res) => {
   try {
     const { email, password, role, fullName, firstName, lastName, contactNumber } = req.body;
@@ -104,23 +105,25 @@ exports.createUser = async (req, res) => {
     const user = new User({
       fullName: fullName || `${firstName || ''} ${lastName || ''}`.trim(),
       email,
-      passwordHash: password, // Will be hashed by pre-save hook
+      passwordHash: password,
       provider: 'local',
       role: role || 'user'
     });
 
     await user.save();
 
-    // Create client record
-    const client = new Client({
-      userId: user._id,
-      contactFirstName: firstName || '',
-      contactLastName: lastName || '',
-      contactNumber: contactNumber || '',
-      account_setup: true
-    });
-
-    await client.save();
+    // Only create client record for users with role 'user' (customers)
+    if (role === 'user' || (!role && role !== 'admin' && role !== 'engineer')) {
+      const client = new Client({
+        userId: user._id,
+        contactFirstName: firstName || '',
+        contactLastName: lastName || '',
+        contactNumber: contactNumber || '',
+        client_type: 'Residential', // Default for new customers
+        account_setup: false
+      });
+      await client.save();
+    }
 
     res.status(201).json({
       success: true,
@@ -131,11 +134,11 @@ exports.createUser = async (req, res) => {
         email: user.email,
         role: user.role,
         createdAt: user.createdAt,
-        clientInfo: {
-          firstName: client.contactFirstName,
-          lastName: client.contactLastName,
-          contactNumber: client.contactNumber
-        }
+        clientInfo: (role === 'user') ? {
+          firstName: firstName || '',
+          lastName: lastName || '',
+          contactNumber: contactNumber || ''
+        } : null
       }
     });
 
@@ -148,6 +151,8 @@ exports.createUser = async (req, res) => {
 // @desc    Update user
 // @route   PUT /api/admin/users/:id
 // @access  Private (Admin)
+// controllers/userManagementControllers.js - Update updateUser function
+// controllers/userManagementControllers.js - Fixed updateUser function
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -158,38 +163,82 @@ exports.updateUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Update user fields
     if (role) user.role = role;
     if (fullName) user.fullName = fullName;
     await user.save();
 
-    // Update client info
-    const client = await Client.findOne({ userId: user._id });
-    if (client) {
-      if (firstName) client.contactFirstName = firstName;
-      if (lastName) client.contactLastName = lastName;
-      if (contactNumber) client.contactNumber = contactNumber;
-      await client.save();
+    // Only update client info for users with role 'user' (customers)
+    // Admin and Engineer don't have client records
+    if (user.role === 'user') {
+      const client = await Client.findOne({ userId: user._id });
+      if (client) {
+        let needsSave = false;
+        
+        if (firstName !== undefined && firstName !== client.contactFirstName) {
+          client.contactFirstName = firstName;
+          needsSave = true;
+        }
+        if (lastName !== undefined && lastName !== client.contactLastName) {
+          client.contactLastName = lastName;
+          needsSave = true;
+        }
+        if (contactNumber !== undefined && contactNumber !== client.contactNumber) {
+          client.contactNumber = contactNumber;
+          needsSave = true;
+        }
+        
+        // IMPORTANT: NEVER update client_type here
+        // client_type should only be set during initial client creation
+        
+        if (needsSave) {
+          await client.save();
+        }
+      } else if (firstName || lastName || contactNumber) {
+        // Create client if it doesn't exist (for existing users being updated to customer)
+        const newClient = new Client({
+          userId: user._id,
+          contactFirstName: firstName || '',
+          contactLastName: lastName || '',
+          contactNumber: contactNumber || '',
+          client_type: 'Residential', // Default for new customers
+          account_setup: false
+        });
+        await newClient.save();
+      }
     }
+
+    // Fetch updated user with client info
+    const updatedUser = await User.findById(id).select('-passwordHash');
+    const updatedClient = await Client.findOne({ userId: user._id });
 
     res.json({
       success: true,
       message: 'User updated successfully',
       user: {
-        _id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-        clientInfo: client ? {
-          firstName: client.contactFirstName,
-          lastName: client.contactLastName,
-          contactNumber: client.contactNumber
+        _id: updatedUser._id,
+        fullName: updatedUser.fullName,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        isActive: updatedUser.isActive,
+        createdAt: updatedUser.createdAt,
+        lastLogin: updatedUser.lastLogin,
+        clientInfo: updatedClient ? {
+          firstName: updatedClient.contactFirstName,
+          lastName: updatedClient.contactLastName,
+          contactNumber: updatedClient.contactNumber,
+          client_type: updatedClient.client_type
         } : null
       }
     });
 
   } catch (error) {
     console.error('Update user error:', error);
-    res.status(500).json({ message: 'Failed to update user', error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to update user', 
+      error: error.message 
+    });
   }
 };
 
