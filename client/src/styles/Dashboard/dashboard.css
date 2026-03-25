@@ -851,3 +851,122 @@
 .font-bold-dashboard {
   font-weight: 600;
 }
+
+/* ============================================
+   DARK BLUE SIDEBAR FOR ADMIN & ENGINEER
+   ============================================ */
+.sidebar-layout-dashboard.admin-sidebar-layout-dashboard,
+.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard {
+  background: #1e2a3e;
+  border-right: 1px solid #2d3e54;
+}
+
+.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .sidebar-header-layout-dashboard,
+.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .sidebar-header-layout-dashboard {
+  border-bottom-color: #2d3e54;
+}
+
+.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .logo-text-layout-dashboard,
+.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .logo-text-layout-dashboard {
+  color: #ffffff;
+}
+
+.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .user-info-layout-dashboard,
+.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .user-info-layout-dashboard {
+  border-bottom-color: #2d3e54;
+}
+
+.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .user-name-layout-dashboard,
+.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .user-name-layout-dashboard {
+  color: #ffffff;
+}
+
+.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .user-role-layout-dashboard,
+.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .user-role-layout-dashboard {
+  color: #a0aec0;
+}
+
+.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .nav-item-layout-dashboard,
+.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .nav-item-layout-dashboard {
+  color: #a0aec0;
+}
+
+.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .nav-item-layout-dashboard:hover,
+.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .nav-item-layout-dashboard:hover {
+  background: #2d3e54;
+  color: #ffffff;
+}
+
+.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .nav-item-layout-dashboard.active-layout-dashboard,
+.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .nav-item-layout-dashboard.active-layout-dashboard {
+  background: #2d3e54;
+  color: #ffffff;
+  border-left-color: #3498db;
+}
+
+.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .sidebar-close-layout-dashboard,
+.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .sidebar-close-layout-dashboard {
+  color: #a0aec0;
+}
+
+.sidebar-layout-dashboard.admin-sidebar-layout-dashboard .sidebar-close-layout-dashboard:hover,
+.sidebar-layout-dashboard.engineer-sidebar-layout-dashboard .sidebar-close-layout-dashboard:hover {
+  color: #ffffff;
+}
+
+/* ============================================
+   ADMIN/ENGINEER HEADER - NO HAMBURGER BUTTON
+   ============================================ */
+.dashboard-header-layout-dashboard {
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #ffffff;
+  border-bottom: 1px solid #eaeaea;
+}
+
+@media (max-width: 768px) {
+  .dashboard-header-layout-dashboard {
+    justify-content: space-between;
+  }
+}
+
+.header-search-layout-dashboard {
+  flex: 1;
+  max-width: 400px;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .header-search-layout-dashboard {
+    max-width: 200px;
+  }
+}
+
+.header-actions-layout-dashboard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Remove margin-left adjustment since no hamburger button */
+.main-content-layout-dashboard {
+  flex: 1;
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .main-content-layout-dashboard {
+    margin-left: 0;
+  }
+}

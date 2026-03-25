@@ -1,0 +1,651 @@
+/* reports.css - Admin Reports Styles */
+
+/* ============================================
+   BASE CONTAINER
+   ============================================ */
+.reports-container-adminreports {
+  padding: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #ffffff;
+  min-height: 100vh;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.reports-header-adminreports {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.reports-header-adminreports h1 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+  color: #1a1a1a;
+}
+
+.reports-header-adminreports p {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+}
+
+/* ============================================
+   STATS CARDS
+   ============================================ */
+.stats-cards-adminreports {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .stats-cards-adminreports {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat-card-adminreports {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.stat-card-adminreports:hover {
+  border-color: #dddddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stat-info-adminreports {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.stat-value-adminreports {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.stat-label-adminreports {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999;
+  margin-top: 0.25rem;
+}
+
+.stat-change-adminreports {
+  font-size: 0.7rem;
+  color: #666;
+  margin-top: 0.5rem;
+  display: block;
+}
+
+/* ============================================
+   REPORT TABS
+   ============================================ */
+.report-tabs-adminreports {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #eaeaea;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  flex-wrap: wrap;
+}
+
+.tab-btn-adminreports {
+  padding: 0.75rem 1.25rem;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab-btn-adminreports:hover {
+  color: #1a1a1a;
+  background: #f5f5f5;
+}
+
+.tab-btn-adminreports.active-adminreports {
+  color: #1a1a1a;
+  border-bottom: 2px solid #1a1a1a;
+}
+
+/* ============================================
+   REPORT CONTROLS
+   ============================================ */
+.report-controls-adminreports {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.date-range-adminreports {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.date-range-adminreports label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.date-inputs-adminreports {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.date-inputs-adminreports input {
+  padding: 0.5rem;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.report-filter-adminreports {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.report-filter-adminreports label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.report-filter-adminreports select {
+  padding: 0.5rem;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.generate-btn-adminreports {
+  padding: 0.5rem 1rem;
+  background: #1a1a1a;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.generate-btn-adminreports:hover:not(:disabled) {
+  background: #333;
+}
+
+.generate-btn-adminreports:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   REPORT CONTENT
+   ============================================ */
+.report-content-adminreports {
+  margin-bottom: 2rem;
+}
+
+.report-section-adminreports {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.report-section-adminreports h2 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+  color: #1a1a1a;
+}
+
+/* Revenue Summary */
+.revenue-summary-adminreports {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .revenue-summary-adminreports {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.summary-item-adminreports {
+  text-align: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.summary-item-adminreports span {
+  display: block;
+  font-size: 0.7rem;
+  color: #999;
+  margin-bottom: 0.5rem;
+}
+
+.summary-item-adminreports strong {
+  font-size: 1.125rem;
+  color: #1a1a1a;
+}
+
+.positive-adminreports {
+  color: #2e7d32;
+}
+
+.negative-adminreports {
+  color: #c62828;
+}
+
+/* Revenue Sources */
+.revenue-sources-adminreports {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.source-item-adminreports {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.source-item-adminreports span {
+  width: 150px;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.source-item-adminreports strong {
+  width: 100px;
+  font-size: 0.875rem;
+  color: #1a1a1a;
+}
+
+.progress-bar-adminreports {
+  flex: 1;
+  height: 8px;
+  background: #eaeaea;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-adminreports {
+  height: 100%;
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+/* Bar Chart */
+.bar-chart-adminreports {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 0.5rem;
+  height: 220px;
+  padding: 1rem 0;
+}
+
+.bar-item-adminreports {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.bar-adminreports {
+  width: 100%;
+  max-width: 40px;
+  background: #1a1a1a;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s ease;
+}
+
+.bar-item-adminreports span {
+  font-size: 0.7rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+/* Stats Row */
+.stats-row-adminreports {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .stats-row-adminreports {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat-box-adminreports {
+  text-align: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.stat-box-adminreports span {
+  display: block;
+  font-size: 0.7rem;
+  color: #999;
+  margin-bottom: 0.5rem;
+}
+
+.stat-box-adminreports strong {
+  font-size: 1.125rem;
+  color: #1a1a1a;
+}
+
+/* Demographics Grid */
+.demographics-grid-adminreports {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .demographics-grid-adminreports {
+    grid-template-columns: 1fr;
+  }
+}
+
+.demo-card-adminreports {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+}
+
+.demo-card-adminreports h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+  color: #1a1a1a;
+}
+
+.demo-item-adminreports {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.demo-item-adminreports:last-child {
+  border-bottom: none;
+}
+
+.demo-item-adminreports span {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.demo-item-adminreports strong {
+  font-size: 0.75rem;
+  color: #1a1a1a;
+}
+
+/* Utilization Chart */
+.utilization-chart-adminreports {
+  padding: 1rem;
+}
+
+.utilization-bar-adminreports {
+  height: 20px;
+  background: #eaeaea;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.utilization-fill-adminreports {
+  height: 100%;
+  background: #1a1a1a;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.utilization-stats-adminreports {
+  text-align: center;
+}
+
+.utilization-stats-adminreports span {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+/* Custom Report Builder */
+.custom-report-builder-adminreports {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .custom-report-builder-adminreports {
+    grid-template-columns: 1fr;
+  }
+}
+
+.builder-section-adminreports h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+  color: #1a1a1a;
+}
+
+.checkbox-group-adminreports,
+.radio-group-adminreports {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.checkbox-group-adminreports label,
+.radio-group-adminreports label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #666;
+  cursor: pointer;
+}
+
+.builder-section-adminreports select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+/* Report Actions */
+.report-actions-adminreports {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.export-btn-adminreports {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f5f5f5;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.export-btn-adminreports:hover:not(:disabled) {
+  background: #eaeaea;
+  border-color: #ddd;
+  color: #1a1a1a;
+}
+
+/* Report Preview */
+.report-preview-adminreports {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+}
+
+.report-preview-adminreports h2 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 1rem 0;
+  color: #1a1a1a;
+}
+
+.preview-content-adminreports {
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.preview-content-adminreports pre {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #333;
+}
+
+.preview-actions-adminreports {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+/* ============================================
+   SKELETON LOADER
+   ============================================ */
+.skeleton-line-adminreports {
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-adminreports 1.5s ease-in-out infinite;
+}
+
+.skeleton-line-adminreports.large-adminreports {
+  height: 32px;
+  width: 250px;
+}
+
+.skeleton-line-adminreports.medium-adminreports {
+  height: 24px;
+  width: 180px;
+}
+
+.skeleton-line-adminreports.small-adminreports {
+  height: 16px;
+  width: 120px;
+}
+
+.skeleton-card-adminreports {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.skeleton-tab-adminreports {
+  height: 40px;
+  width: 100px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  animation: pulse-adminreports 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-adminreports {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .reports-container-adminreports {
+    padding: 1rem;
+  }
+  
+  .report-controls-adminreports {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .date-range-adminreports,
+  .report-filter-adminreports {
+    width: 100%;
+  }
+  
+  .date-inputs-adminreports {
+    flex-wrap: wrap;
+  }
+  
+  .date-inputs-adminreports input {
+    flex: 1;
+  }
+  
+  .report-actions-adminreports {
+    flex-direction: column;
+  }
+  
+  .export-btn-adminreports {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .bar-chart-adminreports {
+    overflow-x: auto;
+  }
+  
+  .bar-item-adminreports {
+    min-width: 50px;
+  }
+}

@@ -8,44 +8,25 @@ import {
   FaCheckCircle, 
   FaTimesCircle, 
   FaSpinner,
-  FaFileInvoice,
-  FaMoneyBillWave,
-  FaQrcode,
-  FaClock,
-  FaExclamationTriangle,
   FaDownload,
-  FaFilter,
   FaChevronLeft,
   FaChevronRight,
   FaPlus,
-  FaCreditCard,
-  FaPrint,
+  FaMoneyBillWave,
   FaEnvelope,
-  FaTrash,
-  FaEdit,
-  FaCheck,
-  FaTimes,
-  FaReceipt,
-  FaHistory,
-  FaChartLine,
-  FaCalendarAlt,
-  FaDollarSign,
-  FaUsers,
-  FaBuilding
+  FaTrash
 } from 'react-icons/fa';
 import '../../styles/Admin/billing.css';
 
 const AdminBilling = () => {
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pre-assessments'); // 'pre-assessments', 'solar-invoices', 'transactions'
+  const [activeTab, setActiveTab] = useState('pre-assessments');
   
-  // Pre-assessment state
   const [assessments, setAssessments] = useState([]);
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [verificationNote, setVerificationNote] = useState('');
   
-  // Solar Invoice state
   const [solarInvoices, setSolarInvoices] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -68,10 +49,7 @@ const AdminBilling = () => {
     notes: ''
   });
   
-  // Transactions state
   const [transactions, setTransactions] = useState([]);
-  
-  // Projects for invoice creation
   const [projects, setProjects] = useState([]);
   
   const [filter, setFilter] = useState('all');
@@ -90,7 +68,7 @@ const AdminBilling = () => {
     pendingAmount: 0
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [modalMode, setModalMode] = useState('view'); // view, create, edit
+  const [modalMode, setModalMode] = useState('view');
 
   useEffect(() => {
     if (activeTab === 'pre-assessments') {
@@ -155,7 +133,6 @@ const AdminBilling = () => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
       
-      // Fetch all payments from both pre-assessments and solar invoices
       const [preRes, solarRes] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -251,10 +228,7 @@ const AdminBilling = () => {
       const token = sessionStorage.getItem('token');
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/verify-payment`,
-        {
-          verified,
-          notes: verificationNote
-        },
+        { verified, notes: verificationNote },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -281,7 +255,7 @@ const AdminBilling = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/solar-invoices`, 
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/solar-invoices`, 
         invoiceFormData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -429,25 +403,25 @@ const AdminBilling = () => {
 
   const getPaymentStatusBadge = (status) => {
     const badges = {
-      'pending': <span className="status-badge pending"><FaClock /> Pending</span>,
-      'for_verification': <span className="status-badge for-verification"><FaQrcode /> For Verification</span>,
-      'paid': <span className="status-badge paid"><FaCheckCircle /> Paid</span>,
-      'partial': <span className="status-badge partial"><FaMoneyBillWave /> Partial</span>,
-      'failed': <span className="status-badge failed"><FaTimesCircle /> Failed</span>,
-      'overdue': <span className="status-badge overdue"><FaExclamationTriangle /> Overdue</span>
+      'pending': <span className="status-badge-adminbilling pending-adminbilling">Pending</span>,
+      'for_verification': <span className="status-badge-adminbilling for-verification-adminbilling">For Verification</span>,
+      'paid': <span className="status-badge-adminbilling paid-adminbilling">Paid</span>,
+      'partial': <span className="status-badge-adminbilling partial-adminbilling">Partial</span>,
+      'failed': <span className="status-badge-adminbilling failed-adminbilling">Failed</span>,
+      'overdue': <span className="status-badge-adminbilling overdue-adminbilling">Overdue</span>
     };
-    return badges[status] || <span className="status-badge">{status}</span>;
+    return badges[status] || <span className="status-badge-adminbilling">{status}</span>;
   };
 
   const getAssessmentStatusBadge = (status) => {
     const badges = {
-      'pending_payment': <span className="status-badge pending">Pending Payment</span>,
-      'scheduled': <span className="status-badge scheduled">Scheduled</span>,
-      'device_deployed': <span className="status-badge deployed">Device Deployed</span>,
-      'data_collecting': <span className="status-badge collecting">Data Collecting</span>,
-      'completed': <span className="status-badge completed">Completed</span>
+      'pending_payment': <span className="status-badge-adminbilling pending-adminbilling">Pending Payment</span>,
+      'scheduled': <span className="status-badge-adminbilling scheduled-adminbilling">Scheduled</span>,
+      'device_deployed': <span className="status-badge-adminbilling deployed-adminbilling">Device Deployed</span>,
+      'data_collecting': <span className="status-badge-adminbilling collecting-adminbilling">Data Collecting</span>,
+      'completed': <span className="status-badge-adminbilling completed-adminbilling">Completed</span>
     };
-    return badges[status] || <span className="status-badge">{status}</span>;
+    return badges[status] || <span className="status-badge-adminbilling">{status}</span>;
   };
 
   const filteredItems = (activeTab === 'pre-assessments' ? assessments : solarInvoices).filter(item => {
@@ -466,13 +440,44 @@ const AdminBilling = () => {
     }
   });
 
-  if (loading && (activeTab === 'pre-assessments' ? assessments.length === 0 : solarInvoices.length === 0) && activeTab !== 'transactions') {
-    return (
-      <div className="billing-loading">
-        <FaSpinner className="spinner" />
-        <p>Loading billing data...</p>
+  // Skeleton Loader
+  const SkeletonLoader = () => (
+    <div className="admin-billing-adminbilling">
+      <div className="billing-header-adminbilling">
+        <div className="skeleton-line-adminbilling large-adminbilling"></div>
+        <div className="skeleton-button-adminbilling"></div>
       </div>
-    );
+      <div className="stats-cards-adminbilling">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="stat-card-adminbilling skeleton-card-adminbilling">
+            <div className="skeleton-line-adminbilling small-adminbilling"></div>
+            <div className="skeleton-line-adminbilling large-adminbilling"></div>
+            <div className="skeleton-line-adminbilling tiny-adminbilling"></div>
+          </div>
+        ))}
+      </div>
+      <div className="billing-tabs-adminbilling">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="skeleton-tab-adminbilling"></div>
+        ))}
+      </div>
+      <div className="filters-section-adminbilling">
+        <div className="skeleton-select-adminbilling"></div>
+        <div className="skeleton-search-adminbilling"></div>
+      </div>
+      <div className="payments-table-container-adminbilling">
+        <div className="skeleton-table-adminbilling">
+          <div className="skeleton-table-header-adminbilling"></div>
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="skeleton-table-row-adminbilling"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading && (activeTab === 'pre-assessments' ? assessments.length === 0 : solarInvoices.length === 0) && activeTab !== 'transactions') {
+    return <SkeletonLoader />;
   }
 
   return (
@@ -481,53 +486,49 @@ const AdminBilling = () => {
         <title>Billing Management | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="admin-billing">
-        <div className="billing-header">
+      <div className="admin-billing-adminbilling">
+        <div className="billing-header-adminbilling">
           <div>
-            <h1><FaReceipt /> Billing Management</h1>
+            <h1>Billing Management</h1>
             <p>Manage invoices, verify payments, and track all transactions</p>
           </div>
           {activeTab === 'solar-invoices' && (
-            <button className="create-invoice-btn" onClick={() => { setModalMode('create'); setShowInvoiceModal(true); }}>
+            <button className="create-invoice-btn-adminbilling" onClick={() => { setModalMode('create'); setShowInvoiceModal(true); }}>
               <FaPlus /> Create Solar Invoice
             </button>
           )}
         </div>
 
-        {/* Stats Cards */}
-        <div className="stats-cards">
-          <div className="stat-card revenue">
-            <div className="stat-icon"><FaDollarSign /></div>
-            <div className="stat-info">
-              <span className="stat-value">{formatCurrency(stats.totalRevenue)}</span>
-              <span className="stat-label">Total Revenue</span>
+        {/* Stats Cards - No Icons */}
+        <div className="stats-cards-adminbilling">
+          <div className="stat-card-adminbilling revenue-adminbilling">
+            <div className="stat-info-adminbilling">
+              <span className="stat-value-adminbilling">{formatCurrency(stats.totalRevenue)}</span>
+              <span className="stat-label-adminbilling">Total Revenue</span>
             </div>
           </div>
-          <div className="stat-card pending-amount">
-            <div className="stat-icon"><FaClock /></div>
-            <div className="stat-info">
-              <span className="stat-value">{formatCurrency(stats.pendingAmount)}</span>
-              <span className="stat-label">Pending Collection</span>
+          <div className="stat-card-adminbilling pending-amount-adminbilling">
+            <div className="stat-info-adminbilling">
+              <span className="stat-value-adminbilling">{formatCurrency(stats.pendingAmount)}</span>
+              <span className="stat-label-adminbilling">Pending Collection</span>
             </div>
           </div>
-          <div className="stat-card pre-assessment">
-            <div className="stat-icon"><FaFileInvoice /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.totalPreAssessments}</span>
-              <span className="stat-label">Pre-Assessments</span>
-              <div className="stat-detail">
+          <div className="stat-card-adminbilling pre-assessment-adminbilling">
+            <div className="stat-info-adminbilling">
+              <span className="stat-value-adminbilling">{stats.totalPreAssessments}</span>
+              <span className="stat-label-adminbilling">Pre-Assessments</span>
+              <div className="stat-detail-adminbilling">
                 <span>Paid: {stats.paidPre}</span>
                 <span>Pending: {stats.pending}</span>
                 <span>For Verification: {stats.forVerification}</span>
               </div>
             </div>
           </div>
-          <div className="stat-card solar-invoice">
-            <div className="stat-icon"><FaCreditCard /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.totalSolarInvoices}</span>
-              <span className="stat-label">Solar Invoices</span>
-              <div className="stat-detail">
+          <div className="stat-card-adminbilling solar-invoice-adminbilling">
+            <div className="stat-info-adminbilling">
+              <span className="stat-value-adminbilling">{stats.totalSolarInvoices}</span>
+              <span className="stat-label-adminbilling">Solar Invoices</span>
+              <div className="stat-detail-adminbilling">
                 <span>Paid: {stats.paidSolar}</span>
                 <span>Partial: {stats.partial}</span>
               </div>
@@ -536,30 +537,30 @@ const AdminBilling = () => {
         </div>
 
         {/* Tabs */}
-        <div className="billing-tabs">
+        <div className="billing-tabs-adminbilling">
           <button 
-            className={`tab-btn ${activeTab === 'pre-assessments' ? 'active' : ''}`}
+            className={`tab-btn-adminbilling ${activeTab === 'pre-assessments' ? 'active-adminbilling' : ''}`}
             onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}
           >
-            <FaFileInvoice /> Pre-Assessments
+            Pre-Assessments
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'solar-invoices' ? 'active' : ''}`}
+            className={`tab-btn-adminbilling ${activeTab === 'solar-invoices' ? 'active-adminbilling' : ''}`}
             onClick={() => { setActiveTab('solar-invoices'); setFilter('all'); setCurrentPage(1); }}
           >
-            <FaCreditCard /> Solar Invoices
+            Solar Invoices
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'transactions' ? 'active' : ''}`}
+            className={`tab-btn-adminbilling ${activeTab === 'transactions' ? 'active-adminbilling' : ''}`}
             onClick={() => { setActiveTab('transactions'); setCurrentPage(1); }}
           >
-            <FaHistory /> Transaction History
+            Transaction History
           </button>
         </div>
 
         {/* Filters */}
-        <div className="filters-section">
-          <div className="filter-group">
+        <div className="filters-section-adminbilling">
+          <div className="filter-group-adminbilling">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Status</option>
               {activeTab === 'pre-assessments' ? (
@@ -578,8 +579,8 @@ const AdminBilling = () => {
               ) : null}
             </select>
           </div>
-          <div className="search-group">
-            <FaSearch className="search-icon" />
+          <div className="search-group-adminbilling">
+            <FaSearch className="search-icon-adminbilling" />
             <input
               type="text"
               placeholder="Search by reference, invoice, or client name..."
@@ -591,8 +592,8 @@ const AdminBilling = () => {
 
         {/* Pre-Assessments Table */}
         {activeTab === 'pre-assessments' && (
-          <div className="payments-table-container">
-            <table className="payments-table">
+          <div className="payments-table-container-adminbilling">
+            <table className="payments-table-adminbilling">
               <thead>
                 <tr>
                   <th>Booking Ref</th>
@@ -609,39 +610,37 @@ const AdminBilling = () => {
               <tbody>
                 {filteredItems.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="empty-state">
-                      <FaFileInvoice className="empty-icon" />
+                    <td colSpan="9" className="empty-state-adminbilling">
                       <p>No pre-assessments found</p>
                     </td>
                   </tr>
                 ) : (
                   filteredItems.map(assessment => (
                     <tr key={assessment._id}>
-                      <td className="ref-cell">{assessment.bookingReference}</td>
+                      <td className="ref-cell-adminbilling">{assessment.bookingReference}</td>
                       <td>{assessment.invoiceNumber}</td>
                       <td>
-                        <div className="client-info">
+                        <div className="client-info-adminbilling">
                           <strong>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</strong>
                           <small>{assessment.clientId?.contactNumber}</small>
                         </div>
                       </td>
                       <td>{formatDate(assessment.bookedAt)}</td>
-                      <td className="amount">{formatCurrency(assessment.assessmentFee)}</td>
+                      <td className="amount-adminbilling">{formatCurrency(assessment.assessmentFee)}</td>
                       <td>
                         {assessment.paymentMethod ? (
-                          <span className="payment-method">
-                            {assessment.paymentMethod === 'gcash' ? <FaQrcode /> : <FaMoneyBillWave />}
+                          <span className="payment-method-adminbilling">
                             {assessment.paymentMethod.toUpperCase()}
                           </span>
                         ) : '-'}
                       </td>
                       <td>{getPaymentStatusBadge(assessment.paymentStatus)}</td>
                       <td>{getAssessmentStatusBadge(assessment.assessmentStatus)}</td>
-                      <td className="actions">
+                      <td className="actions-adminbilling">
                         {assessment.paymentStatus === 'for_verification' && (
                           <>
                             <button 
-                              className="action-btn view-proof"
+                              className="action-btn-adminbilling view-proof-adminbilling"
                               onClick={() => {
                                 if (assessment.paymentProof) window.open(assessment.paymentProof, '_blank');
                               }}
@@ -650,7 +649,7 @@ const AdminBilling = () => {
                               <FaEye />
                             </button>
                             <button 
-                              className="action-btn verify"
+                              className="action-btn-adminbilling verify-adminbilling"
                               onClick={() => {
                                 setSelectedAssessment(assessment);
                                 setShowVerifyModal(true);
@@ -662,10 +661,10 @@ const AdminBilling = () => {
                           </>
                         )}
                         {assessment.paymentStatus === 'pending' && (
-                          <span className="no-action">Awaiting Payment</span>
+                          <span className="no-action-adminbilling">Awaiting Payment</span>
                         )}
                         {assessment.paymentStatus === 'paid' && (
-                          <span className="verified-badge"><FaCheckCircle /> Verified</span>
+                          <span className="verified-badge-adminbilling">Verified</span>
                         )}
                       </td>
                     </tr>
@@ -678,8 +677,8 @@ const AdminBilling = () => {
 
         {/* Solar Invoices Table */}
         {activeTab === 'solar-invoices' && (
-          <div className="payments-table-container">
-            <table className="payments-table">
+          <div className="payments-table-container-adminbilling">
+            <table className="payments-table-adminbilling">
               <thead>
                 <tr>
                   <th>Invoice #</th>
@@ -698,39 +697,38 @@ const AdminBilling = () => {
               <tbody>
                 {filteredItems.length === 0 ? (
                   <tr>
-                    <td colSpan="11" className="empty-state">
-                      <FaCreditCard className="empty-icon" />
+                    <td colSpan="11" className="empty-state-adminbilling">
                       <p>No solar invoices found</p>
                     </td>
                   </tr>
                 ) : (
                   filteredItems.map(invoice => (
                     <tr key={invoice._id}>
-                      <td className="ref-cell">{invoice.invoiceNumber}</td>
+                      <td className="ref-cell-adminbilling">{invoice.invoiceNumber}</td>
                       <td>{invoice.projectId?.projectName || 'N/A'}</td>
                       <td>
-                        <div className="client-info">
+                        <div className="client-info-adminbilling">
                           <strong>{invoice.clientId?.contactFirstName} {invoice.clientId?.contactLastName}</strong>
                           <small>{invoice.clientId?.contactNumber}</small>
                         </div>
                       </td>
-                      <td><span className={`invoice-type ${invoice.invoiceType}`}>{invoice.invoiceType}</span></td>
+                      <td><span className={`invoice-type-adminbilling ${invoice.invoiceType}`}>{invoice.invoiceType}</span></td>
                       <td>{formatDate(invoice.issueDate)}</td>
                       <td>{formatDate(invoice.dueDate)}</td>
-                      <td className="amount">{formatCurrency(invoice.totalAmount)}</td>
-                      <td className="amount">{formatCurrency(invoice.amountPaid)}</td>
-                      <td className="amount balance">{formatCurrency(invoice.balance)}</td>
+                      <td className="amount-adminbilling">{formatCurrency(invoice.totalAmount)}</td>
+                      <td className="amount-adminbilling">{formatCurrency(invoice.amountPaid)}</td>
+                      <td className="amount-adminbilling balance-adminbilling">{formatCurrency(invoice.balance)}</td>
                       <td>{getPaymentStatusBadge(invoice.paymentStatus)}</td>
-                      <td className="actions">
+                      <td className="actions-adminbilling">
                         <button 
-                          className="action-btn view"
+                          className="action-btn-adminbilling view-adminbilling"
                           onClick={() => { setSelectedInvoice(invoice); setModalMode('view'); setShowInvoiceModal(true); }}
                           title="View Details"
                         >
                           <FaEye />
                         </button>
                         <button 
-                          className="action-btn download"
+                          className="action-btn-adminbilling download-adminbilling"
                           onClick={() => handleDownloadInvoice(invoice)}
                           title="Download PDF"
                         >
@@ -738,7 +736,7 @@ const AdminBilling = () => {
                         </button>
                         {invoice.status === 'draft' && (
                           <button 
-                            className="action-btn send"
+                            className="action-btn-adminbilling send-adminbilling"
                             onClick={() => handleSendInvoice(invoice)}
                             title="Send to Customer"
                           >
@@ -747,7 +745,7 @@ const AdminBilling = () => {
                         )}
                         {(invoice.paymentStatus === 'pending' || invoice.paymentStatus === 'partial') && (
                           <button 
-                            className="action-btn payment"
+                            className="action-btn-adminbilling payment-adminbilling"
                             onClick={() => { setSelectedInvoice(invoice); setShowPaymentModal(true); }}
                             title="Record Payment"
                           >
@@ -765,8 +763,8 @@ const AdminBilling = () => {
 
         {/* Transactions Table */}
         {activeTab === 'transactions' && (
-          <div className="payments-table-container">
-            <table className="payments-table">
+          <div className="payments-table-container-adminbilling">
+            <table className="payments-table-adminbilling">
               <thead>
                 <tr>
                   <th>Date</th>
@@ -782,8 +780,7 @@ const AdminBilling = () => {
               <tbody>
                 {transactions.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="empty-state">
-                      <FaHistory className="empty-icon" />
+                    <td colSpan="8" className="empty-state-adminbilling">
                       <p>No transactions found</p>
                     </td>
                   </tr>
@@ -791,12 +788,12 @@ const AdminBilling = () => {
                   transactions.map(transaction => (
                     <tr key={transaction.id}>
                       <td>{formatDate(transaction.date)}</td>
-                      <td><span className={`transaction-type ${transaction.type === 'Pre-Assessment' ? 'pre' : 'solar'}`}>{transaction.type}</span></td>
+                      <td><span className={`transaction-type-adminbilling ${transaction.type === 'Pre-Assessment' ? 'pre-adminbilling' : 'solar-adminbilling'}`}>{transaction.type}</span></td>
                       <td>{transaction.reference}</td>
                       <td>{transaction.invoiceNumber}</td>
                       <td>{transaction.client}</td>
-                      <td className="amount">{formatCurrency(transaction.amount)}</td>
-                      <td><span className="payment-method">{transaction.method?.toUpperCase()}</span></td>
+                      <td className="amount-adminbilling">{formatCurrency(transaction.amount)}</td>
+                      <td><span className="payment-method-adminbilling">{transaction.method?.toUpperCase()}</span></td>
                       <td>{getPaymentStatusBadge(transaction.status)}</td>
                     </tr>
                   ))
@@ -808,17 +805,17 @@ const AdminBilling = () => {
 
         {/* Pagination */}
         {totalPages > 1 && activeTab !== 'transactions' && (
-          <div className="pagination">
+          <div className="pagination-adminbilling">
             <button 
-              className="page-btn"
+              className="page-btn-adminbilling"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
               <FaChevronLeft /> Previous
             </button>
-            <span className="page-info">Page {currentPage} of {totalPages}</span>
+            <span className="page-info-adminbilling">Page {currentPage} of {totalPages}</span>
             <button 
-              className="page-btn"
+              className="page-btn-adminbilling"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
             >
@@ -829,41 +826,41 @@ const AdminBilling = () => {
 
         {/* Verify Payment Modal */}
         {showVerifyModal && selectedAssessment && (
-          <div className="modal-overlay" onClick={() => setShowVerifyModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminbilling" onClick={() => setShowVerifyModal(false)}>
+            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Verify Payment</h3>
               
-              <div className="modal-body">
-                <div className="payment-details">
-                  <div className="detail-row"><span>Booking Reference:</span><strong>{selectedAssessment.bookingReference}</strong></div>
-                  <div className="detail-row"><span>Invoice Number:</span><strong>{selectedAssessment.invoiceNumber}</strong></div>
-                  <div className="detail-row"><span>Client:</span><strong>{selectedAssessment.clientId?.contactFirstName} {selectedAssessment.clientId?.contactLastName}</strong></div>
-                  <div className="detail-row"><span>Amount:</span><strong className="amount">{formatCurrency(selectedAssessment.assessmentFee)}</strong></div>
-                  <div className="detail-row"><span>Payment Method:</span><strong>{selectedAssessment.paymentMethod?.toUpperCase()}</strong></div>
+              <div className="modal-body-adminbilling">
+                <div className="payment-details-adminbilling">
+                  <div className="detail-row-adminbilling"><span>Booking Reference:</span><strong>{selectedAssessment.bookingReference}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Invoice Number:</span><strong>{selectedAssessment.invoiceNumber}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Client:</span><strong>{selectedAssessment.clientId?.contactFirstName} {selectedAssessment.clientId?.contactLastName}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Amount:</span><strong className="amount-adminbilling">{formatCurrency(selectedAssessment.assessmentFee)}</strong></div>
+                  <div className="detail-row-adminbilling"><span>Payment Method:</span><strong>{selectedAssessment.paymentMethod?.toUpperCase()}</strong></div>
                   {selectedAssessment.paymentReference && (
-                    <div className="detail-row"><span>Reference Number:</span><strong>{selectedAssessment.paymentReference}</strong></div>
+                    <div className="detail-row-adminbilling"><span>Reference Number:</span><strong>{selectedAssessment.paymentReference}</strong></div>
                   )}
                 </div>
 
                 {selectedAssessment.paymentProof && (
-                  <div className="payment-proof">
+                  <div className="payment-proof-adminbilling">
                     <label>Payment Proof:</label>
-                    <button className="view-proof-btn" onClick={() => window.open(selectedAssessment.paymentProof, '_blank')}>
+                    <button className="view-proof-btn-adminbilling" onClick={() => window.open(selectedAssessment.paymentProof, '_blank')}>
                       <FaEye /> View Screenshot
                     </button>
                   </div>
                 )}
 
-                <div className="verification-notes">
+                <div className="verification-notes-adminbilling">
                   <label>Verification Notes (Optional):</label>
                   <textarea rows="3" value={verificationNote} onChange={(e) => setVerificationNote(e.target.value)} placeholder="Add any notes about this verification..." />
                 </div>
               </div>
 
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowVerifyModal(false)}>Cancel</button>
-                <button className="btn-reject" onClick={() => handleVerifyPayment(false)}><FaTimesCircle /> Reject Payment</button>
-                <button className="btn-verify" onClick={() => handleVerifyPayment(true)}><FaCheckCircle /> Verify & Confirm</button>
+              <div className="modal-actions-adminbilling">
+                <button className="btn-cancel-adminbilling" onClick={() => setShowVerifyModal(false)}>Cancel</button>
+                <button className="btn-reject-adminbilling" onClick={() => handleVerifyPayment(false)}><FaTimesCircle /> Reject Payment</button>
+                <button className="btn-verify-adminbilling" onClick={() => handleVerifyPayment(true)}><FaCheckCircle /> Verify & Confirm</button>
               </div>
             </div>
           </div>
@@ -871,13 +868,13 @@ const AdminBilling = () => {
 
         {/* Create/View Solar Invoice Modal */}
         {showInvoiceModal && (
-          <div className="modal-overlay" onClick={() => setShowInvoiceModal(false)}>
-            <div className="modal-content invoice-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminbilling" onClick={() => setShowInvoiceModal(false)}>
+            <div className="modal-content-adminbilling invoice-modal-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>{modalMode === 'create' ? 'Create Solar Invoice' : 'Invoice Details'}</h3>
               
               {modalMode === 'create' ? (
-                <div className="invoice-form">
-                  <div className="form-group">
+                <div className="invoice-form-adminbilling">
+                  <div className="form-group-adminbilling">
                     <label>Select Project *</label>
                     <select value={invoiceFormData.projectId} onChange={(e) => setInvoiceFormData({ ...invoiceFormData, projectId: e.target.value })}>
                       <option value="">Select a project...</option>
@@ -887,8 +884,8 @@ const AdminBilling = () => {
                     </select>
                   </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
+                  <div className="form-row-adminbilling">
+                    <div className="form-group-adminbilling">
                       <label>Invoice Type</label>
                       <select value={invoiceFormData.invoiceType} onChange={(e) => setInvoiceFormData({ ...invoiceFormData, invoiceType: e.target.value })}>
                         <option value="initial">Initial Payment (30%)</option>
@@ -898,20 +895,20 @@ const AdminBilling = () => {
                         <option value="additional">Additional Work</option>
                       </select>
                     </div>
-                    <div className="form-group">
+                    <div className="form-group-adminbilling">
                       <label>Due Date *</label>
                       <input type="date" value={invoiceFormData.dueDate} onChange={(e) => setInvoiceFormData({ ...invoiceFormData, dueDate: e.target.value })} />
                     </div>
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group-adminbilling">
                     <label>Description</label>
                     <input type="text" value={invoiceFormData.description} onChange={(e) => setInvoiceFormData({ ...invoiceFormData, description: e.target.value })} placeholder="Invoice description" />
                   </div>
 
                   <label>Invoice Items</label>
                   {invoiceFormData.items.map((item, index) => (
-                    <div key={index} className="invoice-item-row">
+                    <div key={index} className="invoice-item-row-adminbilling">
                       <input type="text" placeholder="Item name" value={item.name} onChange={(e) => {
                         const newItems = [...invoiceFormData.items];
                         newItems[index].name = e.target.value;
@@ -929,35 +926,35 @@ const AdminBilling = () => {
                         setInvoiceFormData({ ...invoiceFormData, items: newItems });
                         calculateItemTotal(index);
                       }} />
-                      <span className="item-total">{formatCurrency(item.total)}</span>
+                      <span className="item-total-adminbilling">{formatCurrency(item.total)}</span>
                       {invoiceFormData.items.length > 1 && (
-                        <button type="button" className="remove-item" onClick={() => removeInvoiceItem(index)}><FaTrash /></button>
+                        <button type="button" className="remove-item-adminbilling" onClick={() => removeInvoiceItem(index)}><FaTrash /></button>
                       )}
                     </div>
                   ))}
-                  <button type="button" className="add-item-btn" onClick={addInvoiceItem}><FaPlus /> Add Item</button>
+                  <button type="button" className="add-item-btn-adminbilling" onClick={addInvoiceItem}><FaPlus /> Add Item</button>
 
-                  <div className="invoice-totals">
-                    <div className="total-row"><span>Subtotal:</span><span>{formatCurrency(invoiceFormData.subtotal)}</span></div>
-                    <div className="total-row"><span>Tax (12%):</span><span>{formatCurrency(invoiceFormData.tax)}</span></div>
-                    <div className="total-row"><span>Discount:</span><input type="number" value={invoiceFormData.discount} onChange={(e) => {
+                  <div className="invoice-totals-adminbilling">
+                    <div className="total-row-adminbilling"><span>Subtotal:</span><span>{formatCurrency(invoiceFormData.subtotal)}</span></div>
+                    <div className="total-row-adminbilling"><span>Tax (12%):</span><span>{formatCurrency(invoiceFormData.tax)}</span></div>
+                    <div className="total-row-adminbilling"><span>Discount:</span><input type="number" value={invoiceFormData.discount} onChange={(e) => {
                       setInvoiceFormData({ ...invoiceFormData, discount: parseFloat(e.target.value) });
                       calculateTotals();
                     }} /></div>
-                    <div className="total-row grand-total"><strong>Total:</strong><strong>{formatCurrency(invoiceFormData.totalAmount)}</strong></div>
+                    <div className="total-row-adminbilling grand-total-adminbilling"><strong>Total:</strong><strong>{formatCurrency(invoiceFormData.totalAmount)}</strong></div>
                   </div>
 
-                  <div className="modal-actions">
-                    <button className="cancel-btn" onClick={() => setShowInvoiceModal(false)}>Cancel</button>
-                    <button className="create-btn" onClick={handleCreateSolarInvoice} disabled={isSubmitting}>
-                      {isSubmitting ? <><FaSpinner className="spinner" /> Creating...</> : 'Create Invoice'}
+                  <div className="modal-actions-adminbilling">
+                    <button className="cancel-btn-adminbilling" onClick={() => setShowInvoiceModal(false)}>Cancel</button>
+                    <button className="create-btn-adminbilling" onClick={handleCreateSolarInvoice} disabled={isSubmitting}>
+                      {isSubmitting ? 'Creating...' : 'Create Invoice'}
                     </button>
                   </div>
                 </div>
               ) : (
                 selectedInvoice && (
-                  <div className="invoice-view">
-                    <div className="detail-section"><h4>Invoice Information</h4>
+                  <div className="invoice-view-adminbilling">
+                    <div className="detail-section-adminbilling"><h4>Invoice Information</h4>
                       <p><strong>Invoice #:</strong> {selectedInvoice.invoiceNumber}</p>
                       <p><strong>Project:</strong> {selectedInvoice.projectId?.projectName}</p>
                       <p><strong>Type:</strong> {selectedInvoice.invoiceType}</p>
@@ -965,19 +962,37 @@ const AdminBilling = () => {
                       <p><strong>Issue Date:</strong> {formatDate(selectedInvoice.issueDate)}</p>
                       <p><strong>Due Date:</strong> {formatDate(selectedInvoice.dueDate)}</p>
                     </div>
-                    <div className="detail-section"><h4>Client Information</h4>
+                    <div className="detail-section-adminbilling"><h4>Client Information</h4>
                       <p><strong>Name:</strong> {selectedInvoice.clientId?.contactFirstName} {selectedInvoice.clientId?.contactLastName}</p>
                       <p><strong>Email:</strong> {selectedInvoice.clientId?.userId?.email}</p>
                       <p><strong>Contact:</strong> {selectedInvoice.clientId?.contactNumber}</p>
                     </div>
-                    <div className="detail-section"><h4>Items</h4>
-                      <table className="items-table"><thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
-                      <tbody>{selectedInvoice.items?.map((item, idx) => (
-                        <tr key={idx}><td>{item.name}</td><td>{item.quantity}</td><td>{formatCurrency(item.unitPrice)}</td><td>{formatCurrency(item.total)}</td></tr>
-                      ))}</tbody></table>
-                      <div className="totals"><div>Subtotal: {formatCurrency(selectedInvoice.subtotal)}</div><div>Tax: {formatCurrency(selectedInvoice.tax)}</div><div>Discount: {formatCurrency(selectedInvoice.discount)}</div><div className="grand"><strong>Total: {formatCurrency(selectedInvoice.totalAmount)}</strong></div></div>
+                    <div className="detail-section-adminbilling"><h4>Items</h4>
+                      <table className="items-table-adminbilling">
+                        <thead>
+                          <tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+                        </thead>
+                        <tbody>
+                          {selectedInvoice.items?.map((item, idx) => (
+                            <tr key={idx}>
+                              <td>{item.name}</td>
+                              <td>{item.quantity}</td>
+                              <td className="amount-adminbilling">{formatCurrency(item.unitPrice)}</td>
+                              <td className="amount-adminbilling">{formatCurrency(item.total)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      <div className="totals-adminbilling">
+                        <div>Subtotal: {formatCurrency(selectedInvoice.subtotal)}</div>
+                        <div>Tax: {formatCurrency(selectedInvoice.tax)}</div>
+                        <div>Discount: {formatCurrency(selectedInvoice.discount)}</div>
+                        <div className="grand-adminbilling"><strong>Total: {formatCurrency(selectedInvoice.totalAmount)}</strong></div>
+                      </div>
                     </div>
-                    <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowInvoiceModal(false)}>Close</button></div>
+                    <div className="modal-actions-adminbilling">
+                      <button className="cancel-btn-adminbilling" onClick={() => setShowInvoiceModal(false)}>Close</button>
+                    </div>
                   </div>
                 )
               )}
@@ -987,15 +1002,42 @@ const AdminBilling = () => {
 
         {/* Record Payment Modal */}
         {showPaymentModal && selectedInvoice && (
-          <div className="modal-overlay" onClick={() => setShowPaymentModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminbilling" onClick={() => setShowPaymentModal(false)}>
+            <div className="modal-content-adminbilling" onClick={e => e.stopPropagation()}>
               <h3>Record Payment</h3>
-              <div className="payment-info"><p><strong>Invoice:</strong> {selectedInvoice.invoiceNumber}</p><p><strong>Total Amount:</strong> {formatCurrency(selectedInvoice.totalAmount)}</p><p><strong>Paid:</strong> {formatCurrency(selectedInvoice.amountPaid)}</p><p><strong>Balance:</strong> {formatCurrency(selectedInvoice.balance)}</p></div>
-              <div className="form-group"><label>Payment Amount *</label><input type="number" value={paymentData.amount} onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })} placeholder="Enter amount" /></div>
-              <div className="form-group"><label>Payment Method</label><select value={paymentData.method} onChange={(e) => setPaymentData({ ...paymentData, method: e.target.value })}><option value="gcash">GCash</option><option value="bank_transfer">Bank Transfer</option><option value="cash">Cash</option><option value="check">Check</option></select></div>
-              <div className="form-group"><label>Reference Number</label><input type="text" value={paymentData.reference} onChange={(e) => setPaymentData({ ...paymentData, reference: e.target.value })} placeholder="Transaction reference" /></div>
-              <div className="form-group"><label>Notes</label><textarea rows="2" value={paymentData.notes} onChange={(e) => setPaymentData({ ...paymentData, notes: e.target.value })} placeholder="Add notes..." /></div>
-              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowPaymentModal(false)}>Cancel</button><button className="record-btn" onClick={handleRecordPayment} disabled={!paymentData.amount || isSubmitting}>{isSubmitting ? <><FaSpinner className="spinner" /> Recording...</> : 'Record Payment'}</button></div>
+              <div className="payment-info-adminbilling">
+                <p><strong>Invoice:</strong> {selectedInvoice.invoiceNumber}</p>
+                <p><strong>Total Amount:</strong> {formatCurrency(selectedInvoice.totalAmount)}</p>
+                <p><strong>Paid:</strong> {formatCurrency(selectedInvoice.amountPaid)}</p>
+                <p><strong>Balance:</strong> {formatCurrency(selectedInvoice.balance)}</p>
+              </div>
+              <div className="form-group-adminbilling">
+                <label>Payment Amount *</label>
+                <input type="number" value={paymentData.amount} onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })} placeholder="Enter amount" />
+              </div>
+              <div className="form-group-adminbilling">
+                <label>Payment Method</label>
+                <select value={paymentData.method} onChange={(e) => setPaymentData({ ...paymentData, method: e.target.value })}>
+                  <option value="gcash">GCash</option>
+                  <option value="bank_transfer">Bank Transfer</option>
+                  <option value="cash">Cash</option>
+                  <option value="check">Check</option>
+                </select>
+              </div>
+              <div className="form-group-adminbilling">
+                <label>Reference Number</label>
+                <input type="text" value={paymentData.reference} onChange={(e) => setPaymentData({ ...paymentData, reference: e.target.value })} placeholder="Transaction reference" />
+              </div>
+              <div className="form-group-adminbilling">
+                <label>Notes</label>
+                <textarea rows="2" value={paymentData.notes} onChange={(e) => setPaymentData({ ...paymentData, notes: e.target.value })} placeholder="Add notes..." />
+              </div>
+              <div className="modal-actions-adminbilling">
+                <button className="cancel-btn-adminbilling" onClick={() => setShowPaymentModal(false)}>Cancel</button>
+                <button className="record-btn-adminbilling" onClick={handleRecordPayment} disabled={!paymentData.amount || isSubmitting}>
+                  {isSubmitting ? 'Recording...' : 'Record Payment'}
+                </button>
+              </div>
             </div>
           </div>
         )}

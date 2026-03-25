@@ -3,36 +3,23 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import {
-  FaMicrochip,
   FaSearch,
   FaEye,
   FaEdit,
   FaTrash,
   FaPlus,
   FaSpinner,
-  FaFilter,
   FaChevronLeft,
   FaChevronRight,
-  FaBatteryFull,
-  FaBatteryHalf,
-  FaBatteryQuarter,
-  FaBatteryEmpty,
   FaWifi,
-  FaSignal,
   FaClock,
   FaCheckCircle,
   FaExclamationTriangle,
-  FaSync,
-  FaDownload,
   FaUpload,
-  FaHistory,
+  FaDownload,
   FaTools,
-  FaChartLine,
-  FaCalendarAlt,
-  FaMapMarkerAlt,
   FaTimes,
-  FaSave,
-  FaUndo
+  FaSave
 } from 'react-icons/fa';
 import '../../styles/Admin/iotDevice.css';
 
@@ -125,7 +112,7 @@ const IoTDevice = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/devices`,
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/devices`,
         {
           deviceName: formData.deviceName,
           model: formData.model,
@@ -153,7 +140,7 @@ const IoTDevice = () => {
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-      const response = await axios.put(
+      await axios.put(
         `${import.meta.env.VITE_API_URL}/api/admin/devices/${selectedDevice._id}`,
         {
           deviceName: formData.deviceName,
@@ -269,7 +256,6 @@ const IoTDevice = () => {
             {
               type: formData.maintenanceType,
               notes: formData.maintenanceNotes,
-              performedBy: req.user.id,
               date: new Date()
             }
           ]
@@ -337,21 +323,14 @@ const IoTDevice = () => {
     setShowMaintenanceModal(true);
   };
 
-  const getBatteryIcon = (level) => {
-    if (level >= 75) return <FaBatteryFull className="battery-high" />;
-    if (level >= 50) return <FaBatteryHalf className="battery-medium" />;
-    if (level >= 25) return <FaBatteryQuarter className="battery-low" />;
-    return <FaBatteryEmpty className="battery-critical" />;
-  };
-
   const getStatusBadge = (status) => {
     const badges = {
-      'available': <span className="status-badge available"><FaCheckCircle /> Available</span>,
-      'deployed': <span className="status-badge deployed"><FaUpload /> Deployed</span>,
-      'maintenance': <span className="status-badge maintenance"><FaTools /> Maintenance</span>,
-      'retired': <span className="status-badge retired">Retired</span>
+      'available': <span className="status-badge-iotdevicead available-iotdevicead">Available</span>,
+      'deployed': <span className="status-badge-iotdevicead deployed-iotdevicead">Deployed</span>,
+      'maintenance': <span className="status-badge-iotdevicead maintenance-iotdevicead">Maintenance</span>,
+      'retired': <span className="status-badge-iotdevicead retired-iotdevicead">Retired</span>
     };
-    return badges[status] || <span className="status-badge">{status}</span>;
+    return badges[status] || <span className="status-badge-iotdevicead">{status}</span>;
   };
 
   const formatDate = (date) => {
@@ -374,13 +353,38 @@ const IoTDevice = () => {
       device.serialNumber?.toLowerCase().includes(searchLower);
   });
 
-  if (loading && devices.length === 0) {
-    return (
-      <div className="iot-loading">
-        <FaSpinner className="spinner" />
-        <p>Loading IoT devices...</p>
+  // Skeleton Loader
+  const SkeletonLoader = () => (
+    <div className="iot-device-management-iotdevicead">
+      <div className="iot-header-iotdevicead">
+        <div className="skeleton-line-iotdevicead large-iotdevicead"></div>
+        <div className="skeleton-button-iotdevicead"></div>
       </div>
-    );
+      <div className="iot-stats-iotdevicead">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="stat-card-iotdevicead skeleton-card-iotdevicead">
+            <div className="skeleton-line-iotdevicead small-iotdevicead"></div>
+            <div className="skeleton-line-iotdevicead large-iotdevicead"></div>
+          </div>
+        ))}
+      </div>
+      <div className="iot-filters-iotdevicead">
+        <div className="skeleton-select-iotdevicead"></div>
+        <div className="skeleton-search-iotdevicead"></div>
+      </div>
+      <div className="iot-table-container-iotdevicead">
+        <div className="skeleton-table-iotdevicead">
+          <div className="skeleton-table-header-iotdevicead"></div>
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="skeleton-table-row-iotdevicead"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading && devices.length === 0) {
+    return <SkeletonLoader />;
   }
 
   return (
@@ -389,38 +393,46 @@ const IoTDevice = () => {
         <title>IoT Device Management | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="iot-device-management">
-        <div className="iot-header">
+      <div className="iot-device-management-iotdevicead">
+        <div className="iot-header-iotdevicead">
           <div>
-            <h1><FaMicrochip /> IoT Device Management</h1>
+            <h1>IoT Device Management</h1>
             <p>Manage IoT devices, track deployments, and monitor device health</p>
           </div>
-          <button className="create-device-btn" onClick={() => { setModalMode('create'); resetForm(); setShowDeviceModal(true); }}>
+          <button className="create-device-btn-iotdevicead" onClick={() => { setModalMode('create'); resetForm(); setShowDeviceModal(true); }}>
             <FaPlus /> Add New Device
           </button>
         </div>
 
-        <div className="iot-stats">
-          <div className="stat-card total">
-            <div className="stat-icon"><FaMicrochip /></div>
-            <div className="stat-info"><span className="stat-value">{stats.total}</span><span className="stat-label">Total Devices</span></div>
+        <div className="iot-stats-iotdevicead">
+          <div className="stat-card-iotdevicead total-iotdevicead">
+            <div className="stat-info-iotdevicead">
+              <span className="stat-value-iotdevicead">{stats.total}</span>
+              <span className="stat-label-iotdevicead">Total Devices</span>
+            </div>
           </div>
-          <div className="stat-card available">
-            <div className="stat-icon"><FaCheckCircle /></div>
-            <div className="stat-info"><span className="stat-value">{stats.active}</span><span className="stat-label">Available</span></div>
+          <div className="stat-card-iotdevicead available-iotdevicead">
+            <div className="stat-info-iotdevicead">
+              <span className="stat-value-iotdevicead">{stats.active}</span>
+              <span className="stat-label-iotdevicead">Available</span>
+            </div>
           </div>
-          <div className="stat-card deployed">
-            <div className="stat-icon"><FaUpload /></div>
-            <div className="stat-info"><span className="stat-value">{stats.deployed}</span><span className="stat-label">Deployed</span></div>
+          <div className="stat-card-iotdevicead deployed-iotdevicead">
+            <div className="stat-info-iotdevicead">
+              <span className="stat-value-iotdevicead">{stats.deployed}</span>
+              <span className="stat-label-iotdevicead">Deployed</span>
+            </div>
           </div>
-          <div className="stat-card maintenance">
-            <div className="stat-icon"><FaTools /></div>
-            <div className="stat-info"><span className="stat-value">{stats.maintenance}</span><span className="stat-label">Maintenance</span></div>
+          <div className="stat-card-iotdevicead maintenance-iotdevicead">
+            <div className="stat-info-iotdevicead">
+              <span className="stat-value-iotdevicead">{stats.maintenance}</span>
+              <span className="stat-label-iotdevicead">Maintenance</span>
+            </div>
           </div>
         </div>
 
-        <div className="iot-filters">
-          <div className="filter-group">
+        <div className="iot-filters-iotdevicead">
+          <div className="filter-group-iotdevicead">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Devices</option>
               <option value="available">Available</option>
@@ -429,37 +441,60 @@ const IoTDevice = () => {
               <option value="retired">Retired</option>
             </select>
           </div>
-          <div className="search-group">
-            <FaSearch className="search-icon" />
+          <div className="search-group-iotdevicead">
+            <FaSearch className="search-icon-iotdevicead" />
             <input type="text" placeholder="Search by ID, name, model, or serial..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
         </div>
 
-        <div className="iot-table-container">
-          <table className="iot-table">
+        <div className="iot-table-container-iotdevicead">
+          <table className="iot-table-iotdevicead">
             <thead>
-              <tr><th>Device ID</th><th>Name</th><th>Model</th><th>Firmware</th><th>Status</th><th>Battery</th><th>Last Heartbeat</th><th>Current Assessment</th><th>Actions</th></tr>
+              <tr>
+                <th>Device ID</th>
+                <th>Name</th>
+                <th>Model</th>
+                <th>Firmware</th>
+                <th>Status</th>
+                <th>Battery</th>
+                <th>Last Heartbeat</th>
+                <th>Current Assessment</th>
+                <th>Actions</th>
+              </tr>
             </thead>
             <tbody>
               {filteredDevices.length === 0 ? (
-                <tr><td colSpan="9" className="empty-state"><FaMicrochip className="empty-icon" /><p>No devices found</p></td></tr>
+                <tr>
+                  <td colSpan="9" className="empty-state-iotdevicead">
+                    <p>No devices found</p>
+                  </td>
+                </tr>
               ) : (
                 filteredDevices.map(device => (
                   <tr key={device._id}>
-                    <td className="device-id">{device.deviceId}</td>
+                    <td className="device-id-iotdevicead">{device.deviceId}</td>
                     <td><strong>{device.deviceName}</strong></td>
                     <td>{device.model}</td>
                     <td>v{device.firmwareVersion}</td>
                     <td>{getStatusBadge(device.status)}</td>
-                    <td className="battery-cell">{getBatteryIcon(device.batteryLevel)} <span>{device.batteryLevel}%</span></td>
+                    <td className="battery-cell-iotdevicead"><span>{device.batteryLevel || '—'}%</span></td>
                     <td>{formatDate(device.lastHeartbeat)}</td>
                     <td>{device.currentPreAssessmentId ? (device.currentPreAssessmentId?.bookingReference || 'Active') : '—'}</td>
-                    <td className="actions-cell">
-                      <button className="action-btn view" onClick={() => openViewModal(device)} title="View Details"><FaEye /></button>
-                      {device.status === 'available' && (<><button className="action-btn edit" onClick={() => openEditModal(device)} title="Edit"><FaEdit /></button><button className="action-btn deploy" onClick={() => openDeployModal(device)} title="Deploy"><FaUpload /></button></>)}
-                      {device.status === 'deployed' && (<button className="action-btn retrieve" onClick={() => handleRetrieveDevice(device)} title="Retrieve"><FaDownload /></button>)}
-                      {device.status !== 'retired' && (<button className="action-btn maintenance" onClick={() => openMaintenanceModal(device)} title="Maintenance"><FaTools /></button>)}
-                      <button className="action-btn delete" onClick={() => { setSelectedDevice(device); if (window.confirm('Delete this device?')) handleDeleteDevice(); }} title="Delete"><FaTrash /></button>
+                    <td className="actions-cell-iotdevicead">
+                      <button className="action-btn-iotdevicead view-iotdevicead" onClick={() => openViewModal(device)} title="View Details"><FaEye /></button>
+                      {device.status === 'available' && (
+                        <>
+                          <button className="action-btn-iotdevicead edit-iotdevicead" onClick={() => openEditModal(device)} title="Edit"><FaEdit /></button>
+                          <button className="action-btn-iotdevicead deploy-iotdevicead" onClick={() => openDeployModal(device)} title="Deploy"><FaUpload /></button>
+                        </>
+                      )}
+                      {device.status === 'deployed' && (
+                        <button className="action-btn-iotdevicead retrieve-iotdevicead" onClick={() => handleRetrieveDevice(device)} title="Retrieve"><FaDownload /></button>
+                      )}
+                      {device.status !== 'retired' && (
+                        <button className="action-btn-iotdevicead maintenance-iotdevicead" onClick={() => openMaintenanceModal(device)} title="Maintenance"><FaTools /></button>
+                      )}
+                      <button className="action-btn-iotdevicead delete-iotdevicead" onClick={() => { setSelectedDevice(device); if (window.confirm('Delete this device?')) handleDeleteDevice(); }} title="Delete"><FaTrash /></button>
                     </td>
                   </tr>
                 ))
@@ -468,54 +503,152 @@ const IoTDevice = () => {
           </table>
         </div>
 
-        {totalPages > 1 && (<div className="pagination"><button className="page-btn" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}><FaChevronLeft /> Previous</button><span className="page-info">Page {currentPage} of {totalPages}</span><button className="page-btn" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next <FaChevronRight /></button></div>)}
+        {totalPages > 1 && (
+          <div className="pagination-iotdevicead">
+            <button className="page-btn-iotdevicead" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}><FaChevronLeft /> Previous</button>
+            <span className="page-info-iotdevicead">Page {currentPage} of {totalPages}</span>
+            <button className="page-btn-iotdevicead" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next <FaChevronRight /></button>
+          </div>
+        )}
 
-        {/* Device Modal (Create/Edit/View) */}
+        {/* Device Modal */}
         {showDeviceModal && (
-          <div className="modal-overlay" onClick={() => setShowDeviceModal(false)}>
-            <div className="modal-content device-modal" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-iotdevicead" onClick={() => setShowDeviceModal(false)}>
+            <div className="modal-content-iotdevicead device-modal-iotdevicead" onClick={e => e.stopPropagation()}>
               <h3>{modalMode === 'create' ? 'Add New Device' : modalMode === 'edit' ? 'Edit Device' : 'Device Details'}</h3>
               {modalMode === 'view' && selectedDevice ? (
-                <div className="device-details-view">
-                  <div className="detail-section"><h4>Device Information</h4><p><strong>Device ID:</strong> {selectedDevice.deviceId}</p><p><strong>Name:</strong> {selectedDevice.deviceName}</p><p><strong>Model:</strong> {selectedDevice.model}</p><p><strong>Manufacturer:</strong> {selectedDevice.manufacturer}</p><p><strong>Serial Number:</strong> {selectedDevice.serialNumber || '—'}</p><p><strong>Firmware:</strong> v{selectedDevice.firmwareVersion}</p><p><strong>Status:</strong> {getStatusBadge(selectedDevice.status)}</p><p><strong>Battery:</strong> {selectedDevice.batteryLevel}%</p><p><strong>Last Heartbeat:</strong> {formatDate(selectedDevice.lastHeartbeat)}</p></div>
-                  <div className="detail-section"><h4>Deployment History</h4>{selectedDevice.deploymentHistory?.length > 0 ? selectedDevice.deploymentHistory.map((h, i) => (<div key={i} className="history-item"><p><strong>Deployed:</strong> {formatDate(h.deployedAt)}</p><p><strong>Retrieved:</strong> {formatDate(h.retrievedAt) || 'Still deployed'}</p><p><strong>Notes:</strong> {h.notes || '—'}</p></div>)) : <p>No deployment history</p>}</div>
-                  <div className="detail-section"><h4>Maintenance History</h4>{selectedDevice.maintenanceHistory?.length > 0 ? selectedDevice.maintenanceHistory.map((m, i) => (<div key={i} className="history-item"><p><strong>Type:</strong> {m.type}</p><p><strong>Date:</strong> {formatDate(m.date)}</p><p><strong>Notes:</strong> {m.notes}</p></div>)) : <p>No maintenance history</p>}</div>
+                <div className="device-details-view-iotdevicead">
+                  <div className="detail-section-iotdevicead">
+                    <h4>Device Information</h4>
+                    <p><strong>Device ID:</strong> {selectedDevice.deviceId}</p>
+                    <p><strong>Name:</strong> {selectedDevice.deviceName}</p>
+                    <p><strong>Model:</strong> {selectedDevice.model}</p>
+                    <p><strong>Manufacturer:</strong> {selectedDevice.manufacturer}</p>
+                    <p><strong>Serial Number:</strong> {selectedDevice.serialNumber || '—'}</p>
+                    <p><strong>Firmware:</strong> v{selectedDevice.firmwareVersion}</p>
+                    <p><strong>Status:</strong> {getStatusBadge(selectedDevice.status)}</p>
+                    <p><strong>Battery:</strong> {selectedDevice.batteryLevel || '—'}%</p>
+                    <p><strong>Last Heartbeat:</strong> {formatDate(selectedDevice.lastHeartbeat)}</p>
+                  </div>
+                  <div className="detail-section-iotdevicead">
+                    <h4>Deployment History</h4>
+                    {selectedDevice.deploymentHistory?.length > 0 ? selectedDevice.deploymentHistory.map((h, i) => (
+                      <div key={i} className="history-item-iotdevicead">
+                        <p><strong>Deployed:</strong> {formatDate(h.deployedAt)}</p>
+                        <p><strong>Retrieved:</strong> {formatDate(h.retrievedAt) || 'Still deployed'}</p>
+                        <p><strong>Notes:</strong> {h.notes || '—'}</p>
+                      </div>
+                    )) : <p>No deployment history</p>}
+                  </div>
+                  <div className="detail-section-iotdevicead">
+                    <h4>Maintenance History</h4>
+                    {selectedDevice.maintenanceHistory?.length > 0 ? selectedDevice.maintenanceHistory.map((m, i) => (
+                      <div key={i} className="history-item-iotdevicead">
+                        <p><strong>Type:</strong> {m.type}</p>
+                        <p><strong>Date:</strong> {formatDate(m.date)}</p>
+                        <p><strong>Notes:</strong> {m.notes}</p>
+                      </div>
+                    )) : <p>No maintenance history</p>}
+                  </div>
                 </div>
               ) : (
-                <div className="device-form">
-                  <div className="form-group"><label>Device Name *</label><input type="text" value={formData.deviceName} onChange={(e) => setFormData({ ...formData, deviceName: e.target.value })} placeholder="e.g., IoT Sensor 01" disabled={modalMode === 'edit' && selectedDevice?.status === 'deployed'} /></div>
-                  <div className="form-row"><div className="form-group"><label>Model *</label><input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} placeholder="e.g., ESP32-S3" /></div><div className="form-group"><label>Manufacturer</label><input type="text" value={formData.manufacturer} onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })} placeholder="Salfer Engineering" /></div></div>
-                  <div className="form-row"><div className="form-group"><label>Serial Number</label><input type="text" value={formData.serialNumber} onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })} placeholder="Enter serial number" /></div><div className="form-group"><label>Firmware Version</label><input type="text" value={formData.firmwareVersion} onChange={(e) => setFormData({ ...formData, firmwareVersion: e.target.value })} placeholder="1.0.0" /></div></div>
-                  <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowDeviceModal(false)}>Cancel</button>{(modalMode === 'create' || modalMode === 'edit') && (<button className="save-btn" onClick={modalMode === 'create' ? handleCreateDevice : handleUpdateDevice} disabled={isSubmitting}>{isSubmitting ? <><FaSpinner className="spinner" /> Saving...</> : <><FaSave /> Save Device</>}</button>)}</div>
+                <div className="device-form-iotdevicead">
+                  <div className="form-group-iotdevicead">
+                    <label>Device Name *</label>
+                    <input type="text" value={formData.deviceName} onChange={(e) => setFormData({ ...formData, deviceName: e.target.value })} placeholder="e.g., IoT Sensor 01" disabled={modalMode === 'edit' && selectedDevice?.status === 'deployed'} />
+                  </div>
+                  <div className="form-row-iotdevicead">
+                    <div className="form-group-iotdevicead">
+                      <label>Model *</label>
+                      <input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} placeholder="e.g., ESP32-S3" />
+                    </div>
+                    <div className="form-group-iotdevicead">
+                      <label>Manufacturer</label>
+                      <input type="text" value={formData.manufacturer} onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })} placeholder="Salfer Engineering" />
+                    </div>
+                  </div>
+                  <div className="form-row-iotdevicead">
+                    <div className="form-group-iotdevicead">
+                      <label>Serial Number</label>
+                      <input type="text" value={formData.serialNumber} onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })} placeholder="Enter serial number" />
+                    </div>
+                    <div className="form-group-iotdevicead">
+                      <label>Firmware Version</label>
+                      <input type="text" value={formData.firmwareVersion} onChange={(e) => setFormData({ ...formData, firmwareVersion: e.target.value })} placeholder="1.0.0" />
+                    </div>
+                  </div>
+                  <div className="modal-actions-iotdevicead">
+                    <button className="cancel-btn-iotdevicead" onClick={() => setShowDeviceModal(false)}>Cancel</button>
+                    {(modalMode === 'create' || modalMode === 'edit') && (
+                      <button className="save-btn-iotdevicead" onClick={modalMode === 'create' ? handleCreateDevice : handleUpdateDevice} disabled={isSubmitting}>
+                        {isSubmitting ? 'Saving...' : 'Save Device'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
-              {modalMode === 'view' && (<div className="modal-actions"><button className="cancel-btn" onClick={() => setShowDeviceModal(false)}>Close</button></div>)}
+              {modalMode === 'view' && (
+                <div className="modal-actions-iotdevicead">
+                  <button className="cancel-btn-iotdevicead" onClick={() => setShowDeviceModal(false)}>Close</button>
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {/* Deploy Modal */}
         {showDeployModal && selectedDevice && (
-          <div className="modal-overlay" onClick={() => setShowDeployModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-iotdevicead" onClick={() => setShowDeployModal(false)}>
+            <div className="modal-content-iotdevicead" onClick={e => e.stopPropagation()}>
               <h3>Deploy Device</h3>
               <p><strong>Device:</strong> {selectedDevice.deviceId} - {selectedDevice.deviceName}</p>
-              <div className="form-group"><label>Select Pre-Assessment *</label><select value={formData.preAssessmentId} onChange={(e) => setFormData({ ...formData, preAssessmentId: e.target.value })}><option value="">Select a scheduled pre-assessment...</option>{preAssessments.map(pa => (<option key={pa._id} value={pa._id}>{pa.bookingReference} - {pa.clientId?.contactFirstName} {pa.clientId?.contactLastName}</option>))}</select></div>
-              <div className="form-group"><label>Deployment Notes (Optional)</label><textarea rows="3" value={formData.deploymentNotes} onChange={(e) => setFormData({ ...formData, deploymentNotes: e.target.value })} placeholder="Add notes about this deployment..." /></div>
-              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowDeployModal(false)}>Cancel</button><button className="deploy-btn" onClick={handleDeployDevice} disabled={!formData.preAssessmentId || isSubmitting}>{isSubmitting ? <><FaSpinner className="spinner" /> Deploying...</> : 'Deploy Device'}</button></div>
+              <div className="form-group-iotdevicead">
+                <label>Select Pre-Assessment *</label>
+                <select value={formData.preAssessmentId} onChange={(e) => setFormData({ ...formData, preAssessmentId: e.target.value })}>
+                  <option value="">Select a scheduled pre-assessment...</option>
+                  {preAssessments.map(pa => (
+                    <option key={pa._id} value={pa._id}>{pa.bookingReference} - {pa.clientId?.contactFirstName} {pa.clientId?.contactLastName}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group-iotdevicead">
+                <label>Deployment Notes (Optional)</label>
+                <textarea rows="3" value={formData.deploymentNotes} onChange={(e) => setFormData({ ...formData, deploymentNotes: e.target.value })} placeholder="Add notes about this deployment..." />
+              </div>
+              <div className="modal-actions-iotdevicead">
+                <button className="cancel-btn-iotdevicead" onClick={() => setShowDeployModal(false)}>Cancel</button>
+                <button className="deploy-btn-iotdevicead" onClick={handleDeployDevice} disabled={!formData.preAssessmentId || isSubmitting}>
+                  {isSubmitting ? 'Deploying...' : 'Deploy Device'}
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Maintenance Modal */}
         {showMaintenanceModal && selectedDevice && (
-          <div className="modal-overlay" onClick={() => setShowMaintenanceModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-iotdevicead" onClick={() => setShowMaintenanceModal(false)}>
+            <div className="modal-content-iotdevicead" onClick={e => e.stopPropagation()}>
               <h3>Device Maintenance</h3>
               <p><strong>Device:</strong> {selectedDevice.deviceId} - {selectedDevice.deviceName}</p>
-              <div className="form-group"><label>Maintenance Type</label><select value={formData.maintenanceType} onChange={(e) => setFormData({ ...formData, maintenanceType: e.target.value })}><option value="calibration">Calibration</option><option value="repair">Repair</option><option value="battery_replacement">Battery Replacement</option></select></div>
-              <div className="form-group"><label>Notes</label><textarea rows="3" value={formData.maintenanceNotes} onChange={(e) => setFormData({ ...formData, maintenanceNotes: e.target.value })} placeholder="Describe maintenance performed..." /></div>
-              <div className="modal-actions"><button className="cancel-btn" onClick={() => setShowMaintenanceModal(false)}>Cancel</button><button className="maintenance-btn" onClick={handleMaintenance} disabled={isSubmitting}>{isSubmitting ? <><FaSpinner className="spinner" /> Updating...</> : 'Mark for Maintenance'}</button></div>
+              <div className="form-group-iotdevicead">
+                <label>Maintenance Type</label>
+                <select value={formData.maintenanceType} onChange={(e) => setFormData({ ...formData, maintenanceType: e.target.value })}>
+                  <option value="calibration">Calibration</option>
+                  <option value="repair">Repair</option>
+                  <option value="battery_replacement">Battery Replacement</option>
+                </select>
+              </div>
+              <div className="form-group-iotdevicead">
+                <label>Notes</label>
+                <textarea rows="3" value={formData.maintenanceNotes} onChange={(e) => setFormData({ ...formData, maintenanceNotes: e.target.value })} placeholder="Describe maintenance performed..." />
+              </div>
+              <div className="modal-actions-iotdevicead">
+                <button className="cancel-btn-iotdevicead" onClick={() => setShowMaintenanceModal(false)}>Cancel</button>
+                <button className="maintenance-btn-iotdevicead" onClick={handleMaintenance} disabled={isSubmitting}>
+                  {isSubmitting ? 'Updating...' : 'Mark for Maintenance'}
+                </button>
+              </div>
             </div>
           </div>
         )}
