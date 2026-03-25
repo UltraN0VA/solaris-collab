@@ -1,296 +1,517 @@
+// pages/Customer/MyProject.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { 
+  FaProjectDiagram,
+  FaUser,
+  FaUserCircle,
+  FaCalendarAlt,
+  FaClock,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaSpinner,
+  FaMoneyBillWave,
+  FaFileInvoice,
+  FaDownload,
+  FaEye,
+  FaEnvelope,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaBuilding,
+  FaSolarPanel,
+  FaTools,
+  FaChartLine,
+  FaHistory,
+  FaChevronRight,
+  FaChevronDown,
+  FaFileAlt,
+  FaUserCog,
+  FaUsers,
+  FaCalendarCheck
+} from 'react-icons/fa';
 import '../../styles/Customer/myproject.css';
 
 const MyProject = () => {
   const navigate = useNavigate();
-  const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [activeMilestone, setActiveMilestone] = useState(null);
+  const [expandedSections, setExpandedSections] = useState({
+    timeline: true,
+    personnel: true,
+    payments: true,
+    documents: true
+  });
 
   useEffect(() => {
-    // Mock data - replace with actual API call
-    setTimeout(() => {
-      setProject({
-        id: 'PRJ-2024-001',
-        name: 'Residential Solar Installation',
-        address: '123 Rizal St., Barangay San Jose, Manila',
-        status: 'in-progress',
-        progress: 65,
-        startDate: '2024-04-01',
-        estimatedCompletion: '2024-06-30',
-        actualCompletion: null,
-        systemSize: '5.2 kW',
-        panels: 13,
-        inverter: '5 kW Hybrid',
-        engineer: 'Engr. Juan Dela Cruz',
-        milestones: [
-          { id: 1, name: 'Site Assessment', date: '2024-04-05', status: 'completed' },
-          { id: 2, name: 'System Design', date: '2024-04-15', status: 'completed' },
-          { id: 3, name: 'Permit Processing', date: '2024-04-25', status: 'completed' },
-          { id: 4, name: 'Installation', date: '2024-05-20', status: 'in-progress' },
-          { id: 5, name: 'Inspection & Testing', date: '2024-06-05', status: 'pending' },
-          { id: 6, name: 'Turnover & Training', date: '2024-06-20', status: 'pending' }
-        ],
-        documents: [
-          { id: 1, name: 'System Design Plan', type: 'PDF', size: '2.5 MB', url: '#' },
-          { id: 2, name: 'Permit Documents', type: 'PDF', size: '1.8 MB', url: '#' },
-          { id: 3, name: 'Equipment List', type: 'PDF', size: '0.5 MB', url: '#' }
-        ]
-      });
-      setLoading(false);
-    }, 1500);
+    fetchProjects();
   }, []);
 
+  const fetchProjects = async () => {
+    try {
+      setLoading(true);
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/my-projects`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProjects(response.data.projects || []);
+      if (response.data.projects?.length > 0) {
+        setSelectedProject(response.data.projects[0]);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      setLoading(false);
+    }
+  };
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount || 0);
+  };
+
+  const formatDate = (date) => {
+    if (!date) return 'TBD';
+    return new Date(date).toLocaleDateString('en-PH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   const getStatusBadge = (status) => {
-    switch(status) {
-      case 'pending':
-        return <span className="status-badge-cusset pending-cusset">Pending</span>;
-      case 'assessment':
-        return <span className="status-badge-cusset assessment-cusset">Assessment</span>;
-      case 'in-progress':
-        return <span className="status-badge-cusset in-progress-cusset">In Progress</span>;
-      case 'completed':
-        return <span className="status-badge-cusset completed-cusset">Completed</span>;
-      default:
-        return <span className="status-badge-cusset">{status}</span>;
-    }
+    const badges = {
+      'quoted': <span className="status-badge quoted">Quoted</span>,
+      'approved': <span className="status-badge approved">Approved</span>,
+      'initial_paid': <span className="status-badge initial-paid">Initial Payment Received</span>,
+      'in_progress': <span className="status-badge in-progress">Installation In Progress</span>,
+      'progress_paid': <span className="status-badge progress-paid">Progress Payment Received</span>,
+      'completed': <span className="status-badge completed">Completed</span>,
+      'cancelled': <span className="status-badge cancelled">Cancelled</span>
+    };
+    return badges[status] || <span className="status-badge">{status}</span>;
   };
 
-  const getMilestoneStatus = (status) => {
-    switch(status) {
-      case 'completed':
-        return <span className="milestone-status-cusset completed-cusset">✓</span>;
-      case 'in-progress':
-        return <span className="milestone-status-cusset in-progress-cusset">●</span>;
-      default:
-        return <span className="milestone-status-cusset pending-cusset">○</span>;
-    }
+  const getProgressPercentage = (project) => {
+    if (!project.totalCost || project.totalCost === 0) return 0;
+    return Math.round((project.amountPaid / project.totalCost) * 100);
   };
 
-  // Skeleton Loader Component
-  const SkeletonLoader = () => (
-    <div className="project-container-cusset">
-      <div className="project-header-cusset">
-        <div className="skeleton-line-cusset large-cusset"></div>
-        <div className="skeleton-line-cusset small-cusset"></div>
-      </div>
+  const getProjectProgress = (project) => {
+    const statusProgress = {
+      'quoted': 10,
+      'approved': 20,
+      'initial_paid': 30,
+      'in_progress': 60,
+      'progress_paid': 80,
+      'completed': 100
+    };
+    return statusProgress[project.status] || 0;
+  };
 
-      {/* Overview Skeleton */}
-      <div className="project-overview-cusset skeleton-card-cusset">
-        <div className="skeleton-line-cusset medium-cusset"></div>
-        <div className="skeleton-line-cusset small-cusset"></div>
-        <div className="skeleton-details-grid-cusset">
-          <div className="skeleton-line-cusset"></div>
-          <div className="skeleton-line-cusset"></div>
-          <div className="skeleton-line-cusset"></div>
-          <div className="skeleton-line-cusset"></div>
-        </div>
-        <div className="skeleton-progress-cusset"></div>
-      </div>
+  const getMilestones = (project) => {
+    const milestones = [
+      { 
+        key: 'quoted', 
+        label: 'Quotation Sent', 
+        description: 'Initial quotation has been sent for your review',
+        date: project.createdAt,
+        completed: ['quoted', 'approved', 'initial_paid', 'in_progress', 'progress_paid', 'completed'].includes(project.status)
+      },
+      { 
+        key: 'approved', 
+        label: 'Project Approved', 
+        description: 'You have approved the quotation and project is confirmed',
+        date: project.approvedAt,
+        completed: ['approved', 'initial_paid', 'in_progress', 'progress_paid', 'completed'].includes(project.status)
+      },
+      { 
+        key: 'initial_paid', 
+        label: 'Initial Payment', 
+        description: 'Initial payment of 30% has been received',
+        date: project.initialPayment > 0 ? project.paymentSchedule?.find(p => p.type === 'initial')?.paidAt : null,
+        completed: project.amountPaid >= (project.initialPayment || 0)
+      },
+      { 
+        key: 'in_progress', 
+        label: 'Installation Started', 
+        description: 'Solar panel installation has begun at your site',
+        date: project.startDate,
+        completed: ['in_progress', 'progress_paid', 'completed'].includes(project.status)
+      },
+      { 
+        key: 'progress_paid', 
+        label: 'Progress Payment', 
+        description: 'Progress payment of 40% has been received',
+        date: project.progressPayment > 0 ? project.paymentSchedule?.find(p => p.type === 'progress')?.paidAt : null,
+        completed: project.amountPaid >= (project.initialPayment + project.progressPayment)
+      },
+      { 
+        key: 'completed', 
+        label: 'Installation Completed', 
+        description: 'Solar system installation is complete and ready for use',
+        date: project.actualCompletionDate,
+        completed: project.status === 'completed'
+      }
+    ];
+    return milestones;
+  };
 
-      {/* Address Skeleton */}
-      <div className="address-card-cusset skeleton-card-cusset">
-        <div className="skeleton-line-cusset medium-cusset"></div>
-        <div className="skeleton-line-cusset"></div>
-      </div>
-
-      {/* System Details Skeleton */}
-      <div className="system-details-cusset skeleton-card-cusset">
-        <div className="skeleton-line-cusset medium-cusset"></div>
-        <div className="skeleton-details-grid-cusset">
-          <div className="skeleton-box-cusset"></div>
-          <div className="skeleton-box-cusset"></div>
-          <div className="skeleton-box-cusset"></div>
-        </div>
-      </div>
-
-      {/* Milestones Skeleton */}
-      <div className="milestones-section-cusset skeleton-card-cusset">
-        <div className="skeleton-line-cusset medium-cusset"></div>
-        <div className="skeleton-timeline-cusset">
-          {[1, 2, 3, 4, 5, 6].map((item) => (
-            <div key={item} className="skeleton-timeline-item-cusset">
-              <div className="skeleton-icon-cusset"></div>
-              <div className="skeleton-content-cusset">
-                <div className="skeleton-line-cusset small-cusset"></div>
-                <div className="skeleton-line-cusset tiny-cusset"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Documents Skeleton */}
-      <div className="documents-section-cusset skeleton-card-cusset">
-        <div className="skeleton-line-cusset medium-cusset"></div>
-        <div className="skeleton-documents-cusset">
-          {[1, 2, 3].map((item) => (
-            <div key={item} className="skeleton-document-item-cusset">
-              <div className="skeleton-icon-cusset"></div>
-              <div className="skeleton-content-cusset">
-                <div className="skeleton-line-cusset small-cusset"></div>
-                <div className="skeleton-line-cusset tiny-cusset"></div>
-              </div>
-              <div className="skeleton-button-small-cusset"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Actions Skeleton */}
-      <div className="quick-actions-cusset">
-        <div className="skeleton-button-cusset"></div>
-        <div className="skeleton-button-cusset"></div>
-      </div>
-    </div>
-  );
+  const getGanttData = (project) => {
+    const startDate = project.startDate ? new Date(project.startDate) : new Date();
+    const estimatedEnd = project.estimatedCompletionDate ? new Date(project.estimatedCompletionDate) : new Date(startDate);
+    const actualEnd = project.actualCompletionDate ? new Date(project.actualCompletionDate) : null;
+    
+    const tasks = [
+      { name: 'Project Approval', start: project.approvedAt || startDate, end: project.approvedAt || startDate, completed: !!project.approvedAt },
+      { name: 'Site Preparation', start: startDate, end: new Date(startDate.getTime() + 2 * 24 * 60 * 60 * 1000), completed: project.status !== 'quoted' },
+      { name: 'Material Delivery', start: new Date(startDate.getTime() + 2 * 24 * 60 * 60 * 1000), end: new Date(startDate.getTime() + 5 * 24 * 60 * 60 * 1000), completed: project.status !== 'quoted' },
+      { name: 'Panel Installation', start: new Date(startDate.getTime() + 5 * 24 * 60 * 60 * 1000), end: new Date(startDate.getTime() + 10 * 24 * 60 * 60 * 1000), completed: project.status === 'in_progress' || project.status === 'progress_paid' || project.status === 'completed' },
+      { name: 'Electrical Wiring', start: new Date(startDate.getTime() + 8 * 24 * 60 * 60 * 1000), end: new Date(startDate.getTime() + 12 * 24 * 60 * 60 * 1000), completed: project.status === 'progress_paid' || project.status === 'completed' },
+      { name: 'Inverter Setup', start: new Date(startDate.getTime() + 10 * 24 * 60 * 60 * 1000), end: new Date(startDate.getTime() + 14 * 24 * 60 * 60 * 1000), completed: project.status === 'progress_paid' || project.status === 'completed' },
+      { name: 'System Testing', start: new Date(startDate.getTime() + 12 * 24 * 60 * 60 * 1000), end: new Date(startDate.getTime() + 16 * 24 * 60 * 60 * 1000), completed: project.status === 'completed' },
+      { name: 'Final Inspection', start: new Date(startDate.getTime() + 14 * 24 * 60 * 60 * 1000), end: new Date(startDate.getTime() + 18 * 24 * 60 * 60 * 1000), completed: project.status === 'completed' }
+    ];
+    
+    return tasks;
+  };
 
   if (loading) {
     return (
-      <>
-        <Helmet>
-          <title>My Project | Salfer Engineering</title>
-        </Helmet>
-        <SkeletonLoader />
-      </>
+      <div className="myproject-loading">
+        <FaSpinner className="spinner" />
+        <p>Loading your projects...</p>
+      </div>
     );
   }
 
-  if (!project) {
+  if (projects.length === 0) {
     return (
-      <div className="project-empty-cusset">
-        <h2>No Active Project</h2>
-        <p>You don't have any active project yet.</p>
-        <button className="book-btn-cusset" onClick={() => navigate('/dashboard/schedule')}>
-          Book an Assessment
-        </button>
-      </div>
+      <>
+        <Helmet>
+          <title>My Projects | Salfer Engineering</title>
+        </Helmet>
+        <div className="myproject-empty">
+          <FaProjectDiagram className="empty-icon" />
+          <h2>No Projects Yet</h2>
+          <p>You haven't started any solar installation projects yet.</p>
+          <button className="btn-primary" onClick={() => navigate('/app/customer/book-assessment')}>
+            Book an Assessment
+          </button>
+        </div>
+      </>
     );
   }
 
   return (
     <>
       <Helmet>
-        <title>My Project | Salfer Engineering</title>
+        <title>My Projects | Salfer Engineering</title>
       </Helmet>
-      
-      <div className="project-container-cusset">
-        {/* Header */}
-        <div className="project-header-cusset">
-          <h1>My Project</h1>
-          <p>Track your solar panel installation progress</p>
+
+      <div className="myproject-container">
+        <div className="myproject-header">
+          <h1><FaProjectDiagram /> My Solar Projects</h1>
+          <p>Track your solar installation projects, view progress, and manage documents</p>
         </div>
 
-        {/* Project Overview Card */}
-        <div className="project-overview-cusset">
-          <div className="overview-header-cusset">
-            <div>
-              <h2>{project.name}</h2>
-              <p className="project-id-cusset">{project.id}</p>
-            </div>
-            {getStatusBadge(project.status)}
-          </div>
-          
-          <div className="overview-details-cusset">
-            <div className="detail-item-cusset">
-              <span>Started: {new Date(project.startDate).toLocaleDateString()}</span>
-            </div>
-            <div className="detail-item-cusset">
-              <span>Est. Completion: {new Date(project.estimatedCompletion).toLocaleDateString()}</span>
-            </div>
-            <div className="detail-item-cusset">
-              <span>{project.systemSize} System</span>
-            </div>
-            <div className="detail-item-cusset">
-              <span>Engineer: {project.engineer}</span>
-            </div>
-          </div>
-
-          <div className="progress-section-cusset">
-            <div className="progress-label-cusset">
-              <span>Overall Progress</span>
-              <span>{project.progress}%</span>
-            </div>
-            <div className="progress-bar-cusset">
-              <div className="progress-fill-cusset" style={{ width: `${project.progress}%` }}></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Project Address */}
-        <div className="address-card-cusset">
-          <div>
-            <h3>Installation Address</h3>
-            <p>{project.address}</p>
-          </div>
-        </div>
-
-        {/* System Details */}
-        <div className="system-details-cusset">
-          <h3>System Details</h3>
-          <div className="details-grid-cusset">
-            <div className="detail-box-cusset">
-              <span>Panels</span>
-              <strong>{project.panels} pcs</strong>
-            </div>
-            <div className="detail-box-cusset">
-              <span>Inverter</span>
-              <strong>{project.inverter}</strong>
-            </div>
-            <div className="detail-box-cusset">
-              <span>System Size</span>
-              <strong>{project.systemSize}</strong>
-            </div>
-          </div>
-        </div>
-
-        {/* Milestones Timeline */}
-        <div className="milestones-section-cusset">
-          <h3>Project Timeline</h3>
-          <div className="timeline-cusset">
-            {project.milestones.map((milestone, index) => (
-              <div key={milestone.id} className={`timeline-item-cusset ${milestone.status}-cusset`}>
-                <div className="timeline-marker-cusset">
-                  {getMilestoneStatus(milestone.status)}
-                </div>
-                <div className="timeline-content-cusset">
-                  <h4>{milestone.name}</h4>
-                  <p>{milestone.date ? new Date(milestone.date).toLocaleDateString() : 'Pending'}</p>
-                </div>
-                {index < project.milestones.length - 1 && <div className="timeline-line-cusset"></div>}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Documents */}
-        <div className="documents-section-cusset">
-          <h3>Project Documents</h3>
-          <div className="documents-list-cusset">
-            {project.documents.map(doc => (
-              <div key={doc.id} className="document-item-cusset">
-                <div className="doc-info-cusset">
-                  <span className="doc-name-cusset">{doc.name}</span>
-                  <span className="doc-meta-cusset">{doc.type} • {doc.size}</span>
-                </div>
-                <button className="download-btn-cusset">
-                  Download
+        {/* Project Selector */}
+        {projects.length > 1 && (
+          <div className="project-selector">
+            <label>Select Project:</label>
+            <div className="project-selector-buttons">
+              {projects.map(project => (
+                <button
+                  key={project._id}
+                  className={`project-select-btn ${selectedProject?._id === project._id ? 'active' : ''}`}
+                  onClick={() => setSelectedProject(project)}
+                >
+                  {project.projectName}
                 </button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Quick Actions */}
-        <div className="quick-actions-cusset">
-          <button className="action-btn-cusset" onClick={() => navigate('/dashboard/support')}>
-            Need Help?
-          </button>
-          <button className="action-btn-cusset" onClick={() => navigate('/dashboard/performance')}>
-            View Performance
-          </button>
-        </div>
+        {selectedProject && (
+          <div className="project-dashboard">
+            {/* Project Overview Card */}
+            <div className="overview-card">
+              <div className="overview-header">
+                <div>
+                  <h2>{selectedProject.projectName}</h2>
+                  <p className="project-ref">Reference: {selectedProject.projectReference}</p>
+                </div>
+                {getStatusBadge(selectedProject.status)}
+              </div>
+              <div className="overview-details">
+                <div className="detail-item">
+                  <FaSolarPanel />
+                  <div>
+                    <span>System Size</span>
+                    <strong>{selectedProject.systemSize} kW</strong>
+                  </div>
+                </div>
+                <div className="detail-item">
+                  <FaTools />
+                  <div>
+                    <span>System Type</span>
+                    <strong>{selectedProject.systemType}</strong>
+                  </div>
+                </div>
+                <div className="detail-item">
+                  <FaMapMarkerAlt />
+                  <div>
+                    <span>Location</span>
+                    <strong>{selectedProject.addressId?.houseOrBuilding} {selectedProject.addressId?.street}, {selectedProject.addressId?.barangay}</strong>
+                  </div>
+                </div>
+                <div className="detail-item">
+                  <FaCalendarAlt />
+                  <div>
+                    <span>Start Date</span>
+                    <strong>{formatDate(selectedProject.startDate)}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="progress-card">
+              <div className="progress-header">
+                <h3>Project Progress</h3>
+                <span className="progress-percent">{getProjectProgress(selectedProject)}% Complete</span>
+              </div>
+              <div className="progress-bar-container">
+                <div className="progress-bar" style={{ width: `${getProjectProgress(selectedProject)}%` }}></div>
+              </div>
+              <div className="progress-stats">
+                <div className="stat">
+                  <span>Total Cost</span>
+                  <strong>{formatCurrency(selectedProject.totalCost)}</strong>
+                </div>
+                <div className="stat">
+                  <span>Amount Paid</span>
+                  <strong>{formatCurrency(selectedProject.amountPaid)}</strong>
+                </div>
+                <div className="stat">
+                  <span>Balance</span>
+                  <strong>{formatCurrency(selectedProject.balance)}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Project Timeline Section */}
+            <div className="section-card">
+              <div className="section-header" onClick={() => toggleSection('timeline')}>
+                <h3><FaCalendarAlt /> Project Timeline</h3>
+                <FaChevronDown className={`chevron ${expandedSections.timeline ? 'expanded' : ''}`} />
+              </div>
+              {expandedSections.timeline && (
+                <div className="section-content">
+                  <div className="milestone-timeline">
+                    {getMilestones(selectedProject).map((milestone, index) => (
+                      <div key={milestone.key} className={`milestone ${milestone.completed ? 'completed' : ''}`}>
+                        <div className="milestone-marker">
+                          {milestone.completed ? <FaCheckCircle /> : <div className="marker-dot"></div>}
+                        </div>
+                        <div className="milestone-content">
+                          <h4>{milestone.label}</h4>
+                          <p>{milestone.description}</p>
+                          <span className="milestone-date">{milestone.date ? formatDate(milestone.date) : 'Pending'}</span>
+                        </div>
+                        {index < getMilestones(selectedProject).length - 1 && <div className="milestone-line"></div>}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Gantt Chart */}
+                  <div className="gantt-chart">
+                    <h4>Installation Schedule</h4>
+                    <div className="gantt-container">
+                      <div className="gantt-header">
+                        <div className="gantt-task-label">Tasks</div>
+                        <div className="gantt-timeline">
+                          {[...Array(20)].map((_, i) => (
+                            <div key={i} className="gantt-day">{i + 1}</div>
+                          ))}
+                        </div>
+                      </div>
+                      {getGanttData(selectedProject).map((task, idx) => {
+                        const start = task.start.getDate();
+                        const duration = Math.ceil((task.end - task.start) / (1000 * 60 * 60 * 24));
+                        return (
+                          <div key={idx} className="gantt-row">
+                            <div className="gantt-task-label">{task.name}</div>
+                            <div className="gantt-bars">
+                              <div 
+                                className={`gantt-bar ${task.completed ? 'completed' : ''}`}
+                                style={{ left: `${(start - 1) * 30}px`, width: `${duration * 30 - 4}px` }}
+                              >
+                                <span className="bar-label">{duration} days</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Assigned Personnel Section */}
+            <div className="section-card">
+              <div className="section-header" onClick={() => toggleSection('personnel')}>
+                <h3><FaUsers /> Assigned Personnel</h3>
+                <FaChevronDown className={`chevron ${expandedSections.personnel ? 'expanded' : ''}`} />
+              </div>
+              {expandedSections.personnel && (
+                <div className="section-content">
+                  <div className="personnel-grid">
+                    <div className="personnel-card engineer">
+                      <div className="personnel-avatar">
+                        {selectedProject.assignedEngineerId?.firstName ? (
+                          <div className="avatar-initials">
+                            {selectedProject.assignedEngineerId.firstName[0]}
+                            {selectedProject.assignedEngineerId.lastName?.[0]}
+                          </div>
+                        ) : (
+                          <FaUserCircle />
+                        )}
+                      </div>
+                      <div className="personnel-info">
+                        <h4>Lead Engineer</h4>
+                        <strong>{selectedProject.assignedEngineerId?.firstName} {selectedProject.assignedEngineerId?.lastName || 'To be assigned'}</strong>
+                        {selectedProject.assignedEngineerId?.email && (
+                          <p><FaEnvelope /> {selectedProject.assignedEngineerId.email}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="personnel-card support">
+                      <div className="personnel-avatar">
+                        <FaUserCog />
+                      </div>
+                      <div className="personnel-info">
+                        <h4>Project Coordinator</h4>
+                        <strong>Solaris Support Team</strong>
+                        <p><FaPhone /> (02) 1234-5678</p>
+                        <p><FaEnvelope /> support@salferengineering.com</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Payment Schedule Section */}
+            <div className="section-card">
+              <div className="section-header" onClick={() => toggleSection('payments')}>
+                <h3><FaMoneyBillWave /> Payment Schedule</h3>
+                <FaChevronDown className={`chevron ${expandedSections.payments ? 'expanded' : ''}`} />
+              </div>
+              {expandedSections.payments && (
+                <div className="section-content">
+                  <div className="payment-schedule">
+                    {selectedProject.paymentSchedule?.map((payment, idx) => (
+                      <div key={idx} className={`payment-item ${payment.status}`}>
+                        <div className="payment-type">
+                          <span className="type-badge">{payment.type}</span>
+                        </div>
+                        <div className="payment-details">
+                          <span className="amount">{formatCurrency(payment.amount)}</span>
+                          <span className="due-date">Due: {formatDate(payment.dueDate)}</span>
+                        </div>
+                        <div className="payment-status">
+                          {payment.status === 'paid' ? (
+                            <span className="paid-badge"><FaCheckCircle /> Paid on {formatDate(payment.paidAt)}</span>
+                          ) : payment.status === 'overdue' ? (
+                            <span className="overdue-badge"><FaExclamationTriangle /> Overdue</span>
+                          ) : (
+                            <span className="pending-badge">Pending</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Documents Section */}
+            <div className="section-card">
+              <div className="section-header" onClick={() => toggleSection('documents')}>
+                <h3><FaFileInvoice /> Project Documents</h3>
+                <FaChevronDown className={`chevron ${expandedSections.documents ? 'expanded' : ''}`} />
+              </div>
+              {expandedSections.documents && (
+                <div className="section-content">
+                  <div className="documents-grid">
+                    <div className="document-item">
+                      <FaFileInvoice />
+                      <div>
+                        <h4>Quotation</h4>
+                        <p>Detailed quotation for your solar system</p>
+                      </div>
+                      <button className="download-btn"><FaDownload /> Download</button>
+                    </div>
+                    <div className="document-item">
+                      <FaFileAlt />
+                      <div>
+                        <h4>Contract</h4>
+                        <p>Signed installation contract</p>
+                      </div>
+                      <button className="download-btn"><FaDownload /> Download</button>
+                    </div>
+                    <div className="document-item">
+                      <FaHistory />
+                      <div>
+                        <h4>Permits</h4>
+                        <p>Required permits and certifications</p>
+                      </div>
+                      <button className="download-btn"><FaDownload /> Download</button>
+                    </div>
+                    <div className="document-item">
+                      <FaCheckCircle />
+                      <div>
+                        <h4>Completion Certificate</h4>
+                        <p>Certificate of completion</p>
+                      </div>
+                      <button className="download-btn"><FaDownload /> Download</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="action-buttons">
+              <button className="btn-primary" onClick={() => navigate('/app/customer/billing')}>
+                <FaMoneyBillWave /> Make Payment
+              </button>
+              <button className="btn-secondary" onClick={() => navigate('/dashboard/support')}>
+                <FaEnvelope /> Contact Support
+              </button>
+              <button className="btn-secondary" onClick={() => window.print()}>
+                <FaDownload /> Download Summary
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

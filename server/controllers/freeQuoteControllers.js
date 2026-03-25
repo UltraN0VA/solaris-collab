@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 
 
 
+
 // @desc    Create a new free quote request
 // @route   POST /api/free-quotes
 // @access  Private (Customer)
@@ -306,5 +307,46 @@ exports.cancelFreeQuote = async (req, res) => {
   } catch (error) {
     console.error('Cancel free quote error:', error);
     res.status(500).json({ message: 'Failed to cancel quote', error: error.message });
+  }
+};
+// @desc    Get free quotes assigned to engineer
+// @route   GET /api/free-quotes/engineer/my-quotes
+// @access  Private (Engineer)
+exports.getEngineerFreeQuotes = async (req, res) => {
+  try {
+    const engineerId = req.user.id;
+    const { status, page = 1, limit = 20 } = req.query;
+    
+    const query = { 
+      assignedEngineerId: engineerId,
+      status: { $nin: ['cancelled'] }
+    };
+    
+    if (status) query.status = status;
+
+    const quotes = await FreeQuote.find(query)
+      .populate('clientId', 'contactFirstName contactLastName contactNumber email')
+      .populate('addressId')
+      .populate({
+        path: 'clientId',
+        populate: { path: 'userId', select: 'email' }
+      })
+      .sort({ requestedAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await FreeQuote.countDocuments(query);
+
+    res.json({
+      success: true,
+      quotes,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit)
+    });
+
+  } catch (error) {
+    console.error('Get engineer free quotes error:', error);
+    res.status(500).json({ message: 'Failed to fetch quotes', error: error.message });
   }
 };
