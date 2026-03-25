@@ -45,7 +45,7 @@ const Reports = () => {
     users: { total: 0, new: 0, active: 0 },
     assessments: { total: 0, completed: 0, pending: 0 },
     projects: { total: 0, inProgress: 0, completed: 0 },
-    devices: { total: 0, active: 0, deployed: 0 }
+    devices: { total: 0, active: 0, deployed: 0, maintenance: 0 }
   });
 
   useEffect(() => {
@@ -72,7 +72,7 @@ const Reports = () => {
         }).catch(() => ({ data: { total: 0, inProgress: 0, completed: 0 } })),
         axios.get(`${import.meta.env.VITE_API_URL}/api/admin/devices/stats`, {
           headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: { total: 0, active: 0, deployed: 0 } }))
+        }).catch(() => ({ data: { total: 0, active: 0, deployed: 0, maintenance: 0 } }))
       ]);
 
       setStats({
@@ -173,13 +173,31 @@ const Reports = () => {
     };
   };
 
-  if (loading) {
-    return (
-      <div className="reports-loading">
-        <FaSpinner className="spinner" />
-        <p>Loading reports...</p>
+  // Skeleton Loader
+  const SkeletonLoader = () => (
+    <div className="reports-container-adminreports">
+      <div className="reports-header-adminreports">
+        <div className="skeleton-line-adminreports large-adminreports"></div>
+        <div className="skeleton-line-adminreports medium-adminreports"></div>
       </div>
-    );
+      <div className="stats-cards-adminreports">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="stat-card-adminreports skeleton-card-adminreports">
+            <div className="skeleton-line-adminreports small-adminreports"></div>
+            <div className="skeleton-line-adminreports large-adminreports"></div>
+          </div>
+        ))}
+      </div>
+      <div className="report-tabs-adminreports">
+        {[1, 2, 3, 4, 5].map(i => (
+          <div key={i} className="skeleton-tab-adminreports"></div>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return <SkeletonLoader />;
   }
 
   return (
@@ -188,72 +206,68 @@ const Reports = () => {
         <title>Reports | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="admin-reports">
-        <div className="reports-header">
-          <h1><FaChartLine /> Reports & Analytics</h1>
+      <div className="reports-container-adminreports">
+        <div className="reports-header-adminreports">
+          <h1>Reports & Analytics</h1>
           <p>Generate comprehensive reports and analyze business performance</p>
         </div>
 
-        {/* Quick Stats Cards */}
-        <div className="stats-cards">
-          <div className="stat-card revenue">
-            <div className="stat-icon"><FaMoneyBillWave /></div>
-            <div className="stat-info">
-              <span className="stat-value">{formatCurrency(stats.revenue.total)}</span>
-              <span className="stat-label">Total Revenue</span>
-              <span className="stat-change">+{formatCurrency(stats.revenue.thisMonth)} this month</span>
+        {/* Quick Stats Cards - No Icons */}
+        <div className="stats-cards-adminreports">
+          <div className="stat-card-adminreports revenue-adminreports">
+            <div className="stat-info-adminreports">
+              <span className="stat-value-adminreports">{formatCurrency(stats.revenue.total)}</span>
+              <span className="stat-label-adminreports">Total Revenue</span>
+              <span className="stat-change-adminreports">+{formatCurrency(stats.revenue.thisMonth)} this month</span>
             </div>
           </div>
-          <div className="stat-card users">
-            <div className="stat-icon"><FaUsers /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.users.total}</span>
-              <span className="stat-label">Total Users</span>
-              <span className="stat-change">+{stats.users.new} new this month</span>
+          <div className="stat-card-adminreports users-adminreports">
+            <div className="stat-info-adminreports">
+              <span className="stat-value-adminreports">{stats.users.total}</span>
+              <span className="stat-label-adminreports">Total Users</span>
+              <span className="stat-change-adminreports">+{stats.users.new} new this month</span>
             </div>
           </div>
-          <div className="stat-card assessments">
-            <div className="stat-icon"><FaClipboardList /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.assessments.total}</span>
-              <span className="stat-label">Total Assessments</span>
-              <span className="stat-change">{stats.assessments.completed} completed</span>
+          <div className="stat-card-adminreports assessments-adminreports">
+            <div className="stat-info-adminreports">
+              <span className="stat-value-adminreports">{stats.assessments.total}</span>
+              <span className="stat-label-adminreports">Total Assessments</span>
+              <span className="stat-change-adminreports">{stats.assessments.completed} completed</span>
             </div>
           </div>
-          <div className="stat-card projects">
-            <div className="stat-icon"><FaProjectDiagram /></div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.projects.total}</span>
-              <span className="stat-label">Total Projects</span>
-              <span className="stat-change">{stats.projects.inProgress} in progress</span>
+          <div className="stat-card-adminreports projects-adminreports">
+            <div className="stat-info-adminreports">
+              <span className="stat-value-adminreports">{stats.projects.total}</span>
+              <span className="stat-label-adminreports">Total Projects</span>
+              <span className="stat-change-adminreports">{stats.projects.inProgress} in progress</span>
             </div>
           </div>
         </div>
 
         {/* Report Type Tabs */}
-        <div className="report-tabs">
-          <button className={`tab-btn ${activeTab === 'financial' ? 'active' : ''}`} onClick={() => setActiveTab('financial')}>
-            <FaMoneyBillWave /> Financial Reports
+        <div className="report-tabs-adminreports">
+          <button className={`tab-btn-adminreports ${activeTab === 'financial' ? 'active-adminreports' : ''}`} onClick={() => setActiveTab('financial')}>
+            Financial Reports
           </button>
-          <button className={`tab-btn ${activeTab === 'operational' ? 'active' : ''}`} onClick={() => setActiveTab('operational')}>
-            <FaChartBar /> Operational Reports
+          <button className={`tab-btn-adminreports ${activeTab === 'operational' ? 'active-adminreports' : ''}`} onClick={() => setActiveTab('operational')}>
+            Operational Reports
           </button>
-          <button className={`tab-btn ${activeTab === 'client' ? 'active' : ''}`} onClick={() => setActiveTab('client')}>
-            <FaUsers /> Client Reports
+          <button className={`tab-btn-adminreports ${activeTab === 'client' ? 'active-adminreports' : ''}`} onClick={() => setActiveTab('client')}>
+            Client Reports
           </button>
-          <button className={`tab-btn ${activeTab === 'device' ? 'active' : ''}`} onClick={() => setActiveTab('device')}>
-            <FaMicrochip /> Device Reports
+          <button className={`tab-btn-adminreports ${activeTab === 'device' ? 'active-adminreports' : ''}`} onClick={() => setActiveTab('device')}>
+            Device Reports
           </button>
-          <button className={`tab-btn ${activeTab === 'custom' ? 'active' : ''}`} onClick={() => setActiveTab('custom')}>
-            <FaChartLine /> Custom Reports
+          <button className={`tab-btn-adminreports ${activeTab === 'custom' ? 'active-adminreports' : ''}`} onClick={() => setActiveTab('custom')}>
+            Custom Reports
           </button>
         </div>
 
         {/* Report Controls */}
-        <div className="report-controls">
-          <div className="date-range">
+        <div className="report-controls-adminreports">
+          <div className="date-range-adminreports">
             <label><FaCalendarAlt /> Date Range</label>
-            <div className="date-inputs">
+            <div className="date-inputs-adminreports">
               <input type="date" value={dateRange.startDate} onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })} />
               <span>to</span>
               <input type="date" value={dateRange.endDate} onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })} />
@@ -261,7 +275,7 @@ const Reports = () => {
           </div>
           
           {activeTab !== 'financial' && (
-            <div className="report-filter">
+            <div className="report-filter-adminreports">
               <label><FaFilter /> Filter</label>
               <select value={reportType} onChange={(e) => setReportType(e.target.value)}>
                 <option value="all">All</option>
@@ -290,66 +304,66 @@ const Reports = () => {
             </div>
           )}
           
-          <button className="generate-btn" onClick={generateReport} disabled={generating}>
-            {generating ? <><FaSpinner className="spinner" /> Generating...</> : 'Generate Report'}
+          <button className="generate-btn-adminreports" onClick={generateReport} disabled={generating}>
+            {generating ? 'Generating...' : 'Generate Report'}
           </button>
         </div>
 
         {/* Financial Reports */}
         {activeTab === 'financial' && (
-          <div className="report-content">
-            <div className="report-section">
+          <div className="report-content-adminreports">
+            <div className="report-section-adminreports">
               <h2>Revenue Summary</h2>
-              <div className="revenue-summary">
-                <div className="summary-item">
+              <div className="revenue-summary-adminreports">
+                <div className="summary-item-adminreports">
                   <span>Total Revenue</span>
                   <strong>{formatCurrency(stats.revenue.total)}</strong>
                 </div>
-                <div className="summary-item">
+                <div className="summary-item-adminreports">
                   <span>This Month</span>
                   <strong>{formatCurrency(stats.revenue.thisMonth)}</strong>
                 </div>
-                <div className="summary-item">
+                <div className="summary-item-adminreports">
                   <span>Last Month</span>
                   <strong>{formatCurrency(stats.revenue.lastMonth)}</strong>
                 </div>
-                <div className="summary-item">
+                <div className="summary-item-adminreports">
                   <span>Growth</span>
-                  <strong className={stats.revenue.thisMonth > stats.revenue.lastMonth ? 'positive' : 'negative'}>
+                  <strong className={stats.revenue.thisMonth > stats.revenue.lastMonth ? 'positive-adminreports' : 'negative-adminreports'}>
                     {((stats.revenue.thisMonth - stats.revenue.lastMonth) / stats.revenue.lastMonth * 100).toFixed(1)}%
                   </strong>
                 </div>
               </div>
             </div>
 
-            <div className="report-section">
+            <div className="report-section-adminreports">
               <h2>Revenue by Source</h2>
-              <div className="revenue-sources">
-                <div className="source-item">
+              <div className="revenue-sources-adminreports">
+                <div className="source-item-adminreports">
                   <span>Pre-Assessment Fees</span>
                   <strong>{formatCurrency(stats.revenue.total * 0.15)}</strong>
-                  <div className="progress-bar"><div className="progress" style={{ width: '15%' }}></div></div>
+                  <div className="progress-bar-adminreports"><div className="progress-adminreports" style={{ width: '15%' }}></div></div>
                 </div>
-                <div className="source-item">
+                <div className="source-item-adminreports">
                   <span>Solar Installation</span>
                   <strong>{formatCurrency(stats.revenue.total * 0.75)}</strong>
-                  <div className="progress-bar"><div className="progress" style={{ width: '75%' }}></div></div>
+                  <div className="progress-bar-adminreports"><div className="progress-adminreports" style={{ width: '75%' }}></div></div>
                 </div>
-                <div className="source-item">
+                <div className="source-item-adminreports">
                   <span>Maintenance Services</span>
                   <strong>{formatCurrency(stats.revenue.total * 0.10)}</strong>
-                  <div className="progress-bar"><div className="progress" style={{ width: '10%' }}></div></div>
+                  <div className="progress-bar-adminreports"><div className="progress-adminreports" style={{ width: '10%' }}></div></div>
                 </div>
               </div>
             </div>
 
-            <div className="report-section">
+            <div className="report-section-adminreports">
               <h2>Monthly Revenue Trend</h2>
-              <div className="chart-container">
-                <div className="bar-chart">
+              <div className="chart-container-adminreports">
+                <div className="bar-chart-adminreports">
                   {getRevenueData().labels.map((label, i) => (
-                    <div key={i} className="bar-item">
-                      <div className="bar" style={{ height: `${(getRevenueData().values[i] / 600000) * 200}px` }}></div>
+                    <div key={i} className="bar-item-adminreports">
+                      <div className="bar-adminreports" style={{ height: `${(getRevenueData().values[i] / 600000) * 200}px` }}></div>
                       <span>{label}</span>
                     </div>
                   ))}
@@ -357,17 +371,17 @@ const Reports = () => {
               </div>
             </div>
 
-            <div className="report-actions">
-              <button className="export-btn" onClick={() => exportReport('pdf')} disabled={generating}>
+            <div className="report-actions-adminreports">
+              <button className="export-btn-adminreports" onClick={() => exportReport('pdf')} disabled={generating}>
                 <FaFilePdf /> Export as PDF
               </button>
-              <button className="export-btn" onClick={() => exportReport('xlsx')} disabled={generating}>
+              <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')} disabled={generating}>
                 <FaFileExcel /> Export as Excel
               </button>
-              <button className="export-btn" onClick={() => window.print()}>
+              <button className="export-btn-adminreports" onClick={() => window.print()}>
                 <FaPrint /> Print
               </button>
-              <button className="export-btn" onClick={() => alert('Email sent!')}>
+              <button className="export-btn-adminreports" onClick={() => alert('Email sent!')}>
                 <FaEnvelope /> Email Report
               </button>
             </div>
@@ -376,120 +390,120 @@ const Reports = () => {
 
         {/* Operational Reports */}
         {activeTab === 'operational' && (
-          <div className="report-content">
-            <div className="report-section">
+          <div className="report-content-adminreports">
+            <div className="report-section-adminreports">
               <h2>Assessment Performance</h2>
-              <div className="stats-row">
-                <div className="stat-box">
+              <div className="stats-row-adminreports">
+                <div className="stat-box-adminreports">
                   <span>Total Assessments</span>
                   <strong>{stats.assessments.total}</strong>
                 </div>
-                <div className="stat-box">
+                <div className="stat-box-adminreports">
                   <span>Completed</span>
                   <strong>{stats.assessments.completed}</strong>
                 </div>
-                <div className="stat-box">
+                <div className="stat-box-adminreports">
                   <span>Completion Rate</span>
                   <strong>{((stats.assessments.completed / stats.assessments.total) * 100).toFixed(1)}%</strong>
                 </div>
-                <div className="stat-box">
+                <div className="stat-box-adminreports">
                   <span>Avg. Processing Time</span>
                   <strong>3.2 days</strong>
                 </div>
               </div>
             </div>
 
-            <div className="report-section">
+            <div className="report-section-adminreports">
               <h2>Project Status Distribution</h2>
-              <div className="pie-chart-container">
-                <div className="pie-chart">
+              <div className="pie-chart-container-adminreports">
+                <div className="pie-chart-adminreports">
                   {getAssessmentData().labels.map((label, i) => (
-                    <div key={i} className="pie-segment" style={{ width: `${getAssessmentData().values[i] / getAssessmentData().values.reduce((a,b) => a+b, 0) * 100}%` }}>
-                      <span className="segment-label">{label}</span>
-                      <span className="segment-value">{getAssessmentData().values[i]}</span>
+                    <div key={i} className="pie-segment-adminreports" style={{ width: `${getAssessmentData().values[i] / getAssessmentData().values.reduce((a,b) => a+b, 0) * 100}%` }}>
+                      <span className="segment-label-adminreports">{label}</span>
+                      <span className="segment-value-adminreports">{getAssessmentData().values[i]}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="report-actions">
-              <button className="export-btn" onClick={() => exportReport('pdf')}><FaFilePdf /> Export as PDF</button>
-              <button className="export-btn" onClick={() => exportReport('xlsx')}><FaFileExcel /> Export as Excel</button>
+            <div className="report-actions-adminreports">
+              <button className="export-btn-adminreports" onClick={() => exportReport('pdf')}><FaFilePdf /> Export as PDF</button>
+              <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')}><FaFileExcel /> Export as Excel</button>
             </div>
           </div>
         )}
 
         {/* Client Reports */}
         {activeTab === 'client' && (
-          <div className="report-content">
-            <div className="report-section">
+          <div className="report-content-adminreports">
+            <div className="report-section-adminreports">
               <h2>Client Demographics</h2>
-              <div className="demographics-grid">
-                <div className="demo-card">
+              <div className="demographics-grid-adminreports">
+                <div className="demo-card-adminreports">
                   <h3>By Client Type</h3>
-                  <div className="demo-item"><span>Residential</span><strong>75%</strong></div>
-                  <div className="demo-item"><span>Commercial</span><strong>20%</strong></div>
-                  <div className="demo-item"><span>Industrial</span><strong>5%</strong></div>
+                  <div className="demo-item-adminreports"><span>Residential</span><strong>75%</strong></div>
+                  <div className="demo-item-adminreports"><span>Commercial</span><strong>20%</strong></div>
+                  <div className="demo-item-adminreports"><span>Industrial</span><strong>5%</strong></div>
                 </div>
-                <div className="demo-card">
+                <div className="demo-card-adminreports">
                   <h3>By Region</h3>
-                  <div className="demo-item"><span>NCR</span><strong>45%</strong></div>
-                  <div className="demo-item"><span>Region IV-A</span><strong>25%</strong></div>
-                  <div className="demo-item"><span>Region III</span><strong>15%</strong></div>
-                  <div className="demo-item"><span>Others</span><strong>15%</strong></div>
+                  <div className="demo-item-adminreports"><span>NCR</span><strong>45%</strong></div>
+                  <div className="demo-item-adminreports"><span>Region IV-A</span><strong>25%</strong></div>
+                  <div className="demo-item-adminreports"><span>Region III</span><strong>15%</strong></div>
+                  <div className="demo-item-adminreports"><span>Others</span><strong>15%</strong></div>
                 </div>
               </div>
             </div>
 
-            <div className="report-actions">
-              <button className="export-btn" onClick={() => exportReport('pdf')}><FaFilePdf /> Export as PDF</button>
-              <button className="export-btn" onClick={() => exportReport('xlsx')}><FaFileExcel /> Export as Excel</button>
+            <div className="report-actions-adminreports">
+              <button className="export-btn-adminreports" onClick={() => exportReport('pdf')}><FaFilePdf /> Export as PDF</button>
+              <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')}><FaFileExcel /> Export as Excel</button>
             </div>
           </div>
         )}
 
         {/* Device Reports */}
         {activeTab === 'device' && (
-          <div className="report-content">
-            <div className="report-section">
+          <div className="report-content-adminreports">
+            <div className="report-section-adminreports">
               <h2>Device Inventory</h2>
-              <div className="stats-row">
-                <div className="stat-box"><span>Total Devices</span><strong>{stats.devices.total}</strong></div>
-                <div className="stat-box"><span>Active</span><strong>{stats.devices.active}</strong></div>
-                <div className="stat-box"><span>Deployed</span><strong>{stats.devices.deployed}</strong></div>
-                <div className="stat-box"><span>Maintenance</span><strong>{stats.devices.maintenance}</strong></div>
+              <div className="stats-row-adminreports">
+                <div className="stat-box-adminreports"><span>Total Devices</span><strong>{stats.devices.total}</strong></div>
+                <div className="stat-box-adminreports"><span>Active</span><strong>{stats.devices.active}</strong></div>
+                <div className="stat-box-adminreports"><span>Deployed</span><strong>{stats.devices.deployed}</strong></div>
+                <div className="stat-box-adminreports"><span>Maintenance</span><strong>{stats.devices.maintenance}</strong></div>
               </div>
             </div>
 
-            <div className="report-section">
+            <div className="report-section-adminreports">
               <h2>Device Utilization</h2>
-              <div className="utilization-chart">
-                <div className="utilization-bar">
-                  <div className="utilization-fill" style={{ width: `${(stats.devices.deployed / stats.devices.total) * 100}%` }}></div>
+              <div className="utilization-chart-adminreports">
+                <div className="utilization-bar-adminreports">
+                  <div className="utilization-fill-adminreports" style={{ width: `${(stats.devices.deployed / stats.devices.total) * 100}%` }}></div>
                 </div>
-                <div className="utilization-stats">
+                <div className="utilization-stats-adminreports">
                   <span>Utilization Rate: {((stats.devices.deployed / stats.devices.total) * 100).toFixed(1)}%</span>
                 </div>
               </div>
             </div>
 
-            <div className="report-actions">
-              <button className="export-btn" onClick={() => exportReport('pdf')}><FaFilePdf /> Export as PDF</button>
-              <button className="export-btn" onClick={() => exportReport('xlsx')}><FaFileExcel /> Export as Excel</button>
+            <div className="report-actions-adminreports">
+              <button className="export-btn-adminreports" onClick={() => exportReport('pdf')}><FaFilePdf /> Export as PDF</button>
+              <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')}><FaFileExcel /> Export as Excel</button>
             </div>
           </div>
         )}
 
         {/* Custom Reports */}
         {activeTab === 'custom' && (
-          <div className="report-content">
-            <div className="report-section">
+          <div className="report-content-adminreports">
+            <div className="report-section-adminreports">
               <h2>Custom Report Builder</h2>
-              <div className="custom-report-builder">
-                <div className="builder-section">
+              <div className="custom-report-builder-adminreports">
+                <div className="builder-section-adminreports">
                   <h3>Select Data Fields</h3>
-                  <div className="checkbox-group">
+                  <div className="checkbox-group-adminreports">
                     <label><input type="checkbox" /> Revenue Data</label>
                     <label><input type="checkbox" /> Client Data</label>
                     <label><input type="checkbox" /> Assessment Data</label>
@@ -498,7 +512,7 @@ const Reports = () => {
                     <label><input type="checkbox" /> Payment Data</label>
                   </div>
                 </div>
-                <div className="builder-section">
+                <div className="builder-section-adminreports">
                   <h3>Aggregation</h3>
                   <select>
                     <option>Daily</option>
@@ -508,9 +522,9 @@ const Reports = () => {
                     <option>Yearly</option>
                   </select>
                 </div>
-                <div className="builder-section">
+                <div className="builder-section-adminreports">
                   <h3>Format</h3>
-                  <div className="radio-group">
+                  <div className="radio-group-adminreports">
                     <label><input type="radio" name="format" /> Summary View</label>
                     <label><input type="radio" name="format" /> Detailed View</label>
                     <label><input type="radio" name="format" /> Chart View</label>
@@ -518,9 +532,9 @@ const Reports = () => {
                 </div>
               </div>
             </div>
-            <div className="report-actions">
-              <button className="generate-btn" onClick={generateReport} disabled={generating}>
-                {generating ? <><FaSpinner className="spinner" /> Generating...</> : 'Generate Custom Report'}
+            <div className="report-actions-adminreports">
+              <button className="generate-btn-adminreports" onClick={generateReport} disabled={generating}>
+                {generating ? 'Generating...' : 'Generate Custom Report'}
               </button>
             </div>
           </div>
@@ -528,15 +542,15 @@ const Reports = () => {
 
         {/* Report Preview */}
         {reportData && (
-          <div className="report-preview">
+          <div className="report-preview-adminreports">
             <h2>Report Preview</h2>
-            <div className="preview-content">
+            <div className="preview-content-adminreports">
               <pre>{JSON.stringify(reportData, null, 2)}</pre>
             </div>
-            <div className="preview-actions">
-              <button className="export-btn" onClick={() => exportReport('pdf')}><FaFilePdf /> Download PDF</button>
-              <button className="export-btn" onClick={() => exportReport('xlsx')}><FaFileExcel /> Download Excel</button>
-              <button className="export-btn" onClick={() => setReportData(null)}>Close</button>
+            <div className="preview-actions-adminreports">
+              <button className="export-btn-adminreports" onClick={() => exportReport('pdf')}><FaFilePdf /> Download PDF</button>
+              <button className="export-btn-adminreports" onClick={() => exportReport('xlsx')}><FaFileExcel /> Download Excel</button>
+              <button className="export-btn-adminreports" onClick={() => setReportData(null)}>Close</button>
             </div>
           </div>
         )}

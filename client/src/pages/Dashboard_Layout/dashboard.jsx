@@ -141,12 +141,9 @@ const Dashboard = () => {
   const menuItems = {
     admin: [
       { icon: <FaTachometerAlt />, label: 'Dashboard', path: '/app/admin' },
-      //{ icon: <FaClipboardList />, label: 'Free Quotes', path: '/app/admin/freequotes' },
-      //{ icon: <FaClipboardList />, label: 'Pre-Assessments', path: '/app/admin/preassessments' },
       { icon: <FaClipboardList />, label: 'Site Assessments', path: '/app/admin/siteassessment' },
       { icon: <FaProjectDiagram />, label: 'Projects', path: '/app/admin/project' },
       { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/admin/billing' },
-      //{ icon: <FaFileInvoice />, label: 'Solar Invoices', path: '/app/admin/solarinvoices' },
       { icon: <FaMicrochip />, label: 'IoT Devices', path: '/app/admin/iotdevice' },
       { icon: <FaChartBar />, label: 'Reports', path: '/app/admin/reports' },
       { icon: <FaClipboardList />, label: 'Schedule', path: '/app/admin/schedule' },
@@ -175,14 +172,13 @@ const Dashboard = () => {
     ],
   };
 
-  // FIXED: Settings Submenu - REMOVED BILLING option
+  // Settings Submenu
   const settingsSubmenu = [
     { label: 'Profile', path: '/app/customer/settings?tab=profile' },
     { label: 'Addresses', path: '/app/customer/settings?tab=addresses' },
     { label: 'Notifications', path: '/app/customer/settings?tab=notifications' },
     { label: 'Security', path: '/app/customer/settings?tab=security' },
     { label: 'Preferences', path: '/app/customer/settings?tab=preferences' },
-    // Billing removed - already in dashboard navigation
   ];
 
   // Support Submenu
@@ -224,31 +220,28 @@ const Dashboard = () => {
   const currentMenu = menuItems[userRole] || menuItems.admin;
   const unreadCount = notifications.filter(n => !n.read).length;
   const isCustomer = userRole === 'user';
+  const isAdmin = userRole === 'admin';
+  const isEngineer = userRole === 'engineer';
 
   const isActive = (itemPath) => {
     const currentPath = location.pathname;
     
-    // Exact match for dashboard/home
     if (itemPath === '/app/customer' || itemPath === '/app/engineer' || itemPath === '/app/admin') {
       return currentPath === itemPath;
     }
     
-    // Check if current path starts with itemPath (for subpages)
     if (currentPath === itemPath) {
       return true;
     }
     
-    // Check if it's a subpage
     if (currentPath.startsWith(itemPath + '/')) {
       return true;
     }
     
-    // Handle query parameters for settings
     if (itemPath === '/app/customer/settings' && currentPath === '/app/customer/settings') {
       return true;
     }
     
-    // Handle query parameters for support
     if (itemPath === '/app/customer/support' && currentPath === '/app/customer/support') {
       return true;
     }
@@ -312,7 +305,7 @@ const Dashboard = () => {
     ));
   };
 
-  // ========== CUSTOMER LAYOUT ==========
+  // ========== CUSTOMER LAYOUT (White Header) ==========
   if (isCustomer) {
     return (
       <div className="dashboard-layout-dashboard customer-dashboard-layout-dashboard">
@@ -485,12 +478,12 @@ const Dashboard = () => {
     );
   }
 
-  // ========== ADMIN/ENGINEER LAYOUT ==========
+  // ========== ADMIN/ENGINEER LAYOUT (Dark Blue Sidebar, No Hamburger) ==========
   return (
     <div className="dashboard-layout-dashboard">
       {sidebarOpen && <div className="sidebar-overlay-layout-dashboard" onClick={() => setSidebarOpen(false)} />}
 
-      <aside className={`sidebar-layout-dashboard ${sidebarOpen ? 'open-layout-dashboard' : ''}`}>
+      <aside className={`sidebar-layout-dashboard ${sidebarOpen ? 'open-layout-dashboard' : ''} ${isAdmin ? 'admin-sidebar-layout-dashboard' : 'engineer-sidebar-layout-dashboard'}`}>
         <div className="sidebar-header-layout-dashboard">
           <div className="logo-container-layout-dashboard">
             <div className="logo-icon-layout-dashboard">
@@ -512,7 +505,7 @@ const Dashboard = () => {
                 style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
               />
             ) : (
-              <FaUserCircle style={{ fontSize: '50px', color: '#f39c12' }} />
+              <FaUserCircle style={{ fontSize: '50px' }} />
             )}
           </div>
           <div className="user-details-layout-dashboard">
@@ -537,9 +530,7 @@ const Dashboard = () => {
 
       <main className="main-content-layout-dashboard">
         <header className="dashboard-header-layout-dashboard">
-          <button className="menu-toggle-layout-dashboard" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <FaBars />
-          </button>
+          {/* Hamburger button removed */}
 
           <div className="header-search-layout-dashboard">
             <FaSearch className="search-icon-layout-dashboard" />
