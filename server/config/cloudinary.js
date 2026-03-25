@@ -17,8 +17,6 @@ if (isCloudinaryConfigured()) {
     api_secret: process.env.CLOUDINARY_API_SECRET
   });
   console.log('✅ Cloudinary configured successfully');
-} else {
-  console.log('⚠️ Cloudinary not configured, using local storage only');
 }
 
 // Ensure upload directories exist (for local storage)
@@ -43,29 +41,17 @@ const fileFilter = (req, file, cb) => {
 
 // Size limits based on file type
 const getFileSizeLimit = (file) => {
-  if (file.fieldname === 'sitePhotos' || file.fieldname === 'photos') {
-    return 15 * 1024 * 1024; // 15MB for photos
-  } else if (file.fieldname === 'report' || file.fieldname === 'quotation' || file.fieldname === 'document') {
-    return 25 * 1024 * 1024; // 25MB for documents
+  if (file.fieldname === 'sitePhotos') {
+    return 15 * 1024 * 1024; // 15MB for site photos
+  } else if (file.fieldname === 'report' || file.fieldname === 'quotation') {
+    return 25 * 1024 * 1024; // 25MB for reports
   } else {
     return 10 * 1024 * 1024; // 10MB default
   }
 };
 
-// Multer configuration with memory storage
-const memoryStorage = multer.memoryStorage();
-
-// Create multer instance
-const upload = multer({
-  storage: memoryStorage,
-  limits: { 
-    fileSize: 10 * 1024 * 1024 // Default 10MB, will be overridden by getFileSizeLimit in controller if needed
-  },
-  fileFilter: fileFilter
-});
-
-// Helper function to upload to Cloudinary
-const uploadToCloudinary = async (fileBuffer, folder, publicId, mimeType) => {
+// Upload to Cloudinary helper function
+const uploadToCloudinary = (fileBuffer, folder, publicId, mimeType) => {
   return new Promise((resolve, reject) => {
     const uploadOptions = {
       folder: `solar-tps/${folder}`,
@@ -92,8 +78,8 @@ const uploadToCloudinary = async (fileBuffer, folder, publicId, mimeType) => {
   });
 };
 
-// Helper function to save file locally
-const saveLocally = async (file, folder) => {
+// Save file locally
+const saveLocally = (file, folder) => {
   return new Promise((resolve, reject) => {
     let uploadPath = `uploads/${folder}/`;
     ensureDirectoryExists(uploadPath);
@@ -154,6 +140,18 @@ const processUpload = async (req, file, folder, customPublicId = null) => {
   }
 };
 
+// Multer configuration with memory storage
+const memoryStorage = multer.memoryStorage();
+
+// Create multer instance
+const upload = multer({
+  storage: memoryStorage,
+  limits: { 
+    fileSize: (req, file) => getFileSizeLimit(file)
+  },
+  fileFilter: fileFilter
+});
+
 // Helper function to delete file from storage
 const deleteFile = async (fileUrl, publicId = null, storageType = null) => {
   try {
@@ -188,9 +186,10 @@ const getFileUrl = (req, fileInfo) => {
   }
 };
 
-// Export all functions and the upload instance
+
+// At the very end of middleware/uploadMiddleware.js
 module.exports = { 
-  upload,
+  upload,           // This is the multer instance
   processUpload,
   getFileUrl, 
   deleteFile,

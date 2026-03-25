@@ -1,4 +1,3 @@
-// models/PreAssessment.js
 const mongoose = require('mongoose');
 
 const preAssessmentSchema = new mongoose.Schema({
@@ -17,6 +16,7 @@ const preAssessmentSchema = new mongoose.Schema({
   invoiceNumber: { type: String, unique: true },
   paymentMethod: { type: String, enum: ['gcash', 'cash'] },
   paymentProof: { type: String },
+  paymentProofFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
   paymentReference: { type: String },
   
   // Status
@@ -27,7 +27,7 @@ const preAssessmentSchema = new mongoose.Schema({
   },
   assessmentStatus: {
     type: String,
-    enum: ['pending_payment', 'scheduled', 'device_deployed', 'data_collecting', 'data_analyzing', 'completed', 'cancelled'],
+    enum: ['pending_payment', 'scheduled', 'site_visit_ongoing', 'report_draft', 'completed', 'cancelled'],
     default: 'pending_payment'
   },
   
@@ -49,6 +49,64 @@ const preAssessmentSchema = new mongoose.Schema({
   siteVisitNotes: String,
   sitePhotos: [String],
   
+  // Engineer Assessment Fields
+  engineerAssessment: {
+    siteInspectionDate: Date,
+    inspectionNotes: String,
+    roofCondition: {
+      type: String,
+      enum: ['excellent', 'good', 'fair', 'poor']
+    },
+    structuralIntegrity: {
+      type: String,
+      enum: ['excellent', 'good', 'fair', 'poor']
+    },
+    shadingAnalysis: String,
+    recommendedPanelPlacement: String,
+    estimatedInstallationTime: Number, // in days
+    additionalMaterials: [{
+      name: String,
+      quantity: Number,
+      estimatedCost: Number
+    }],
+    safetyConsiderations: [String],
+    recommendations: String
+  },
+  
+  // Assessment Documents (Quotation PDF, etc.)
+  assessmentDocuments: [{
+    fileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
+    documentType: {
+      type: String,
+      enum: ['quotation_pdf', 'technical_report', 'site_sketch', 'structural_analysis', 'electrical_diagram', 'safety_report', 'other']
+    },
+    description: String,
+    uploadedAt: Date
+  }],
+  
+  // Quotation Details
+  quotation: {
+    quotationFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
+    quotationUrl: String,
+    quotationNumber: String,
+    quotationDate: Date,
+    quotationExpiryDate: Date,
+    systemDetails: {
+      systemSize: Number,
+      systemType: String,
+      panelsNeeded: Number,
+      inverterType: String,
+      batteryType: String,
+      installationCost: Number,
+      equipmentCost: Number,
+      totalCost: Number,
+      paymentTerms: String,
+      warrantyYears: Number
+    },
+    generatedAt: Date,
+    generatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  },
+  
   // Results
   detailedReport: { type: String },
   finalQuotation: { type: String },
@@ -65,6 +123,14 @@ const preAssessmentSchema = new mongoose.Schema({
   engineerRecommendations: String,
   technicalFindings: String,
   
+  // Engineer Comments
+  engineerComments: [{
+    comment: String,
+    commentedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    commentedAt: Date,
+    isPublic: { type: Boolean, default: true }
+  }],
+  
   // Admin Remarks
   adminRemarks: String,
   
@@ -76,6 +142,9 @@ const preAssessmentSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// NO MIDDLEWARE - we'll generate references in the controller
+// Indexes for faster queries
+preAssessmentSchema.index({ assignedEngineerId: 1, assessmentStatus: 1 });
+
+preAssessmentSchema.index({ clientId: 1, assessmentStatus: 1 });
 
 module.exports = mongoose.model('PreAssessment', preAssessmentSchema);

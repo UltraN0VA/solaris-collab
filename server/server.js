@@ -45,6 +45,7 @@ const emailRoutes = require("./routes/emailRoutes");
 const clientRoutes = require('./routes/clientRoutes');
 const solarInvoiceRoutes = require('./routes/solarInvoiceRoutes');
 const projectRoutes = require('./routes/projectRoutes');
+const fileRoutes = require('./routes/fileRoutes');
 
 // Admin Routes
 const adminRoutes = require('./routes/adminRoutes');
@@ -67,6 +68,8 @@ app.use('/api/pre-assessments', preAssessmentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/solar-invoices', solarInvoiceRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/files', fileRoutes);
+app.use('/uploads', express.static('uploads'));
 
 // Test Route
 app.get("/", (req, res) => {

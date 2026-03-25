@@ -1,38 +1,34 @@
-// controllers/preAssessmentControllers.js
 const PreAssessment = require('../models/PreAssessment');
 const Client = require('../models/Clients');
 const Address = require('../models/Address');
 const IoTDevice = require('../models/IoTDevice');
 const SensorData = require('../models/SensorData');
+const File = require('../models/File');
+const { processUpload, getFileUrl, deleteFile: deleteFromStorage } = require('../middleware/uploadMiddleware');
 const mongoose = require('mongoose');
 
 // @desc    Create a new pre-assessment booking
 // @route   POST /api/pre-assessments
 // @access  Private (Customer)
-// In preAssessmentControllers.js, update the createPreAssessment function
 exports.createPreAssessment = async (req, res) => {
   try {
     const userId = req.user.id;
     const { clientId, addressId, propertyType, desiredCapacity, roofType, preferredDate } = req.body;
 
-    // Find client
     const client = await Client.findOne({ userId });
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    // Verify client ID matches
     if (client._id.toString() !== clientId) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    // Verify address belongs to client
     const address = await Address.findOne({ _id: addressId, clientId: client._id });
     if (!address) {
       return res.status(404).json({ message: 'Address not found' });
     }
 
-    // Generate references manually (no middleware)
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -50,8 +46,8 @@ exports.createPreAssessment = async (req, res) => {
       preferredDate: new Date(preferredDate),
       paymentStatus: 'pending',
       assessmentStatus: 'pending_payment',
-      bookingReference,  // Add generated reference
-      invoiceNumber       // Add generated invoice
+      bookingReference,
+      invoiceNumber
     });
 
     await preAssessment.save();
@@ -76,16 +72,15 @@ exports.createPreAssessment = async (req, res) => {
   }
 };
 
-// @desc    Submit payment proof (GCash)
+// @desc    Submit payment proof (GCash) with Cloudinary storage
 // @route   POST /api/pre-assessments/payment
 // @access  Private (Customer)
 exports.submitPaymentProof = async (req, res) => {
   try {
     const userId = req.user.id;
     const { bookingReference, paymentMethod, paymentReference } = req.body;
-    const paymentProof = req.file ? req.file.path : null;
-
-    if (!paymentProof) {
+    
+    if (!req.file) {
       return res.status(400).json({ message: 'Payment proof is required' });
     }
 
@@ -107,9 +102,45 @@ exports.submitPaymentProof = async (req, res) => {
       return res.status(400).json({ message: 'Payment already submitted' });
     }
 
+    const processedFile = await processUpload(
+      req, 
+      req.file, 
+      'payment-proofs', 
+      `payment_${bookingReference}_${Date.now()}`
+    );
+
+    if (!processedFile) {
+      return res.status(500).json({ message: 'Failed to process file upload' });
+    }
+
+    const fileUrl = getFileUrl(req, processedFile);
+
+    const fileRecord = new File({
+      filename: processedFile.filename,
+      originalName: processedFile.originalName,
+      fileType: 'payment_proof',
+      mimeType: processedFile.mimeType,
+      size: processedFile.size,
+      url: fileUrl,
+      publicId: processedFile.publicId,
+      uploadedBy: userId,
+      userRole: 'customer',
+      relatedTo: 'pre_assessment',
+      relatedId: preAssessment._id,
+      metadata: {
+        bookingReference,
+        paymentMethod,
+        paymentReference,
+        storageType: processedFile.storageType
+      }
+    });
+
+    await fileRecord.save();
+
     preAssessment.paymentMethod = paymentMethod;
     preAssessment.paymentReference = paymentReference;
-    preAssessment.paymentProof = paymentProof;
+    preAssessment.paymentProof = fileUrl;
+    preAssessment.paymentProofFileId = fileRecord._id;
     preAssessment.paymentStatus = 'for_verification';
     preAssessment.assessmentStatus = 'scheduled';
 
@@ -118,6 +149,12 @@ exports.submitPaymentProof = async (req, res) => {
     res.json({
       success: true,
       message: 'Payment proof submitted successfully. Please wait for verification.',
+      file: {
+        id: fileRecord._id,
+        url: fileRecord.url,
+        filename: fileRecord.originalName,
+        storageType: processedFile.storageType
+      },
       booking: {
         bookingReference: preAssessment.bookingReference,
         assessmentStatus: preAssessment.assessmentStatus,
@@ -127,49 +164,17 @@ exports.submitPaymentProof = async (req, res) => {
 
   } catch (error) {
     console.error('Submit payment error:', error);
+    if (req.file) {
+      try {
+        await deleteFromStorage(null, null, null);
+      } catch (deleteError) {
+        console.error('Error deleting file:', deleteError);
+      }
+    }
     res.status(500).json({ message: 'Failed to submit payment', error: error.message });
   }
 };
-// controllers/preAssessmentControllers.js - Add this new function
 
-// @desc    Get payment history for customer
-// @route   GET /api/pre-assessments/payments
-// @access  Private (Customer)
-exports.getPaymentHistory = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    
-    const client = await Client.findOne({ userId });
-    if (!client) {
-      return res.status(404).json({ message: 'Client not found' });
-    }
-
-    // Get all paid pre-assessments
-    const assessments = await PreAssessment.find({ 
-      clientId: client._id,
-      paymentStatus: { $in: ['paid', 'for_verification'] }
-    }).sort({ confirmedAt: -1 });
-
-    // Transform to payment history format
-    const payments = assessments.map(assessment => ({
-      id: assessment._id,
-      date: assessment.confirmedAt || assessment.bookedAt,
-      amount: assessment.assessmentFee,
-      method: assessment.paymentMethod || 'Cash',
-      invoiceId: assessment.invoiceNumber,
-      status: assessment.paymentStatus === 'paid' ? 'completed' : 'pending'
-    }));
-
-    res.json({
-      success: true,
-      payments
-    });
-
-  } catch (error) {
-    console.error('Get payment history error:', error);
-    res.status(500).json({ message: 'Failed to fetch payment history', error: error.message });
-  }
-};
 // @desc    Cash payment selection
 // @route   POST /api/pre-assessments/cash-payment
 // @access  Private (Customer)
@@ -229,9 +234,26 @@ exports.verifyPayment = async (req, res) => {
     if (verified) {
       preAssessment.paymentStatus = 'paid';
       preAssessment.confirmedAt = new Date();
+      
+      if (preAssessment.paymentProofFileId) {
+        await File.findByIdAndUpdate(preAssessment.paymentProofFileId, {
+          'metadata.verified': true,
+          'metadata.verifiedBy': req.user.id,
+          'metadata.verifiedAt': new Date(),
+          'metadata.adminNotes': notes
+        });
+      }
     } else {
       preAssessment.paymentStatus = 'failed';
       preAssessment.assessmentStatus = 'cancelled';
+      
+      if (preAssessment.paymentProofFileId) {
+        const fileRecord = await File.findById(preAssessment.paymentProofFileId);
+        if (fileRecord) {
+          await deleteFromStorage(fileRecord.publicId);
+          await fileRecord.deleteOne();
+        }
+      }
     }
 
     preAssessment.adminRemarks = notes;
@@ -248,7 +270,505 @@ exports.verifyPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to verify payment', error: error.message });
   }
 };
-// controllers/preAssessmentControllers.js - Add this function
+
+// ============ ENGINEER ASSESSMENT FUNCTIONS ============
+
+// @desc    Get engineer's assigned assessments
+// @route   GET /api/pre-assessments/engineer/my-assessments
+// @access  Private (Engineer)
+exports.getEngineerAssessments = async (req, res) => {
+  try {
+    const engineerId = req.user.id;
+    const { status, page = 1, limit = 20 } = req.query;
+    
+    const query = { 
+      assignedEngineerId: engineerId,
+      assessmentStatus: { $nin: ['cancelled', 'pending_payment'] }
+    };
+    
+    if (status) query.assessmentStatus = status;
+
+    const assessments = await PreAssessment.find(query)
+      .populate('clientId', 'contactFirstName contactLastName contactNumber email')
+      .populate('addressId')
+      .sort({ siteVisitDate: -1, bookedAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await PreAssessment.countDocuments(query);
+
+    res.json({
+      success: true,
+      assessments,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit)
+    });
+
+  } catch (error) {
+    console.error('Get engineer assessments error:', error);
+    res.status(500).json({ message: 'Failed to fetch assessments', error: error.message });
+  }
+};
+
+// @desc    Start site assessment (Engineer)
+// @route   POST /api/pre-assessments/:id/start-assessment
+// @access  Private (Engineer)
+exports.startAssessment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+    const { notes } = req.body;
+
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    if (assessment.assignedEngineerId.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized for this assessment' });
+    }
+
+    if (assessment.assessmentStatus !== 'scheduled') {
+      return res.status(400).json({ message: 'Assessment not ready for site visit' });
+    }
+
+    assessment.assessmentStatus = 'site_visit_ongoing';
+    assessment.engineerAssessment = {
+      ...assessment.engineerAssessment,
+      siteInspectionDate: new Date(),
+      inspectionNotes: notes
+    };
+
+    if (!assessment.engineerComments) assessment.engineerComments = [];
+    assessment.engineerComments.push({
+      comment: `Started site assessment: ${notes || 'No initial notes'}`,
+      commentedBy: engineerId,
+      commentedAt: new Date(),
+      isPublic: false
+    });
+
+    await assessment.save();
+
+    res.json({
+      success: true,
+      message: 'Site assessment started',
+      assessment
+    });
+
+  } catch (error) {
+    console.error('Start assessment error:', error);
+    res.status(500).json({ message: 'Failed to start assessment', error: error.message });
+  }
+};
+
+// @desc    Update site assessment details (Engineer)
+// @route   PUT /api/pre-assessments/:id/update-assessment
+// @access  Private (Engineer)
+exports.updateSiteAssessment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+    const {
+      roofCondition,
+      structuralIntegrity,
+      shadingAnalysis,
+      recommendedPanelPlacement,
+      estimatedInstallationTime,
+      additionalMaterials,
+      safetyConsiderations,
+      recommendations,
+      technicalFindings
+    } = req.body;
+
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    if (assessment.assignedEngineerId.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized for this assessment' });
+    }
+
+    if (!assessment.engineerAssessment) assessment.engineerAssessment = {};
+    
+    assessment.engineerAssessment.roofCondition = roofCondition;
+    assessment.engineerAssessment.structuralIntegrity = structuralIntegrity;
+    assessment.engineerAssessment.shadingAnalysis = shadingAnalysis;
+    assessment.engineerAssessment.recommendedPanelPlacement = recommendedPanelPlacement;
+    assessment.engineerAssessment.estimatedInstallationTime = estimatedInstallationTime;
+    assessment.engineerAssessment.additionalMaterials = additionalMaterials;
+    assessment.engineerAssessment.safetyConsiderations = safetyConsiderations;
+    assessment.engineerAssessment.recommendations = recommendations;
+    assessment.technicalFindings = technicalFindings;
+
+    await assessment.save();
+
+    res.json({
+      success: true,
+      message: 'Assessment updated successfully',
+      assessment
+    });
+
+  } catch (error) {
+    console.error('Update assessment error:', error);
+    res.status(500).json({ message: 'Failed to update assessment', error: error.message });
+  }
+};
+
+// @desc    Upload quotation PDF (Engineer)
+// @route   POST /api/pre-assessments/:id/upload-quotation
+// @access  Private (Engineer)
+exports.uploadQuotationPDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+    const { 
+      quotationNumber, 
+      quotationExpiryDate,
+      systemSize,
+      systemType,
+      panelsNeeded,
+      inverterType,
+      batteryType,
+      installationCost,
+      equipmentCost,
+      totalCost,
+      paymentTerms,
+      warrantyYears
+    } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'Quotation PDF is required' });
+    }
+
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    if (assessment.assignedEngineerId.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized for this assessment' });
+    }
+
+    // Process the uploaded PDF
+    const processedFile = await processUpload(
+      req,
+      req.file,
+      'quotations',
+      `quotation_${assessment.bookingReference}_${Date.now()}`
+    );
+
+    if (!processedFile) {
+      return res.status(500).json({ message: 'Failed to process file upload' });
+    }
+
+    const fileUrl = getFileUrl(req, processedFile);
+
+    // Save file record
+    const fileRecord = new File({
+      filename: processedFile.filename,
+      originalName: processedFile.originalName,
+      fileType: 'quotation_pdf',
+      mimeType: processedFile.mimeType,
+      size: processedFile.size,
+      url: fileUrl,
+      publicId: processedFile.publicId,
+      uploadedBy: engineerId,
+      userRole: 'engineer',
+      relatedTo: 'pre_assessment',
+      relatedId: assessment._id,
+      metadata: {
+        quotationNumber,
+        documentType: 'quotation_pdf',
+        storageType: processedFile.storageType
+      }
+    });
+
+    await fileRecord.save();
+
+    // Add to assessment documents
+    if (!assessment.assessmentDocuments) assessment.assessmentDocuments = [];
+    assessment.assessmentDocuments.push({
+      fileId: fileRecord._id,
+      documentType: 'quotation_pdf',
+      description: `Quotation ${quotationNumber || 'PDF'}`,
+      uploadedAt: new Date()
+    });
+
+    // Update quotation details
+    assessment.quotation = {
+      quotationFileId: fileRecord._id,
+      quotationUrl: fileUrl,
+      quotationNumber: quotationNumber || `Q-${assessment.bookingReference}`,
+      quotationDate: new Date(),
+      quotationExpiryDate: quotationExpiryDate ? new Date(quotationExpiryDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      systemDetails: {
+        systemSize: parseFloat(systemSize) || assessment.finalSystemSize,
+        systemType: systemType || assessment.recommendedSystemType,
+        panelsNeeded: parseInt(panelsNeeded) || assessment.panelsNeeded,
+        inverterType,
+        batteryType,
+        installationCost: parseFloat(installationCost) || 0,
+        equipmentCost: parseFloat(equipmentCost) || 0,
+        totalCost: parseFloat(totalCost) || 0,
+        paymentTerms,
+        warrantyYears: parseInt(warrantyYears) || 10
+      },
+      generatedAt: new Date(),
+      generatedBy: engineerId
+    };
+
+    // Update final quotation field
+    assessment.finalQuotation = fileUrl;
+    assessment.assessmentStatus = 'report_draft';
+
+    await assessment.save();
+
+    res.json({
+      success: true,
+      message: 'Quotation PDF uploaded successfully',
+      quotation: {
+        id: fileRecord._id,
+        url: fileRecord.url,
+        quotationNumber: assessment.quotation.quotationNumber,
+        totalCost: assessment.quotation.systemDetails.totalCost,
+        expiryDate: assessment.quotation.quotationExpiryDate
+      }
+    });
+
+  } catch (error) {
+    console.error('Upload quotation error:', error);
+    if (req.file) {
+      await deleteFromStorage(null, null, null);
+    }
+    res.status(500).json({ message: 'Failed to upload quotation', error: error.message });
+  }
+};
+
+// @desc    Submit final assessment report with quotation (Engineer)
+// @route   POST /api/pre-assessments/:id/submit-report
+// @access  Private (Engineer)
+exports.submitAssessmentReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+    const {
+      finalSystemSize,
+      finalSystemCost,
+      recommendedSystemType,
+      panelsNeeded,
+      estimatedAnnualProduction,
+      estimatedAnnualSavings,
+      paybackPeriod,
+      co2Offset,
+      engineerRecommendations,
+      technicalFindings,
+      quotationId
+    } = req.body;
+
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    if (assessment.assignedEngineerId.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized for this assessment' });
+    }
+
+    // Update assessment with final results
+    assessment.finalSystemSize = finalSystemSize;
+    assessment.finalSystemCost = finalSystemCost;
+    assessment.recommendedSystemType = recommendedSystemType;
+    assessment.panelsNeeded = panelsNeeded;
+    assessment.estimatedAnnualProduction = estimatedAnnualProduction;
+    assessment.estimatedAnnualSavings = estimatedAnnualSavings;
+    assessment.paybackPeriod = paybackPeriod;
+    assessment.co2Offset = co2Offset;
+    assessment.engineerRecommendations = engineerRecommendations;
+    assessment.technicalFindings = technicalFindings;
+
+    // Update status
+    assessment.assessmentStatus = 'completed';
+    assessment.completedAt = new Date();
+
+    await assessment.save();
+
+    // Add engineer comment
+    if (!assessment.engineerComments) assessment.engineerComments = [];
+    assessment.engineerComments.push({
+      comment: 'Final assessment report submitted with quotation',
+      commentedBy: engineerId,
+      commentedAt: new Date(),
+      isPublic: false
+    });
+
+    await assessment.save();
+
+    res.json({
+      success: true,
+      message: 'Final report submitted successfully',
+      assessment: {
+        id: assessment._id,
+        bookingReference: assessment.bookingReference,
+        assessmentStatus: assessment.assessmentStatus,
+        finalSystemSize: assessment.finalSystemSize,
+        finalSystemCost: assessment.finalSystemCost,
+        quotation: assessment.quotation
+      }
+    });
+
+  } catch (error) {
+    console.error('Submit report error:', error);
+    res.status(500).json({ message: 'Failed to submit report', error: error.message });
+  }
+};
+
+// @desc    Get assessment documents (including quotation PDF)
+// @route   GET /api/pre-assessments/:id/documents
+// @access  Private (Engineer, Admin, Customer)
+exports.getAssessmentDocuments = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { documentType } = req.query;
+
+    const query = {
+      relatedTo: 'pre_assessment',
+      relatedId: id,
+      fileType: { $in: ['quotation_pdf', 'assessment_document'] },
+      isActive: true
+    };
+
+    if (documentType) query['metadata.documentType'] = documentType;
+
+    const documents = await File.find(query)
+      .populate('uploadedBy', 'firstName lastName email role')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      documents
+    });
+
+  } catch (error) {
+    console.error('Get documents error:', error);
+    res.status(500).json({ message: 'Failed to fetch documents', error: error.message });
+  }
+};
+
+// @desc    Add engineer comment
+// @route   POST /api/pre-assessments/:id/add-comment
+// @access  Private (Engineer, Admin)
+exports.addEngineerComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const { comment, isPublic = true } = req.body;
+
+    if (!comment) {
+      return res.status(400).json({ message: 'Comment is required' });
+    }
+
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    if (!assessment.engineerComments) assessment.engineerComments = [];
+
+    assessment.engineerComments.push({
+      comment,
+      commentedBy: userId,
+      commentedAt: new Date(),
+      isPublic
+    });
+
+    await assessment.save();
+
+    // Populate user info
+    await assessment.populate('engineerComments.commentedBy', 'firstName lastName email role');
+
+    res.json({
+      success: true,
+      message: 'Comment added successfully',
+      comment: assessment.engineerComments[assessment.engineerComments.length - 1]
+    });
+
+  } catch (error) {
+    console.error('Add comment error:', error);
+    res.status(500).json({ message: 'Failed to add comment', error: error.message });
+  }
+};
+
+// @desc    Get assessment comments
+// @route   GET /api/pre-assessments/:id/comments
+// @access  Private (Engineer, Admin, Customer)
+exports.getAssessmentComments = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userRole = req.user.role;
+
+    const assessment = await PreAssessment.findById(id)
+      .populate('engineerComments.commentedBy', 'firstName lastName email role');
+
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    let comments = assessment.engineerComments || [];
+    if (userRole === 'customer') {
+      comments = comments.filter(comment => comment.isPublic === true);
+    }
+
+    res.json({
+      success: true,
+      comments
+    });
+
+  } catch (error) {
+    console.error('Get comments error:', error);
+    res.status(500).json({ message: 'Failed to fetch comments', error: error.message });
+  }
+};
+
+// ============ EXISTING FUNCTIONS ============
+
+// @desc    Get payment history for customer
+// @route   GET /api/pre-assessments/payments
+// @access  Private (Customer)
+exports.getPaymentHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const client = await Client.findOne({ userId });
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    const assessments = await PreAssessment.find({ 
+      clientId: client._id,
+      paymentStatus: { $in: ['paid', 'for_verification'] }
+    }).sort({ confirmedAt: -1 });
+
+    const payments = assessments.map(assessment => ({
+      id: assessment._id,
+      date: assessment.confirmedAt || assessment.bookedAt,
+      amount: assessment.assessmentFee,
+      method: assessment.paymentMethod || 'Cash',
+      invoiceId: assessment.invoiceNumber,
+      status: assessment.paymentStatus === 'paid' ? 'completed' : 'pending'
+    }));
+
+    res.json({
+      success: true,
+      payments
+    });
+
+  } catch (error) {
+    console.error('Get payment history error:', error);
+    res.status(500).json({ message: 'Failed to fetch payment history', error: error.message });
+  }
+};
 
 // @desc    Get pre-assessment stats for admin dashboard
 // @route   GET /api/pre-assessments/stats
@@ -261,7 +781,6 @@ exports.getPreAssessmentStats = async (req, res) => {
     const paid = await PreAssessment.countDocuments({ paymentStatus: 'paid' });
     const failed = await PreAssessment.countDocuments({ paymentStatus: 'failed' });
     
-    // Get monthly stats for the last 6 months
     const currentDate = new Date();
     const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 5, 1);
     
@@ -289,14 +808,12 @@ exports.getPreAssessmentStats = async (req, res) => {
       { $sort: { _id: 1 } }
     ]);
 
-    // Calculate revenue from paid assessments
     const revenueResult = await PreAssessment.aggregate([
       { $match: { paymentStatus: 'paid' } },
       { $group: { _id: null, total: { $sum: '$assessmentFee' } } }
     ]);
     const totalRevenue = revenueResult[0]?.total || 0;
 
-    // Calculate pending revenue
     const pendingResult = await PreAssessment.aggregate([
       { $match: { paymentStatus: { $in: ['pending', 'for_verification'] } } },
       { $group: { _id: null, total: { $sum: '$assessmentFee' } } }
@@ -320,6 +837,7 @@ exports.getPreAssessmentStats = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
   }
 };
+
 // @desc    Get all pre-assessments (Admin/Engineer)
 // @route   GET /api/pre-assessments
 // @access  Private (Admin, Engineer)
@@ -382,6 +900,173 @@ exports.getMyPreAssessments = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch bookings', error: error.message });
   }
 };
+// @desc    Engineer deploys device on site (Engineer only)
+// @route   POST /api/pre-assessments/:id/deploy-device
+// @access  Private (Engineer)
+exports.deployDevice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+    const engineerId = req.user.id;
+
+    console.log('Engineer deploy device request:', { id, engineerId });
+
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    // Check if engineer is assigned to this assessment
+    if (assessment.assignedEngineerId.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized for this assessment' });
+    }
+
+    // Check if device is assigned
+    if (!assessment.assignedDeviceId) {
+      return res.status(400).json({ 
+        message: 'No device assigned to this assessment. Please contact admin.' 
+      });
+    }
+
+    // Find the device
+    const device = await IoTDevice.findById(assessment.assignedDeviceId);
+    if (!device) {
+      return res.status(404).json({ message: 'Assigned device not found' });
+    }
+
+    // Check if device is in assigned status
+    if (device.status !== 'assigned') {
+      return res.status(400).json({ 
+        message: `Device is not ready for deployment. Current status: ${device.status}` 
+      });
+    }
+
+    // Engineer deploys device on site
+    device.status = 'deployed';
+    device.deployedAt = new Date();
+    device.deployedBy = engineerId;
+    device.deploymentNotes = notes;
+    
+    // Update deployment history
+    if (device.deploymentHistory.length > 0) {
+      const lastDeployment = device.deploymentHistory[device.deploymentHistory.length - 1];
+      lastDeployment.deployedAt = new Date();
+      lastDeployment.deployedBy = engineerId;
+      lastDeployment.notes = notes;
+    }
+    
+    await device.save();
+
+    // Update assessment
+    assessment.iotDeviceId = device._id;
+    assessment.deviceDeployedAt = new Date();
+    assessment.deviceDeployedBy = engineerId;
+    assessment.dataCollectionStart = new Date();
+    assessment.assessmentStatus = 'device_deployed';
+    await assessment.save();
+
+    res.json({
+      success: true,
+      message: 'Device deployed successfully on site',
+      assessment: {
+        id: assessment._id,
+        bookingReference: assessment.bookingReference,
+        assessmentStatus: assessment.assessmentStatus,
+        dataCollectionStart: assessment.dataCollectionStart
+      },
+      device: {
+        id: device._id,
+        deviceId: device.deviceId,
+        deviceName: device.deviceName,
+        status: device.status
+      }
+    });
+
+  } catch (error) {
+    console.error('Deploy device error:', error);
+    res.status(500).json({ message: 'Failed to deploy device', error: error.message });
+  }
+};
+
+// @desc    Engineer retrieves device after 7 days (Engineer only)
+// @route   POST /api/pre-assessments/:id/retrieve-device
+// @access  Private (Engineer)
+exports.retrieveDevice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+    const engineerId = req.user.id;
+
+    console.log('Engineer retrieve device request:', { id, engineerId });
+
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    // Check if engineer is assigned
+    if (assessment.assignedEngineerId.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized for this assessment' });
+    }
+
+    // Check if device is deployed
+    if (assessment.assessmentStatus !== 'device_deployed' && assessment.assessmentStatus !== 'data_collecting') {
+      return res.status(400).json({ 
+        message: `No device deployed to retrieve. Current status: ${assessment.assessmentStatus}` 
+      });
+    }
+
+    // Find the device
+    const device = await IoTDevice.findById(assessment.iotDeviceId);
+    if (!device) {
+      return res.status(404).json({ message: 'Device not found' });
+    }
+
+    // Engineer retrieves device
+    device.status = 'available';
+    device.retrievedAt = new Date();
+    device.retrievedBy = engineerId;
+    device.retrievalNotes = notes;
+    
+    // Clear assignment
+    device.assignedToEngineerId = null;
+    device.assignedToPreAssessmentId = null;
+    
+    // Update deployment history
+    if (device.deploymentHistory.length > 0) {
+      const lastDeployment = device.deploymentHistory[device.deploymentHistory.length - 1];
+      lastDeployment.retrievedAt = new Date();
+      lastDeployment.retrievedBy = engineerId;
+      lastDeployment.notes = notes;
+    }
+    
+    await device.save();
+
+    // Update assessment
+    assessment.deviceRetrievedAt = new Date();
+    assessment.deviceRetrievedBy = engineerId;
+    assessment.dataCollectionEnd = new Date();
+    assessment.assessmentStatus = 'data_analyzing';
+    await assessment.save();
+
+    res.json({
+      success: true,
+      message: 'Device retrieved successfully after data collection',
+      assessment: {
+        id: assessment._id,
+        bookingReference: assessment.bookingReference,
+        assessmentStatus: assessment.assessmentStatus,
+        totalReadings: assessment.totalReadings || 0,
+        dataCollectionDays: Math.ceil((assessment.dataCollectionEnd - assessment.dataCollectionStart) / (1000 * 60 * 60 * 24))
+      }
+    });
+
+  } catch (error) {
+    console.error('Retrieve device error:', error);
+    res.status(500).json({ message: 'Failed to retrieve device', error: error.message });
+  }
+};
+
 
 // @desc    Get pre-assessment by ID
 // @route   GET /api/pre-assessments/:id
@@ -398,13 +1083,13 @@ exports.getPreAssessmentById = async (req, res) => {
       .populate('iotDeviceId')
       .populate('assignedEngineerId', 'email firstName lastName')
       .populate('deviceDeployedBy', 'firstName lastName')
-      .populate('deviceRetrievedBy', 'firstName lastName');
+      .populate('deviceRetrievedBy', 'firstName lastName')
+      .populate('quotation.generatedBy', 'firstName lastName email');
 
     if (!assessment) {
       return res.status(404).json({ message: 'Pre-assessment not found' });
     }
 
-    // Check authorization
     const client = await Client.findOne({ userId });
     if (userRole !== 'admin' && userRole !== 'engineer' && assessment.clientId._id.toString() !== client?._id.toString()) {
       return res.status(403).json({ message: 'Unauthorized' });
@@ -452,165 +1137,6 @@ exports.assignEngineer = async (req, res) => {
   }
 };
 
-// @desc    Deploy IoT device (Engineer only)
-// @route   POST /api/pre-assessments/:id/deploy-device
-// @access  Private (Engineer)
-exports.deployDevice = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { deviceId, notes } = req.body;
-    const engineerId = req.user.id;
-
-    const assessment = await PreAssessment.findById(id);
-    if (!assessment) {
-      return res.status(404).json({ message: 'Pre-assessment not found' });
-    }
-
-    if (assessment.assessmentStatus !== 'scheduled') {
-      return res.status(400).json({ message: 'Cannot deploy device at this stage' });
-    }
-
-    // Find and deploy device
-    const device = await IoTDevice.findById(deviceId);
-    if (!device) {
-      return res.status(404).json({ message: 'Device not found' });
-    }
-
-    if (device.status !== 'available') {
-      return res.status(400).json({ message: 'Device is not available' });
-    }
-
-    device.status = 'deployed';
-    device.currentPreAssessmentId = assessment._id;
-    device.lastDeployedAt = new Date();
-    device.deployedBy = engineerId;
-    await device.save();
-
-    assessment.iotDeviceId = device._id;
-    assessment.deviceDeployedAt = new Date();
-    assessment.deviceDeployedBy = engineerId;
-    assessment.dataCollectionStart = new Date();
-    assessment.assessmentStatus = 'device_deployed';
-    await assessment.save();
-
-    res.json({
-      success: true,
-      message: 'Device deployed successfully',
-      assessment
-    });
-
-  } catch (error) {
-    console.error('Deploy device error:', error);
-    res.status(500).json({ message: 'Failed to deploy device', error: error.message });
-  }
-};
-
-// @desc    Retrieve IoT device (Engineer only)
-// @route   POST /api/pre-assessments/:id/retrieve-device
-// @access  Private (Engineer)
-exports.retrieveDevice = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { notes } = req.body;
-    const engineerId = req.user.id;
-
-    const assessment = await PreAssessment.findById(id);
-    if (!assessment) {
-      return res.status(404).json({ message: 'Pre-assessment not found' });
-    }
-
-    if (assessment.assessmentStatus !== 'device_deployed' && assessment.assessmentStatus !== 'data_collecting') {
-      return res.status(400).json({ message: 'No device deployed to retrieve' });
-    }
-
-    // Retrieve device
-    const device = await IoTDevice.findById(assessment.iotDeviceId);
-    if (device) {
-      device.status = 'available';
-      device.currentPreAssessmentId = null;
-      device.lastRetrievedAt = new Date();
-      await device.save();
-    }
-
-    assessment.deviceRetrievedAt = new Date();
-    assessment.deviceRetrievedBy = engineerId;
-    assessment.dataCollectionEnd = new Date();
-    assessment.assessmentStatus = 'data_analyzing';
-    await assessment.save();
-
-    res.json({
-      success: true,
-      message: 'Device retrieved successfully',
-      assessment
-    });
-
-  } catch (error) {
-    console.error('Retrieve device error:', error);
-    res.status(500).json({ message: 'Failed to retrieve device', error: error.message });
-  }
-};
-
-// @desc    Generate report and final quotation (Engineer only)
-// @route   POST /api/pre-assessments/:id/generate-report
-// @access  Private (Engineer)
-exports.generateReport = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { 
-      finalSystemSize, 
-      finalSystemCost, 
-      recommendedSystemType,
-      panelsNeeded,
-      estimatedAnnualProduction,
-      estimatedAnnualSavings,
-      paybackPeriod,
-      co2Offset,
-      engineerRecommendations,
-      technicalFindings,
-      detailedReport,
-      finalQuotation
-    } = req.body;
-
-    const assessment = await PreAssessment.findById(id);
-    if (!assessment) {
-      return res.status(404).json({ message: 'Pre-assessment not found' });
-    }
-
-    // Update with results
-    assessment.finalSystemSize = finalSystemSize;
-    assessment.finalSystemCost = finalSystemCost;
-    assessment.recommendedSystemType = recommendedSystemType;
-    assessment.panelsNeeded = panelsNeeded;
-    assessment.estimatedAnnualProduction = estimatedAnnualProduction;
-    assessment.estimatedAnnualSavings = estimatedAnnualSavings;
-    assessment.paybackPeriod = paybackPeriod;
-    assessment.co2Offset = co2Offset;
-    assessment.engineerRecommendations = engineerRecommendations;
-    assessment.technicalFindings = technicalFindings;
-    assessment.detailedReport = detailedReport;
-    assessment.finalQuotation = finalQuotation;
-    assessment.assessmentStatus = 'completed';
-    assessment.completedAt = new Date();
-
-    await assessment.save();
-
-    // Get sensor readings data
-    const readings = await SensorData.find({ preAssessmentId: assessment._id })
-      .sort({ timestamp: 1 });
-
-    res.json({
-      success: true,
-      message: 'Report generated successfully',
-      assessment,
-      readings
-    });
-
-  } catch (error) {
-    console.error('Generate report error:', error);
-    res.status(500).json({ message: 'Failed to generate report', error: error.message });
-  }
-};
-
 // @desc    Cancel pre-assessment (Customer)
 // @route   PUT /api/pre-assessments/:id/cancel
 // @access  Private (Customer)
@@ -647,3 +1173,81 @@ exports.cancelPreAssessment = async (req, res) => {
     res.status(500).json({ message: 'Failed to cancel pre-assessment', error: error.message });
   }
 };
+
+// @desc    Get IoT data for engineer (read-only)
+// @route   GET /api/pre-assessments/:id/iot-data
+// @access  Private (Engineer)
+exports.getIoTData = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const engineerId = req.user.id;
+
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({ message: 'Pre-assessment not found' });
+    }
+
+    // Check if engineer is assigned to this assessment
+    if (assessment.assignedEngineerId.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized to view this data' });
+    }
+
+    // Get IoT data
+    const sensorData = await SensorData.find({ preAssessmentId: assessment._id })
+      .sort({ timestamp: -1 })
+      .limit(1000);
+
+    // Get statistics
+    const stats = {
+      totalReadings: assessment.totalReadings || 0,
+      dataCollectionStart: assessment.dataCollectionStart,
+      dataCollectionEnd: assessment.dataCollectionEnd,
+      averageVoltage: 0,
+      averageCurrent: 0,
+      averagePower: 0,
+      maxPower: 0,
+      averageTemperature: 0
+    };
+
+    if (sensorData.length > 0) {
+      stats.averageVoltage = sensorData.reduce((sum, d) => sum + (d.voltage || 0), 0) / sensorData.length;
+      stats.averageCurrent = sensorData.reduce((sum, d) => sum + (d.current || 0), 0) / sensorData.length;
+      stats.averagePower = sensorData.reduce((sum, d) => sum + (d.power || 0), 0) / sensorData.length;
+      stats.maxPower = Math.max(...sensorData.map(d => d.power || 0));
+      stats.averageTemperature = sensorData.reduce((sum, d) => sum + (d.temperature || 0), 0) / sensorData.length;
+    }
+
+    res.json({
+      success: true,
+      readings: sensorData,
+      stats
+    });
+
+  } catch (error) {
+    console.error('Get IoT data error:', error);
+    res.status(500).json({ message: 'Failed to fetch IoT data', error: error.message });
+  }
+};
+
+// module.exports = {
+//   createPreAssessment,
+//   submitPaymentProof,
+//   cashPayment,
+//   verifyPayment,
+//   getPaymentHistory,
+//   getPreAssessmentStats,
+//   getAllPreAssessments,
+//   getMyPreAssessments,
+//   getPreAssessmentById,
+//   assignEngineer,
+//   cancelPreAssessment,
+//   // Engineer assessment functions
+//   getEngineerAssessments,
+//   startAssessment,
+//   updateSiteAssessment,
+//   uploadQuotationPDF,
+//   submitAssessmentReport,
+//   getAssessmentDocuments,
+//   addEngineerComment,
+//   getAssessmentComments
+// };

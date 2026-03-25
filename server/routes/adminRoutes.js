@@ -34,6 +34,7 @@ router.get('/devices/:id', deviceControllers.getDeviceById);
 router.post('/devices', deviceControllers.createDevice);
 router.put('/devices/:id', deviceControllers.updateDevice);
 router.delete('/devices/:id', deviceControllers.deleteDevice);
+router.post('/devices/:deviceId/assign', deviceControllers.assignDeviceToEngineer);
 
 // ============ REVENUE ============
 router.get('/revenue', revenueControllers.getRevenueStats);
