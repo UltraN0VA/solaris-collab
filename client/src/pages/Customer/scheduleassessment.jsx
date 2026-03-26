@@ -104,7 +104,7 @@ const ScheduleAssessment = () => {
   };
 
   const handleAddressClick = () => {
-    navigate('/dashboard/customersettings?tab=addresses&returnTo=/dashboard/schedule');
+    navigate('/app/customer/settings?tab=addresses');
   };
 
   const handleInputChange = (e) => {
