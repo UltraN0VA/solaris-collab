@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/scheduleassessment.css';
 
 const ScheduleAssessment = () => {
   const navigate = useNavigate();
+  const { toast, showToast, hideToast } = useToast();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -143,7 +145,7 @@ const ScheduleAssessment = () => {
   // FREE QUOTE SUBMISSION
   const handleFreeQuoteSubmit = () => {
     if (!freeQuoteData.monthlyBill) {
-      alert('Please enter your monthly electricity bill');
+      showToast('Please enter your monthly electricity bill', 'warning');
       return;
     }
     setShowFreeQuoteConfirm(true);
@@ -173,8 +175,9 @@ const ScheduleAssessment = () => {
       });
       setSubmitted(true);
       setShowFreeQuoteConfirm(false);
+      showToast('Quote request submitted successfully!', 'success');
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to submit quote request. Please try again.');
+      showToast(err.response?.data?.message || 'Failed to submit quote request. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -194,7 +197,7 @@ const ScheduleAssessment = () => {
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
-      alert('Please complete all required fields');
+      showToast('Please complete all required fields', 'warning');
       return;
     }
     setShowConfirmDialog(true);
@@ -202,7 +205,7 @@ const ScheduleAssessment = () => {
 
   const handleConfirmBooking = async () => {
     if (!termsAccepted) {
-      alert('Please accept the terms and conditions to proceed');
+      showToast('Please accept the terms and conditions to proceed', 'warning');
       return;
     }
 
@@ -226,18 +229,21 @@ const ScheduleAssessment = () => {
 
       setShowConfirmDialog(false);
       setTermsAccepted(false);
-      // After successful booking, navigate to billing page to make payment
-      navigate('/app/customer/billing', { 
-        state: { 
-          newInvoice: {
-            id: response.data.booking.invoiceNumber,
-            amount: response.data.booking.assessmentFee,
-            description: 'Pre Assessment Fee'
+      showToast('Pre-assessment booked successfully! Redirecting to payment...', 'success');
+      
+      setTimeout(() => {
+        navigate('/app/customer/billing', { 
+          state: { 
+            newInvoice: {
+              id: response.data.booking.invoiceNumber,
+              amount: response.data.booking.assessmentFee,
+              description: 'Pre Assessment Fee'
+            }
           }
-        }
-      });
+        });
+      }, 1500);
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to submit pre-assessment. Please try again.');
+      showToast(err.response?.data?.message || 'Failed to submit pre-assessment. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -465,6 +471,13 @@ const ScheduleAssessment = () => {
               </div>
             </div>
           )}
+
+          <ToastNotification
+            show={toast.show}
+            message={toast.message}
+            type={toast.type}
+            onClose={hideToast}
+          />
         </div>
       </>
     );
@@ -514,6 +527,13 @@ const ScheduleAssessment = () => {
             </button>
           </div>
         </div>
+
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
       </div>
     );
   }
@@ -727,6 +747,13 @@ const ScheduleAssessment = () => {
               </div>
             </div>
           )}
+
+          <ToastNotification
+            show={toast.show}
+            message={toast.message}
+            type={toast.type}
+            onClose={hideToast}
+          />
         </div>
       </>
     );
