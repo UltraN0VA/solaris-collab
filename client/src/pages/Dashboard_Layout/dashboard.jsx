@@ -156,7 +156,7 @@ const Dashboard = () => {
       { icon: <FaClipboardCheck />, label: 'My Assessments', path: '/app/engineer/assessment' },
       { icon: <FaProjectDiagram />, label: 'My Projects', path: '/app/engineer/project' },
       { icon: <FaMicrochip />, label: 'Device Data', path: '/app/engineer/device' },
-      { icon: <FaClipboardList />, label: 'Quotations', path: '/app/engineer/quotation' },
+     // { icon: <FaClipboardList />, label: 'Quotations', path: '/app/engineer/quotation' },
       { icon: <FaFileAlt />, label: 'Reports', path: '/app/engineer/reports' },
       { icon: <FaClipboardList />, label: 'Schedule', path: '/app/engineer/schedule' },
       { icon: <FaUserCog />, label: 'Profile', path: '/app/engineer/profile' },

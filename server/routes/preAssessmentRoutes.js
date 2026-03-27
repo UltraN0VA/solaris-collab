@@ -32,6 +32,9 @@ const {
 } = require('../controllers/preAssessmentControllers');
 
 // ============ CUSTOMER ROUTES ============
+
+router.post('/:id/submit-payment-proof', verifyToken, upload.single('paymentProof'), submitPaymentProof);
+router.post('/:id/cash-payment', verifyToken, cashPayment);
 router.get('/payments', verifyToken, getPaymentHistory);
 router.get('/my-bookings', verifyToken, getMyPreAssessments);
 

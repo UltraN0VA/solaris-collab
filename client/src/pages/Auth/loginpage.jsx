@@ -98,7 +98,7 @@ const LoginPage = () => {
       const data = JSON.parse(responseText);
 
       if (data.token && data.user) {
-        const storage = rememberMe ? localStorage : sessionStorage;
+        const storage = rememberMe ? sessionStorage : sessionStorage;
         
         storage.setItem("token", data.token);
         storage.setItem("userName", data.user.fullName || '');
@@ -172,7 +172,7 @@ const LoginPage = () => {
       const data = JSON.parse(responseText);
 
       if (data.token && data.user) {
-        const storage = rememberMe ? localStorage : sessionStorage;
+        const storage = rememberMe ? sessionStorage : sessionStorage;
         
         storage.setItem("token", data.token);
         storage.setItem("userName", data.user.fullName || '');

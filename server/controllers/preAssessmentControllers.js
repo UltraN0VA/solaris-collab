@@ -273,9 +273,8 @@ exports.verifyPayment = async (req, res) => {
 
 // ============ ENGINEER ASSESSMENT FUNCTIONS ============
 
-// @desc    Get engineer's assigned assessments
-// @route   GET /api/pre-assessments/engineer/my-assessments
-// @access  Private (Engineer)
+// In preAssessmentControllers.js, update the getEngineerAssessments function:
+
 exports.getEngineerAssessments = async (req, res) => {
   try {
     const engineerId = req.user.id;
@@ -291,6 +290,7 @@ exports.getEngineerAssessments = async (req, res) => {
     const assessments = await PreAssessment.find(query)
       .populate('clientId', 'contactFirstName contactLastName contactNumber email')
       .populate('addressId')
+      .populate('iotDeviceId')  // Add this to populate device data
       .sort({ siteVisitDate: -1, bookedAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -900,6 +900,8 @@ exports.getMyPreAssessments = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch bookings', error: error.message });
   }
 };
+// controllers/preAssessmentControllers.js - Updated deployDevice function
+
 // @desc    Engineer deploys device on site (Engineer only)
 // @route   POST /api/pre-assessments/:id/deploy-device
 // @access  Private (Engineer)
@@ -917,48 +919,104 @@ exports.deployDevice = async (req, res) => {
     }
 
     // Check if engineer is assigned to this assessment
-    if (assessment.assignedEngineerId.toString() !== engineerId) {
+    if (assessment.assignedEngineerId?.toString() !== engineerId) {
       return res.status(403).json({ message: 'Not authorized for this assessment' });
     }
 
-    // Check if device is assigned
-    if (!assessment.assignedDeviceId) {
+    // Check if device is assigned - check both possible fields
+    const deviceId = assessment.assignedDeviceId || assessment.iotDeviceId;
+    
+    if (!deviceId) {
       return res.status(400).json({ 
         message: 'No device assigned to this assessment. Please contact admin.' 
       });
     }
 
     // Find the device
-    const device = await IoTDevice.findById(assessment.assignedDeviceId);
+    const device = await IoTDevice.findById(deviceId);
     if (!device) {
       return res.status(404).json({ message: 'Assigned device not found' });
     }
 
+    console.log('Current device status:', device.status);
+    console.log('Current assessment status:', assessment.assessmentStatus);
+
+    // Check if device is already deployed
+    if (device.status === 'deployed' || device.status === 'data_collecting') {
+      // If already deployed, just update the assessment if needed
+      if (assessment.assessmentStatus !== 'device_deployed') {
+        assessment.assessmentStatus = 'device_deployed';
+        assessment.deviceDeployedAt = new Date();
+        assessment.deviceDeployedBy = engineerId;
+        assessment.dataCollectionStart = new Date();
+        await assessment.save();
+      }
+      return res.json({
+        success: true,
+        message: 'Device is already deployed',
+        assessment: {
+          id: assessment._id,
+          bookingReference: assessment.bookingReference,
+          assessmentStatus: assessment.assessmentStatus
+        },
+        device: {
+          id: device._id,
+          deviceId: device.deviceId,
+          deviceName: device.deviceName,
+          status: device.status
+        }
+      });
+    }
+
     // Check if device is in assigned status
     if (device.status !== 'assigned') {
-      return res.status(400).json({ 
-        message: `Device is not ready for deployment. Current status: ${device.status}` 
-      });
+      // If device is available, we need to update it to assigned first
+      if (device.status === 'available') {
+        console.log('Device is available, updating to assigned first...');
+        device.status = 'assigned';
+        device.assignedToEngineerId = engineerId;
+        device.assignedToPreAssessmentId = assessment._id;
+        device.assignedAt = new Date();
+        await device.save();
+      } else {
+        return res.status(400).json({ 
+          message: `Device is not ready for deployment. Current status: ${device.status}. Device must be 'assigned' first.` 
+        });
+      }
     }
 
     // Engineer deploys device on site
     device.status = 'deployed';
     device.deployedAt = new Date();
     device.deployedBy = engineerId;
-    device.deploymentNotes = notes;
+    device.deploymentNotes = notes || 'Device deployed on site';
     
     // Update deployment history
-    if (device.deploymentHistory.length > 0) {
+    if (device.deploymentHistory && device.deploymentHistory.length > 0) {
       const lastDeployment = device.deploymentHistory[device.deploymentHistory.length - 1];
-      lastDeployment.deployedAt = new Date();
-      lastDeployment.deployedBy = engineerId;
-      lastDeployment.notes = notes;
+      if (lastDeployment) {
+        lastDeployment.deployedAt = new Date();
+        lastDeployment.deployedBy = engineerId;
+        lastDeployment.notes = notes;
+      }
+    } else {
+      // If no deployment history, create one
+      device.deploymentHistory = [{
+        preAssessmentId: assessment._id,
+        assignedAt: device.assignedAt || new Date(),
+        assignedBy: device.assignedBy,
+        deployedAt: new Date(),
+        deployedBy: engineerId,
+        notes: notes
+      }];
     }
     
     await device.save();
+    console.log('✅ Device status updated to: deployed');
 
     // Update assessment
     assessment.iotDeviceId = device._id;
+    assessment.assignedDeviceId = device._id;
     assessment.deviceDeployedAt = new Date();
     assessment.deviceDeployedBy = engineerId;
     assessment.dataCollectionStart = new Date();
@@ -1066,7 +1124,25 @@ exports.retrieveDevice = async (req, res) => {
     res.status(500).json({ message: 'Failed to retrieve device', error: error.message });
   }
 };
-
+// Add this to preAssessmentControllers.js
+exports.uploadSiteImages = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const files = req.files;
+    
+    const imageUrls = [];
+    // Process each image upload to Cloudinary/local storage
+    
+    const assessment = await PreAssessment.findById(id);
+    if (!assessment.sitePhotos) assessment.sitePhotos = [];
+    assessment.sitePhotos.push(...imageUrls);
+    await assessment.save();
+    
+    res.json({ success: true, images: imageUrls });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 // @desc    Get pre-assessment by ID
 // @route   GET /api/pre-assessments/:id

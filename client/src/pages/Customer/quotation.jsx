@@ -167,14 +167,14 @@ const Quotation = () => {
         formData.append('paymentReference', paymentReference);
         formData.append('paymentProof', paymentProof);
         
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/payment`, formData, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem.id}/submit-payment-proof`, formData, {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
           }
         });
       } else if (paymentMethod === 'cash') {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/cash-payment`, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem.id}/cash-payment`, {
           bookingReference: selectedItem.bookingReference
         }, {
           headers: { Authorization: `Bearer ${token}` }

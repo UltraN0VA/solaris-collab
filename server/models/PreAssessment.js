@@ -25,11 +25,12 @@ const preAssessmentSchema = new mongoose.Schema({
     enum: ['pending', 'for_verification', 'paid', 'failed'],
     default: 'pending'
   },
-  assessmentStatus: {
-    type: String,
-    enum: ['pending_payment', 'scheduled', 'site_visit_ongoing', 'report_draft', 'completed', 'cancelled'],
-    default: 'pending_payment'
-  },
+  // Find the assessmentStatus enum and add 'device_deployed'
+assessmentStatus: {
+  type: String,
+  enum: ['pending_payment', 'scheduled', 'site_visit_ongoing', 'device_deployed', 'data_collecting', 'data_analyzing', 'report_draft', 'completed', 'cancelled'],
+  default: 'pending_payment'
+},
   
   // IoT Device Integration
   iotDeviceId: { type: mongoose.Schema.Types.ObjectId, ref: 'IoTDevice' },

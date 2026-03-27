@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import { 
-  FaSearch, 
-  FaEye, 
-  FaCheckCircle, 
-  FaTimesCircle, 
+import {
+  FaSearch,
+  FaEye,
+  FaCheckCircle,
+  FaTimesCircle,
   FaSpinner,
   FaFileInvoice,
   FaMoneyBillWave,
@@ -14,6 +14,7 @@ import {
   FaClock,
   FaExclamationTriangle,
   FaDownload,
+  FaInfoCircle,
   FaFilter,
   FaChevronLeft,
   FaChevronRight,
@@ -30,7 +31,10 @@ import {
   FaFileAlt,
   FaEdit,
   FaUserCheck,
-  FaTools
+  FaTools,
+  FaPlus,
+  FaCheck,
+  FaWifi
 } from 'react-icons/fa';
 import '../../styles/Admin/siteAssessment.css';
 
@@ -43,9 +47,11 @@ const SiteAssessment = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [showAssignEngineerModal, setShowAssignEngineerModal] = useState(false);
+  const [showAssignDeviceModal, setShowAssignDeviceModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [verificationNote, setVerificationNote] = useState('');
   const [engineerId, setEngineerId] = useState('');
+  const [deviceId, setDeviceId] = useState('');
   const [siteVisitDate, setSiteVisitDate] = useState('');
   const [siteVisitNotes, setSiteVisitNotes] = useState('');
   const [quotationFile, setQuotationFile] = useState(null);
@@ -55,6 +61,7 @@ const SiteAssessment = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [engineers, setEngineers] = useState([]);
+  const [devices, setDevices] = useState([]);
   const [stats, setStats] = useState({
     freeQuotes: { total: 0, pending: 0, completed: 0 },
     preAssessments: { total: 0, pending: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0 }
@@ -63,6 +70,7 @@ const SiteAssessment = () => {
   useEffect(() => {
     fetchData();
     fetchEngineers();
+    fetchDevices();
     fetchStats();
   }, [activeTab, filter, currentPage]);
 
@@ -83,6 +91,7 @@ const SiteAssessment = () => {
           headers: { Authorization: `Bearer ${token}` },
           params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: 10 }
         });
+        console.log('Fetched pre-assessments:', response.data.assessments); // Add this debug log
         setPreAssessments(response.data.assessments || []);
         setTotalPages(response.data.totalPages || 1);
       }
@@ -105,20 +114,33 @@ const SiteAssessment = () => {
     }
   };
 
+  const fetchDevices = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/devices`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { status: 'available' }
+      });
+      setDevices(response.data.devices || []);
+    } catch (error) {
+      console.error('Error fetching devices:', error);
+    }
+  };
+
   const fetchStats = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      
+
       const freeQuotesRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/free-quotes`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const quotes = freeQuotesRes.data.quotes || [];
-      
+
       const preAssessmentsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/pre-assessments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const assessments = preAssessmentsRes.data.assessments || [];
-      
+
       setStats({
         freeQuotes: {
           total: quotes.length,
@@ -166,7 +188,7 @@ const SiteAssessment = () => {
         { verified, notes: verificationNote },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       alert(verified ? 'Payment verified successfully!' : 'Payment rejected');
       setShowVerifyModal(false);
       setSelectedItem(null);
@@ -184,22 +206,65 @@ const SiteAssessment = () => {
 
     try {
       const token = sessionStorage.getItem('token');
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/assign-engineer`,
-        { engineerId, siteVisitDate, notes: siteVisitNotes },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      alert('Engineer assigned successfully');
+
+      if (activeTab === 'free-quotes') {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/assign-engineer`,
+          { engineerId, notes: siteVisitNotes },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert('Engineer assigned to free quote successfully');
+      } else {
+        await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/assign-engineer`,
+          { engineerId, siteVisitDate, notes: siteVisitNotes },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert('Engineer assigned successfully');
+      }
+
       setShowAssignEngineerModal(false);
       setSelectedItem(null);
       setEngineerId('');
       setSiteVisitDate('');
       setSiteVisitNotes('');
       fetchData();
+      fetchStats();
     } catch (error) {
       console.error('Error assigning engineer:', error);
       alert('Failed to assign engineer');
+    }
+  };
+
+  const handleAssignDevice = async () => {
+    if (!selectedItem || !deviceId) return;
+
+    try {
+      const token = sessionStorage.getItem('token');
+
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/admin/devices/${deviceId}/assign`,
+        {
+          engineerId: selectedItem.assignedEngineerId,
+          preAssessmentId: selectedItem._id,
+          notes: `Assigned to pre-assessment ${selectedItem.bookingReference}`
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert('Device assigned successfully to the pre-assessment');
+      setShowAssignDeviceModal(false);
+      setSelectedItem(null);
+      setDeviceId('');
+
+      // Refresh all data
+      await fetchData();
+      await fetchStats();
+      await fetchDevices();
+
+    } catch (error) {
+      console.error('Error assigning device:', error);
+      alert(error.response?.data?.message || 'Failed to assign device');
     }
   };
 
@@ -211,18 +276,19 @@ const SiteAssessment = () => {
       const token = sessionStorage.getItem('token');
       const formData = new FormData();
       formData.append('quotation', quotationFile);
-      
+
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/upload-quotation`,
         formData,
         { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
       );
-      
+
       alert('Quotation uploaded and sent to customer');
       setShowUploadModal(false);
       setSelectedItem(null);
       setQuotationFile(null);
       fetchData();
+      fetchStats();
     } catch (error) {
       console.error('Error uploading quotation:', error);
       alert('Failed to upload quotation');
@@ -257,13 +323,15 @@ const SiteAssessment = () => {
         'completed': <span className="status-badge-siteassesad completed-siteassesad">Completed</span>,
         'cancelled': <span className="status-badge-siteassesad cancelled-siteassesad">Cancelled</span>
       },
+      // In SiteAssessment.jsx, update the pre-assessment badges:
       'pre-assessment': {
         'pending_payment': <span className="status-badge-siteassesad pending-siteassesad">Pending Payment</span>,
         'pending': <span className="status-badge-siteassesad pending-siteassesad">Pending</span>,
         'for_verification': <span className="status-badge-siteassesad for-verification-siteassesad">For Verification</span>,
         'paid': <span className="status-badge-siteassesad paid-siteassesad">Paid</span>,
         'scheduled': <span className="status-badge-siteassesad scheduled-siteassesad">Scheduled</span>,
-        'device_deployed': <span className="status-badge-siteassesad deployed-siteassesad">Device Deployed</span>,
+        'site_visit_ongoing': <span className="status-badge-siteassesad site-visit-ongoing-siteassesad">Site Visit Ongoing</span>,
+        'device_deployed': <span className="status-badge-siteassesad deployed-siteassesad">Device Deployed</span>,  // Add this
         'data_collecting': <span className="status-badge-siteassesad collecting-siteassesad">Data Collecting</span>,
         'completed': <span className="status-badge-siteassesad completed-siteassesad">Completed</span>
       }
@@ -271,13 +339,75 @@ const SiteAssessment = () => {
     return badges[type]?.[status] || <span className="status-badge-siteassesad">{status}</span>;
   };
 
+  // Helper function to determine the correct status for display
+  const getDisplayStatus = (item) => {
+    if (activeTab === 'pre-assessments') {
+      // If payment is not verified yet, show payment status
+      if (item.paymentStatus !== 'paid') {
+        return item.paymentStatus;
+      }
+
+      // If the assessment is already in a later stage, show the actual status
+      if (item.assessmentStatus === 'device_deployed' ||
+        item.assessmentStatus === 'data_collecting' ||
+        item.assessmentStatus === 'data_analyzing' ||
+        item.assessmentStatus === 'report_draft' ||
+        item.assessmentStatus === 'completed') {
+        return item.assessmentStatus;
+      }
+
+      // Check if device is assigned (either through assignedDeviceId, iotDeviceId, or assignedDevice)
+      const hasDeviceAssigned = item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
+
+      // Check if engineer is assigned
+      const hasEngineerAssigned = item.assignedEngineerId;
+
+      // If both engineer and device are assigned, show "Site Visit Ongoing"
+      if (hasEngineerAssigned && hasDeviceAssigned) {
+        return 'site_visit_ongoing';
+      }
+
+      // If only engineer assigned but no device, show "Scheduled"
+      if (hasEngineerAssigned && !hasDeviceAssigned) {
+        return 'scheduled';
+      }
+
+      // Otherwise use the regular status
+      return item.assessmentStatus || 'scheduled';
+    }
+    return item.status;
+  };
+
   const filteredItems = (activeTab === 'free-quotes' ? freeQuotes : preAssessments).filter(item => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
     return item.clientId?.contactFirstName?.toLowerCase().includes(searchLower) ||
-           item.clientId?.contactLastName?.toLowerCase().includes(searchLower) ||
-           (activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference)?.toLowerCase().includes(searchLower);
+      item.clientId?.contactLastName?.toLowerCase().includes(searchLower) ||
+      (activeTab === 'free-quotes' ? item.quotationReference : item.bookingReference)?.toLowerCase().includes(searchLower);
   });
+
+  // Helper function to get engineer name safely
+  const getEngineerName = (engineer) => {
+    if (!engineer) return 'Not assigned';
+    if (typeof engineer === 'object') {
+      return engineer.name || engineer.fullName || engineer.email || 'Engineer assigned';
+    }
+    return engineer;
+  };
+
+  // Helper function to get device ID safely
+  const getDeviceId = (device) => {
+    if (!device) return 'Not assigned';
+    if (typeof device === 'object') {
+      return device.deviceId || device._id || 'Device assigned';
+    }
+    return device;
+  };
+
+  // Helper function to check if device is assigned
+  const hasDeviceAssigned = (item) => {
+    return item.assignedDeviceId || item.iotDeviceId || item.assignedDevice;
+  };
 
   // Skeleton Loader
   const SkeletonLoader = () => (
@@ -353,13 +483,13 @@ const SiteAssessment = () => {
 
         {/* Tabs */}
         <div className="assessment-tabs-siteassesad">
-          <button 
+          <button
             className={`tab-btn-siteassesad ${activeTab === 'free-quotes' ? 'active-siteassesad' : ''}`}
             onClick={() => { setActiveTab('free-quotes'); setFilter('all'); setCurrentPage(1); }}
           >
             Free Quotes
           </button>
-          <button 
+          <button
             className={`tab-btn-siteassesad ${activeTab === 'pre-assessments' ? 'active-siteassesad' : ''}`}
             onClick={() => { setActiveTab('pre-assessments'); setFilter('all'); setCurrentPage(1); }}
           >
@@ -380,10 +510,12 @@ const SiteAssessment = () => {
                 </>
               ) : (
                 <>
-                  <option value="pending">Pending Payment</option>
+                  <option value="pending_payment">Pending Payment</option>
                   <option value="for_verification">For Verification</option>
                   <option value="paid">Paid</option>
                   <option value="scheduled">Scheduled</option>
+                  <option value="site_visit_ongoing">Site Visit Ongoing</option>
+                  <option value="device_deployed">Device Deployed</option>  {/* Add this */}
                   <option value="completed">Completed</option>
                 </>
               )}
@@ -447,43 +579,54 @@ const SiteAssessment = () => {
                         <td>{formatCurrency(item.assessmentFee)}</td>
                       </>
                     )}
-                    <td>{getStatusBadge(activeTab === 'free-quotes' ? item.status : item.paymentStatus || item.assessmentStatus, activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
+                    <td>{getStatusBadge(getDisplayStatus(item), activeTab === 'free-quotes' ? 'free-quote' : 'pre-assessment')}</td>
                     <td className="actions-cell-siteassesad">
-                      <button 
+                      <button
                         className="action-btn-siteassesad view-siteassesad"
                         onClick={() => { setSelectedItem(item); setShowDetailModal(true); }}
                         title="View Details"
                       >
                         <FaEye />
                       </button>
+
+                      {/* Free Quote Actions */}
                       {activeTab === 'free-quotes' && item.status === 'pending' && (
                         <>
-                          <button 
+                          <button
                             className="action-btn-siteassesad process-siteassesad"
                             onClick={() => handleUpdateStatus(item._id, 'processing')}
                             title="Mark as Processing"
                           >
                             <FaTools />
                           </button>
-                          <button 
+                          <button
                             className="action-btn-siteassesad upload-siteassesad"
                             onClick={() => { setSelectedItem(item); setShowUploadModal(true); }}
                             title="Upload Quotation"
                           >
                             <FaDownload />
                           </button>
+                          <button
+                            className="action-btn-siteassesad assign-siteassesad"
+                            onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }}
+                            title="Assign Engineer"
+                          >
+                            <FaUserCog />
+                          </button>
                         </>
                       )}
+
+                      {/* Pre-Assessment Actions - Verify Payment */}
                       {activeTab === 'pre-assessments' && item.paymentStatus === 'for_verification' && (
                         <>
-                          <button 
+                          <button
                             className="action-btn-siteassesad verify-siteassesad"
                             onClick={() => { setSelectedItem(item); setShowVerifyModal(true); }}
                             title="Verify Payment"
                           >
                             <FaCheckCircle />
                           </button>
-                          <button 
+                          <button
                             className="action-btn-siteassesad reject-siteassesad"
                             onClick={() => handleVerifyPayment(false)}
                             title="Reject Payment"
@@ -492,15 +635,34 @@ const SiteAssessment = () => {
                           </button>
                         </>
                       )}
-                      {activeTab === 'pre-assessments' && item.paymentStatus === 'paid' && item.assessmentStatus === 'scheduled' && (
-                        <button 
-                          className="action-btn-siteassesad assign-siteassesad"
-                          onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }}
-                          title="Assign Engineer"
-                        >
-                          <FaUserCog />
-                        </button>
-                      )}
+
+                      {/* Pre-Assessment Actions - Assign Engineer (after payment verified) */}
+                      {activeTab === 'pre-assessments' &&
+                        item.paymentStatus === 'paid' &&
+                        item.assessmentStatus === 'scheduled' &&
+                        !item.assignedEngineerId && (
+                          <button
+                            className="action-btn-siteassesad assign-siteassesad"
+                            onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }}
+                            title="Assign Engineer"
+                          >
+                            <FaUserCog />
+                          </button>
+                        )}
+
+                      {/* Pre-Assessment Actions - Assign Device (after engineer assigned, before device assigned) */}
+                      {activeTab === 'pre-assessments' &&
+                        item.paymentStatus === 'paid' &&
+                        item.assignedEngineerId &&
+                        !hasDeviceAssigned(item) && (
+                          <button
+                            className="action-btn-siteassesad assign-device-siteassesad"
+                            onClick={() => { setSelectedItem(item); setShowAssignDeviceModal(true); }}
+                            title="Assign Device"
+                          >
+                            <FaMicrochip />
+                          </button>
+                        )}
                     </td>
                   </tr>
                 ))
@@ -512,7 +674,7 @@ const SiteAssessment = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="pagination-siteassesad">
-            <button 
+            <button
               className="page-btn-siteassesad"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
@@ -520,7 +682,7 @@ const SiteAssessment = () => {
               <FaChevronLeft /> Previous
             </button>
             <span className="page-info-siteassesad">Page {currentPage} of {totalPages}</span>
-            <button 
+            <button
               className="page-btn-siteassesad"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
@@ -563,6 +725,8 @@ const SiteAssessment = () => {
                   <p><strong>Assessment Fee:</strong> {formatCurrency(selectedItem.assessmentFee)}</p>
                   <p><strong>Payment Status:</strong> {selectedItem.paymentStatus}</p>
                   <p><strong>Assessment Status:</strong> {selectedItem.assessmentStatus}</p>
+                  <p><strong>Assigned Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
+                  <p><strong>Assigned Device:</strong> {getDeviceId(selectedItem.assignedDeviceId || selectedItem.iotDeviceId || selectedItem.assignedDevice)}</p>
                 </div>
               )}
               <div className="modal-actions-siteassesad">
@@ -605,32 +769,88 @@ const SiteAssessment = () => {
         {showAssignEngineerModal && selectedItem && (
           <div className="modal-overlay-siteassesad" onClick={() => setShowAssignEngineerModal(false)}>
             <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
-              <h3>Assign Engineer</h3>
+              <h3>Assign Engineer to {activeTab === 'free-quotes' ? 'Free Quote' : 'Pre-Assessment'}</h3>
               <div className="assessment-summary-siteassesad">
-                <p><strong>Assessment:</strong> {selectedItem.bookingReference}</p>
+                <p><strong>{activeTab === 'free-quotes' ? 'Quote' : 'Assessment'}:</strong>
+                  {activeTab === 'free-quotes' ? selectedItem.quotationReference : selectedItem.bookingReference}
+                </p>
                 <p><strong>Client:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
                 <p><strong>Address:</strong> {selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}</p>
+                {activeTab === 'free-quotes' && (
+                  <p><strong>Monthly Bill:</strong> {formatCurrency(selectedItem.monthlyBill)}</p>
+                )}
               </div>
               <div className="form-group-siteassesad">
                 <label>Select Engineer</label>
                 <select value={engineerId} onChange={(e) => setEngineerId(e.target.value)}>
                   <option value="">Select an engineer...</option>
                   {engineers.map(eng => (
-                    <option key={eng._id} value={eng._id}>{eng.fullName}</option>
+                    <option key={eng._id} value={eng._id}>{eng.fullName} ({eng.email})</option>
                   ))}
                 </select>
               </div>
+              {activeTab !== 'free-quotes' && (
+                <div className="form-group-siteassesad">
+                  <label>Site Visit Date</label>
+                  <input type="date" value={siteVisitDate} onChange={(e) => setSiteVisitDate(e.target.value)} />
+                </div>
+              )}
               <div className="form-group-siteassesad">
-                <label>Site Visit Date</label>
-                <input type="date" value={siteVisitDate} onChange={(e) => setSiteVisitDate(e.target.value)} />
+                <label>Notes (Optional)</label>
+                <textarea rows="3" value={siteVisitNotes} onChange={(e) => setSiteVisitNotes(e.target.value)}
+                  placeholder={activeTab === 'free-quotes' ? "Add notes about this assignment..." : "Add any notes for the engineer..."}
+                />
               </div>
-              <div className="form-group-siteassesad">
-                <label>Site Visit Notes</label>
-                <textarea rows="3" value={siteVisitNotes} onChange={(e) => setSiteVisitNotes(e.target.value)} placeholder="Add any notes for the engineer..." />
+              <div className="info-box-siteassesad">
+                <FaInfoCircle />
+                <small>
+                  {activeTab === 'free-quotes'
+                    ? "The engineer will review the free quote and provide a quotation."
+                    : "After assigning an engineer, you can then assign a device for this assessment."}
+                </small>
               </div>
               <div className="modal-actions-siteassesad">
                 <button className="cancel-btn-siteassesad" onClick={() => setShowAssignEngineerModal(false)}>Cancel</button>
                 <button className="assign-btn-siteassesad" onClick={handleAssignEngineer}>Assign Engineer</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Assign Device Modal */}
+        {showAssignDeviceModal && selectedItem && (
+          <div className="modal-overlay-siteassesad" onClick={() => setShowAssignDeviceModal(false)}>
+            <div className="modal-content-siteassesad" onClick={e => e.stopPropagation()}>
+              <h3>Assign Device to Pre-Assessment</h3>
+              <div className="assessment-summary-siteassesad">
+                <p><strong>Assessment:</strong> {selectedItem.bookingReference}</p>
+                <p><strong>Client:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
+                <p><strong>Address:</strong> {selectedItem.addressId?.houseOrBuilding} {selectedItem.addressId?.street}, {selectedItem.addressId?.barangay}</p>
+                <p><strong>Assigned Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
+              </div>
+              <div className="form-group-siteassesad">
+                <label>Select IoT Device</label>
+                <select value={deviceId} onChange={(e) => setDeviceId(e.target.value)}>
+                  <option value="">Select an available device...</option>
+                  {devices.map(device => (
+                    <option key={device._id} value={device._id}>
+                      {device.deviceId} - {device.deviceName} ({device.model})
+                    </option>
+                  ))}
+                </select>
+                {devices.length === 0 && (
+                  <small className="warning-text">No available devices. Please add devices in IoT Device Management.</small>
+                )}
+              </div>
+              <div className="info-box-siteassesad">
+                <FaWifi />
+                <small>The selected device will be assigned to this pre-assessment. The engineer will deploy it on site during the site visit.</small>
+              </div>
+              <div className="modal-actions-siteassesad">
+                <button className="cancel-btn-siteassesad" onClick={() => setShowAssignDeviceModal(false)}>Cancel</button>
+                <button className="assign-btn-siteassesad" onClick={handleAssignDevice} disabled={!deviceId}>
+                  Assign Device
+                </button>
               </div>
             </div>
           </div>

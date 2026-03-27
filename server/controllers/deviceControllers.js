@@ -343,11 +343,11 @@ exports.assignDeviceToEngineer = async (req, res) => {
       });
     }
 
-    // Check assessment status - must be scheduled
-    if (assessment.assessmentStatus !== 'scheduled') {
+    // Check assessment status - must be scheduled or site_visit_ongoing
+    if (assessment.assessmentStatus !== 'scheduled' && assessment.assessmentStatus !== 'site_visit_ongoing') {
       return res.status(400).json({ 
         success: false,
-        message: `Cannot assign device. Assessment status: ${assessment.assessmentStatus}. Expected: scheduled` 
+        message: `Cannot assign device. Assessment status: ${assessment.assessmentStatus}. Expected: scheduled or site_visit_ongoing` 
       });
     }
 
@@ -378,19 +378,27 @@ exports.assignDeviceToEngineer = async (req, res) => {
     await device.save();
     console.log('✅ Device status updated to: assigned');
 
-    // 6. UPDATE ASSESSMENT with device assignment info
-    assessment.assignedDeviceId = device._id;
-    assessment.assignedDeviceAt = new Date();
-    assessment.assignedDeviceBy = adminId;
-    assessment.assignedEngineerId = engineerId;
-    assessment.assignedEngineerAt = new Date();
-    // Keep assessment status as 'scheduled' until engineer deploys
-    // Or you can update to 'device_assigned' if you add that status
-    
-    await assessment.save();
-    console.log('✅ Assessment updated with device assignment');
+    // In assignDeviceToEngineer function, update the assessment part:
 
-    // 7. Return success response
+// 6. UPDATE ASSESSMENT with device assignment info
+assessment.assignedDeviceId = device._id;
+assessment.iotDeviceId = device._id;  // Set both for consistency
+assessment.assignedDeviceAt = new Date();
+assessment.assignedDeviceBy = adminId;
+assessment.assignedEngineerId = engineerId;
+assessment.assignedEngineerAt = new Date();
+
+// 7. UPDATE ASSESSMENT STATUS to 'site_visit_ongoing' if engineer is already assigned
+if (assessment.assignedEngineerId) {
+  assessment.assessmentStatus = 'site_visit_ongoing';
+  console.log('✅ Assessment status updated to: site_visit_ongoing');
+} else {
+  assessment.assessmentStatus = 'scheduled';
+}
+
+await assessment.save();
+console.log('✅ Assessment updated with device assignment');
+    // 8. Return success response
     res.json({
       success: true,
       message: `Device assigned successfully to ${engineer.name}`,
@@ -410,7 +418,7 @@ exports.assignDeviceToEngineer = async (req, res) => {
         assessment: {
           id: assessment._id,
           bookingReference: assessment.bookingReference,
-          assessmentStatus: assessment.assessmentStatus,
+          assessmentStatus: assessment.assessmentStatus, // Now 'site_visit_ongoing' if engineer was assigned
           client: assessment.clientId?.contactFirstName
         },
         nextStep: 'Engineer can now deploy the device on site'

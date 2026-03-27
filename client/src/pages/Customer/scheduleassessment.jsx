@@ -227,7 +227,7 @@ const ScheduleAssessment = () => {
       setShowConfirmDialog(false);
       setTermsAccepted(false);
       // After successful booking, navigate to billing page to make payment
-      navigate('/dashboard/customerbilling', { 
+      navigate('/app/customer/billing', { 
         state: { 
           newInvoice: {
             id: response.data.booking.invoiceNumber,
@@ -507,7 +507,7 @@ const ScheduleAssessment = () => {
               Request Another
             </button>
             <button
-              onClick={() => navigate('/dashboard/customerdashboard')}
+              onClick={() => navigate('/app/customer')}
               className="schedule-btn-primary-cusset"
             >
               Go to Dashboard
@@ -558,7 +558,7 @@ const ScheduleAssessment = () => {
                     </div>
                   </div>
                   <div className="schedule-info-note-cusset">
-                    <small>Personal information is managed in your <button className="schedule-text-link-cusset" onClick={() => navigate('/dashboard/customersettings')}>Account Settings</button></small>
+                    <small>Personal information is managed in your <button className="schedule-text-link-cusset" onClick={() => navigate('/app/customer/customer-settings')}>Account Settings</button></small>
                   </div>
                 </div>
               </div>
