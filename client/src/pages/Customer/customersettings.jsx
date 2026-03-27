@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/customersettings.css';
 
 const CustomerSettings = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast, showToast, hideToast } = useToast();
   
   // Get tab from URL query parameter
   const getInitialTab = () => {
@@ -147,7 +149,6 @@ const CustomerSettings = () => {
   const handleTabChange = (newTab) => {
     setTabLoading(true);
     setActiveTab(newTab);
-    // Simulate loading for tab switch
     setTimeout(() => {
       setTabLoading(false);
     }, 500);
@@ -240,11 +241,9 @@ const CustomerSettings = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess('Profile updated successfully');
-      setTimeout(() => setSuccess(null), 3000);
+      showToast('Profile updated successfully', 'success');
     } catch (err) {
-      setError('Failed to update profile');
-      setTimeout(() => setError(null), 3000);
+      showToast('Failed to update profile', 'error');
     } finally {
       setSaving(false);
     }
@@ -314,6 +313,7 @@ const CustomerSettings = () => {
     const errors = validateAddressForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
+      showToast('Please fill in all required fields', 'warning');
       return;
     }
 
@@ -327,22 +327,20 @@ const CustomerSettings = () => {
           addressForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setSuccess('Address updated');
+        showToast('Address updated', 'success');
       } else {
         await axios.post(
           `${import.meta.env.VITE_API_URL}/api/clients/me/addresses`,
           addressForm,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setSuccess('Address added');
+        showToast('Address added', 'success');
       }
 
-      setTimeout(() => setSuccess(null), 3000);
       fetchAddresses();
       setShowAddressModal(false);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save address');
-      setTimeout(() => setError(null), 3000);
+      showToast(err.response?.data?.message || 'Failed to save address', 'error');
     } finally {
       setSaving(false);
     }
@@ -356,12 +354,10 @@ const CustomerSettings = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess('Primary address updated');
-      setTimeout(() => setSuccess(null), 3000);
+      showToast('Primary address updated', 'success');
       fetchAddresses();
     } catch (err) {
-      setError('Failed to update primary address');
-      setTimeout(() => setError(null), 3000);
+      showToast('Failed to update primary address', 'error');
     }
   };
 
@@ -372,13 +368,11 @@ const CustomerSettings = () => {
         `${import.meta.env.VITE_API_URL}/api/clients/me/addresses/${addressId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess('Address deleted');
-      setTimeout(() => setSuccess(null), 3000);
+      showToast('Address deleted', 'success');
       fetchAddresses();
       setDeleteConfirm(null);
     } catch (err) {
-      setError('Failed to delete address');
-      setTimeout(() => setError(null), 3000);
+      showToast('Failed to delete address', 'error');
     }
   };
 
@@ -401,6 +395,7 @@ const CustomerSettings = () => {
     const errors = validatePassword();
     if (Object.keys(errors).length > 0) {
       setPasswordErrors(errors);
+      showToast('Please fix the errors', 'warning');
       return;
     }
 
@@ -412,16 +407,14 @@ const CustomerSettings = () => {
         passwordData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess('Password changed');
-      setTimeout(() => setSuccess(null), 3000);
+      showToast('Password changed', 'success');
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setShowPasswordForm(false);
       setShowCurrentPassword(false);
       setShowNewPassword(false);
       setShowConfirmPassword(false);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to change password');
-      setTimeout(() => setError(null), 3000);
+      showToast(err.response?.data?.message || 'Failed to change password', 'error');
     } finally {
       setSaving(false);
     }
@@ -435,8 +428,7 @@ const CustomerSettings = () => {
 
   const saveNotificationPrefs = () => {
     localStorage.setItem('notificationPrefs', JSON.stringify(notificationPrefs));
-    setSuccess('Preferences saved');
-    setTimeout(() => setSuccess(null), 3000);
+    showToast('Preferences saved', 'success');
   };
 
   // Preference handlers
@@ -456,8 +448,7 @@ const CustomerSettings = () => {
     } else {
       document.body.classList.remove('dark-mode-cusset');
     }
-    setSuccess('Preferences saved');
-    setTimeout(() => setSuccess(null), 3000);
+    showToast('Preferences saved', 'success');
   };
 
   const getFullAddress = (addr) => {
@@ -603,20 +594,13 @@ const CustomerSettings = () => {
   const renderTabContent = () => {
     if (tabLoading) {
       switch (activeTab) {
-        case 'profile':
-          return <ProfileSkeleton />;
-        case 'addresses':
-          return <AddressesSkeleton />;
-        case 'notifications':
-          return <NotificationsSkeleton />;
-        case 'security':
-          return <SecuritySkeleton />;
-        case 'preferences':
-          return <PreferencesSkeleton />;
-        case 'billing':
-          return <BillingSkeleton />;
-        default:
-          return <ProfileSkeleton />;
+        case 'profile': return <ProfileSkeleton />;
+        case 'addresses': return <AddressesSkeleton />;
+        case 'notifications': return <NotificationsSkeleton />;
+        case 'security': return <SecuritySkeleton />;
+        case 'preferences': return <PreferencesSkeleton />;
+        case 'billing': return <BillingSkeleton />;
+        default: return <ProfileSkeleton />;
       }
     }
 
@@ -625,97 +609,44 @@ const CustomerSettings = () => {
         return (
           <div className="profile-section-cusset">
             <h2>Personal Information</h2>
-            
             <div className="profile-form-cusset">
               <div className="form-row-cusset">
                 <div className="form-group-cusset">
                   <label>First Name</label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={profileData.firstName}
-                    onChange={handleProfileChange}
-                    placeholder="First name"
-                  />
+                  <input type="text" name="firstName" value={profileData.firstName} onChange={handleProfileChange} placeholder="First name" />
                 </div>
-
                 <div className="form-group-cusset">
                   <label>Middle Name</label>
-                  <input
-                    type="text"
-                    name="middleName"
-                    value={profileData.middleName}
-                    onChange={handleProfileChange}
-                    placeholder="Middle name"
-                  />
+                  <input type="text" name="middleName" value={profileData.middleName} onChange={handleProfileChange} placeholder="Middle name" />
                 </div>
-
                 <div className="form-group-cusset">
                   <label>Last Name</label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={profileData.lastName}
-                    onChange={handleProfileChange}
-                    placeholder="Last name"
-                  />
+                  <input type="text" name="lastName" value={profileData.lastName} onChange={handleProfileChange} placeholder="Last name" />
                 </div>
               </div>
-
               <div className="form-row-cusset">
                 <div className="form-group-cusset">
                   <label>Email Address</label>
-                  <input
-                    type="email"
-                    value={profileData.email}
-                    disabled
-                    className="readonly-cusset"
-                  />
+                  <input type="email" value={profileData.email} disabled className="readonly-cusset" />
                   <small>Email cannot be changed</small>
                 </div>
-
                 <div className="form-group-cusset">
                   <label>Contact Number</label>
-                  <input
-                    type="tel"
-                    name="contactNumber"
-                    value={profileData.contactNumber}
-                    onChange={handleProfileChange}
-                    placeholder="09XXXXXXXXX"
-                  />
+                  <input type="tel" name="contactNumber" value={profileData.contactNumber} onChange={handleProfileChange} placeholder="09XXXXXXXXX" />
                 </div>
               </div>
-
               <div className="form-row-cusset">
                 <div className="form-group-cusset">
                   <label>Company Name</label>
-                  <input
-                    type="text"
-                    name="companyName"
-                    value={profileData.companyName}
-                    onChange={handleProfileChange}
-                    placeholder="Company name"
-                    disabled={profileData.client_type === 'Individual'}
-                  />
+                  <input type="text" name="companyName" value={profileData.companyName} onChange={handleProfileChange} placeholder="Company name" disabled={profileData.client_type === 'Individual'} />
                 </div>
-
                 <div className="form-group-cusset">
                   <label>Birthday</label>
-                  <input
-                    type="date"
-                    name="birthday"
-                    value={profileData.birthday}
-                    onChange={handleProfileChange}
-                  />
+                  <input type="date" name="birthday" value={profileData.birthday} onChange={handleProfileChange} />
                 </div>
               </div>
-
               <div className="form-actions-cusset">
-                <button
-                  className="save-btn-cusset"
-                  onClick={saveProfile}
-                  disabled={saving}
-                >
+                <button className="save-btn-cusset" onClick={saveProfile} disabled={saving}>
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
@@ -728,33 +659,20 @@ const CustomerSettings = () => {
           <div className="addresses-section-cusset">
             <div className="section-header-cusset">
               <h2>My Addresses</h2>
-              <button className="add-btn-cusset" onClick={handleAddAddress}>
-                Add New Address
-              </button>
+              <button className="add-btn-cusset" onClick={handleAddAddress}>Add New Address</button>
             </div>
-
             {addresses.length === 0 ? (
               <div className="empty-state-cusset">
                 <h3>No addresses yet</h3>
                 <p>Add your first address to get started</p>
-                <button className="add-first-btn-cusset" onClick={handleAddAddress}>
-                  Add Address
-                </button>
+                <button className="add-first-btn-cusset" onClick={handleAddAddress}>Add Address</button>
               </div>
             ) : (
               <div className="addresses-grid-cusset">
                 {addresses.map(address => (
                   <div key={address._id} className={`address-card-cusset ${address.isPrimary ? 'primary-cusset' : ''}`}>
-                    {address.isPrimary && (
-                      <div className="primary-badge-cusset">
-                        Primary
-                      </div>
-                    )}
-                    
-                    <div className="address-label-cusset">
-                      <span className="label-badge-cusset">{address.label}</span>
-                    </div>
-
+                    {address.isPrimary && <div className="primary-badge-cusset">Primary</div>}
+                    <div className="address-label-cusset"><span className="label-badge-cusset">{address.label}</span></div>
                     <div className="address-details-cusset">
                       <p>{address.houseOrBuilding}</p>
                       <p>{address.street}</p>
@@ -763,28 +681,10 @@ const CustomerSettings = () => {
                       <p>{address.province}</p>
                       <p>{address.zipCode}</p>
                     </div>
-
                     <div className="address-actions-cusset">
-                      {!address.isPrimary && (
-                        <button
-                          className="action-btn-cusset primary-cusset"
-                          onClick={() => setAsPrimary(address._id)}
-                        >
-                          Set Primary
-                        </button>
-                      )}
-                      <button
-                        className="action-btn-cusset edit-cusset"
-                        onClick={() => handleEditAddress(address)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="action-btn-cusset delete-cusset"
-                        onClick={() => setDeleteConfirm(address)}
-                      >
-                        Delete
-                      </button>
+                      {!address.isPrimary && <button className="action-btn-cusset primary-cusset" onClick={() => setAsPrimary(address._id)}>Set Primary</button>}
+                      <button className="action-btn-cusset edit-cusset" onClick={() => handleEditAddress(address)}>Edit</button>
+                      <button className="action-btn-cusset delete-cusset" onClick={() => setDeleteConfirm(address)}>Delete</button>
                     </div>
                   </div>
                 ))}
@@ -797,86 +697,25 @@ const CustomerSettings = () => {
         return (
           <div className="notifications-section-cusset">
             <h2>Notification Preferences</h2>
-            
             <div className="preferences-group-cusset">
               <h3>Communication Channels</h3>
               <div className="checkbox-list-cusset">
-                <label className="checkbox-label-cusset">
-                  <input
-                    type="checkbox"
-                    name="emailNotifications"
-                    checked={notificationPrefs.emailNotifications}
-                    onChange={handleNotificationChange}
-                  />
-                  <span>Email Notifications</span>
-                </label>
-                <label className="checkbox-label-cusset">
-                  <input
-                    type="checkbox"
-                    name="smsNotifications"
-                    checked={notificationPrefs.smsNotifications}
-                    onChange={handleNotificationChange}
-                  />
-                  <span>SMS Notifications</span>
-                </label>
+                <label className="checkbox-label-cusset"><input type="checkbox" name="emailNotifications" checked={notificationPrefs.emailNotifications} onChange={handleNotificationChange} /><span>Email Notifications</span></label>
+                <label className="checkbox-label-cusset"><input type="checkbox" name="smsNotifications" checked={notificationPrefs.smsNotifications} onChange={handleNotificationChange} /><span>SMS Notifications</span></label>
               </div>
             </div>
-
             <div className="preferences-group-cusset">
               <h3>Notification Types</h3>
               <div className="checkbox-list-cusset">
-                <label className="checkbox-label-cusset">
-                  <input
-                    type="checkbox"
-                    name="bookingUpdates"
-                    checked={notificationPrefs.bookingUpdates}
-                    onChange={handleNotificationChange}
-                  />
-                  <span>Booking Updates</span>
-                </label>
-                <label className="checkbox-label-cusset">
-                  <input
-                    type="checkbox"
-                    name="paymentConfirmations"
-                    checked={notificationPrefs.paymentConfirmations}
-                    onChange={handleNotificationChange}
-                  />
-                  <span>Payment Confirmations</span>
-                </label>
-                <label className="checkbox-label-cusset">
-                  <input
-                    type="checkbox"
-                    name="assessmentReminders"
-                    checked={notificationPrefs.assessmentReminders}
-                    onChange={handleNotificationChange}
-                  />
-                  <span>Assessment Reminders</span>
-                </label>
-                <label className="checkbox-label-cusset">
-                  <input
-                    type="checkbox"
-                    name="systemAlerts"
-                    checked={notificationPrefs.systemAlerts}
-                    onChange={handleNotificationChange}
-                  />
-                  <span>System Alerts</span>
-                </label>
-                <label className="checkbox-label-cusset">
-                  <input
-                    type="checkbox"
-                    name="promotionalEmails"
-                    checked={notificationPrefs.promotionalEmails}
-                    onChange={handleNotificationChange}
-                  />
-                  <span>Promotional Emails</span>
-                </label>
+                <label className="checkbox-label-cusset"><input type="checkbox" name="bookingUpdates" checked={notificationPrefs.bookingUpdates} onChange={handleNotificationChange} /><span>Booking Updates</span></label>
+                <label className="checkbox-label-cusset"><input type="checkbox" name="paymentConfirmations" checked={notificationPrefs.paymentConfirmations} onChange={handleNotificationChange} /><span>Payment Confirmations</span></label>
+                <label className="checkbox-label-cusset"><input type="checkbox" name="assessmentReminders" checked={notificationPrefs.assessmentReminders} onChange={handleNotificationChange} /><span>Assessment Reminders</span></label>
+                <label className="checkbox-label-cusset"><input type="checkbox" name="systemAlerts" checked={notificationPrefs.systemAlerts} onChange={handleNotificationChange} /><span>System Alerts</span></label>
+                <label className="checkbox-label-cusset"><input type="checkbox" name="promotionalEmails" checked={notificationPrefs.promotionalEmails} onChange={handleNotificationChange} /><span>Promotional Emails</span></label>
               </div>
             </div>
-
             <div className="form-actions-cusset">
-              <button className="save-btn-cusset" onClick={saveNotificationPrefs}>
-                Save Preferences
-              </button>
+              <button className="save-btn-cusset" onClick={saveNotificationPrefs}>Save Preferences</button>
             </div>
           </div>
         );
@@ -885,137 +724,53 @@ const CustomerSettings = () => {
         return (
           <div className="security-section-cusset">
             <h2>Security Settings</h2>
-
             <div className="security-group-cusset">
               <div className="group-header-cusset">
                 <h3>Password</h3>
-                {!showPasswordForm && (
-                  <button
-                    className="change-btn-cusset"
-                    onClick={() => setShowPasswordForm(true)}
-                  >
-                    Change Password
-                  </button>
-                )}
+                {!showPasswordForm && <button className="change-btn-cusset" onClick={() => setShowPasswordForm(true)}>Change Password</button>}
               </div>
-
               {showPasswordForm && (
                 <form onSubmit={handlePasswordChange} className="password-form-cusset">
                   <div className="form-group-cusset">
                     <label>Current Password</label>
                     <div className="password-input-wrapper-cusset">
-                      <input
-                        type={showCurrentPassword ? 'text' : 'password'}
-                        value={passwordData.currentPassword}
-                        onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                        className={passwordErrors.currentPassword ? 'error-cusset' : ''}
-                        placeholder="Current password"
-                      />
-                      <button
-                        type="button"
-                        className="password-toggle-btn-cusset"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      >
-                        {showCurrentPassword ? 'Hide' : 'Show'}
-                      </button>
+                      <input type={showCurrentPassword ? 'text' : 'password'} value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })} className={passwordErrors.currentPassword ? 'error-cusset' : ''} placeholder="Current password" />
+                      <button type="button" className="password-toggle-btn-cusset" onClick={() => setShowCurrentPassword(!showCurrentPassword)}>{showCurrentPassword ? 'Hide' : 'Show'}</button>
                     </div>
-                    {passwordErrors.currentPassword && (
-                      <small className="error-text-cusset">{passwordErrors.currentPassword}</small>
-                    )}
+                    {passwordErrors.currentPassword && <small className="error-text-cusset">{passwordErrors.currentPassword}</small>}
                   </div>
-
                   <div className="form-group-cusset">
                     <label>New Password</label>
                     <div className="password-input-wrapper-cusset">
-                      <input
-                        type={showNewPassword ? 'text' : 'password'}
-                        value={passwordData.newPassword}
-                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                        className={passwordErrors.newPassword ? 'error-cusset' : ''}
-                        placeholder="New password"
-                      />
-                      <button
-                        type="button"
-                        className="password-toggle-btn-cusset"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                      >
-                        {showNewPassword ? 'Hide' : 'Show'}
-                      </button>
+                      <input type={showNewPassword ? 'text' : 'password'} value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} className={passwordErrors.newPassword ? 'error-cusset' : ''} placeholder="New password" />
+                      <button type="button" className="password-toggle-btn-cusset" onClick={() => setShowNewPassword(!showNewPassword)}>{showNewPassword ? 'Hide' : 'Show'}</button>
                     </div>
-                    {passwordErrors.newPassword && (
-                      <small className="error-text-cusset">{passwordErrors.newPassword}</small>
-                    )}
+                    {passwordErrors.newPassword && <small className="error-text-cusset">{passwordErrors.newPassword}</small>}
                   </div>
-
                   <div className="form-group-cusset">
                     <label>Confirm New Password</label>
                     <div className="password-input-wrapper-cusset">
-                      <input
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        value={passwordData.confirmPassword}
-                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                        className={passwordErrors.confirmPassword ? 'error-cusset' : ''}
-                        placeholder="Confirm password"
-                      />
-                      <button
-                        type="button"
-                        className="password-toggle-btn-cusset"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      >
-                        {showConfirmPassword ? 'Hide' : 'Show'}
-                      </button>
+                      <input type={showConfirmPassword ? 'text' : 'password'} value={passwordData.confirmPassword} onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} className={passwordErrors.confirmPassword ? 'error-cusset' : ''} placeholder="Confirm password" />
+                      <button type="button" className="password-toggle-btn-cusset" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>{showConfirmPassword ? 'Hide' : 'Show'}</button>
                     </div>
-                    {passwordErrors.confirmPassword && (
-                      <small className="error-text-cusset">{passwordErrors.confirmPassword}</small>
-                    )}
+                    {passwordErrors.confirmPassword && <small className="error-text-cusset">{passwordErrors.confirmPassword}</small>}
                   </div>
-
                   {passwordData.newPassword && (
                     <div className="password-strength-cusset">
-                      <div className="strength-meter-cusset">
-                        <div 
-                          className={`strength-bar-cusset ${getPasswordStrength(passwordData.newPassword)}-cusset`} 
-                          style={{ width: `${getPasswordStrengthPercent(passwordData.newPassword)}%` }}
-                        ></div>
-                      </div>
-                      <small className="strength-text-cusset">
-                        Strength: {getPasswordStrengthLabel(passwordData.newPassword)}
-                      </small>
+                      <div className="strength-meter-cusset"><div className={`strength-bar-cusset ${getPasswordStrength(passwordData.newPassword)}-cusset`} style={{ width: `${getPasswordStrengthPercent(passwordData.newPassword)}%` }}></div></div>
+                      <small className="strength-text-cusset">Strength: {getPasswordStrengthLabel(passwordData.newPassword)}</small>
                     </div>
                   )}
-
                   <div className="form-actions-cusset">
-                    <button
-                      type="button"
-                      className="cancel-btn-cusset"
-                      onClick={() => {
-                        setShowPasswordForm(false);
-                        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                        setPasswordErrors({});
-                        setShowCurrentPassword(false);
-                        setShowNewPassword(false);
-                        setShowConfirmPassword(false);
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="save-btn-cusset"
-                      disabled={saving}
-                    >
-                      {saving ? 'Updating...' : 'Update Password'}
-                    </button>
+                    <button type="button" className="cancel-btn-cusset" onClick={() => { setShowPasswordForm(false); setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' }); setPasswordErrors({}); setShowCurrentPassword(false); setShowNewPassword(false); setShowConfirmPassword(false); }}>Cancel</button>
+                    <button type="submit" className="save-btn-cusset" disabled={saving}>{saving ? 'Updating...' : 'Update Password'}</button>
                   </div>
                 </form>
               )}
             </div>
-
             <div className="security-group-cusset">
               <h3>Session Settings</h3>
-              <div className="info-message-cusset">
-                <p>Your session will timeout after 30 minutes of inactivity.</p>
-              </div>
+              <div className="info-message-cusset"><p>Your session will timeout after 30 minutes of inactivity.</p></div>
             </div>
           </div>
         );
@@ -1024,91 +779,14 @@ const CustomerSettings = () => {
         return (
           <div className="preferences-section-cusset">
             <h2>Account Preferences</h2>
-
             <div className="preferences-grid-cusset">
-              <div className="preference-group-cusset">
-                <label>Language</label>
-                <select
-                  name="language"
-                  value={preferences.language}
-                  onChange={handlePreferenceChange}
-                >
-                  <option value="en">English</option>
-                  <option value="fil">Filipino</option>
-                  <option value="ceb">Cebuano</option>
-                </select>
-              </div>
-
-              <div className="preference-group-cusset">
-                <label>Theme</label>
-                <div className="theme-selector-cusset">
-                  <label className={`theme-option-cusset ${preferences.theme === 'light' ? 'active-cusset' : ''}`}>
-                    <input
-                      type="radio"
-                      name="theme"
-                      value="light"
-                      checked={preferences.theme === 'light'}
-                      onChange={handlePreferenceChange}
-                    />
-                    Light
-                  </label>
-                  <label className={`theme-option-cusset ${preferences.theme === 'dark' ? 'active-cusset' : ''}`}>
-                    <input
-                      type="radio"
-                      name="theme"
-                      value="dark"
-                      checked={preferences.theme === 'dark'}
-                      onChange={handlePreferenceChange}
-                    />
-                    Dark
-                  </label>
-                </div>
-              </div>
-
-              <div className="preference-group-cusset">
-                <label>Timezone</label>
-                <select
-                  name="timezone"
-                  value={preferences.timezone}
-                  onChange={handlePreferenceChange}
-                >
-                  <option value="Asia/Manila">Asia/Manila (GMT+8)</option>
-                  <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
-                  <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
-                </select>
-              </div>
-
-              <div className="preference-group-cusset">
-                <label>Date Format</label>
-                <select
-                  name="dateFormat"
-                  value={preferences.dateFormat}
-                  onChange={handlePreferenceChange}
-                >
-                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                  <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                </select>
-              </div>
-
-              <div className="preference-group-cusset">
-                <label>Currency</label>
-                <select
-                  name="currency"
-                  value={preferences.currency}
-                  onChange={handlePreferenceChange}
-                >
-                  <option value="PHP">PHP (₱)</option>
-                  <option value="USD">USD ($)</option>
-                </select>
-              </div>
+              <div className="preference-group-cusset"><label>Language</label><select name="language" value={preferences.language} onChange={handlePreferenceChange}><option value="en">English</option><option value="fil">Filipino</option><option value="ceb">Cebuano</option></select></div>
+              <div className="preference-group-cusset"><label>Theme</label><div className="theme-selector-cusset"><label className={`theme-option-cusset ${preferences.theme === 'light' ? 'active-cusset' : ''}`}><input type="radio" name="theme" value="light" checked={preferences.theme === 'light'} onChange={handlePreferenceChange} /> Light</label><label className={`theme-option-cusset ${preferences.theme === 'dark' ? 'active-cusset' : ''}`}><input type="radio" name="theme" value="dark" checked={preferences.theme === 'dark'} onChange={handlePreferenceChange} /> Dark</label></div></div>
+              <div className="preference-group-cusset"><label>Timezone</label><select name="timezone" value={preferences.timezone} onChange={handlePreferenceChange}><option value="Asia/Manila">Asia/Manila (GMT+8)</option><option value="Asia/Singapore">Asia/Singapore (GMT+8)</option><option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option></select></div>
+              <div className="preference-group-cusset"><label>Date Format</label><select name="dateFormat" value={preferences.dateFormat} onChange={handlePreferenceChange}><option value="MM/DD/YYYY">MM/DD/YYYY</option><option value="DD/MM/YYYY">DD/MM/YYYY</option><option value="YYYY-MM-DD">YYYY-MM-DD</option></select></div>
+              <div className="preference-group-cusset"><label>Currency</label><select name="currency" value={preferences.currency} onChange={handlePreferenceChange}><option value="PHP">PHP (₱)</option><option value="USD">USD ($)</option></select></div>
             </div>
-
-            <div className="form-actions-cusset">
-              <button className="save-btn-cusset" onClick={savePreferences}>
-                Save Preferences
-              </button>
-            </div>
+            <div className="form-actions-cusset"><button className="save-btn-cusset" onClick={savePreferences}>Save Preferences</button></div>
           </div>
         );
 
@@ -1116,40 +794,16 @@ const CustomerSettings = () => {
         return (
           <div className="billing-section-cusset">
             <h2>Billing History</h2>
-            
             {billingHistory.length === 0 ? (
-              <div className="empty-state-cusset">
-                <h3>No billing history</h3>
-                <p>Your transactions will appear here</p>
-              </div>
+              <div className="empty-state-cusset"><h3>No billing history</h3><p>Your transactions will appear here</p></div>
             ) : (
               <div className="billing-table-cusset">
-                 <table>
-                  <thead>
-                    <tr>
-                      <th>Invoice</th>
-                      <th>Date</th>
-                      <th>Description</th>
-                      <th>Amount</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {billingHistory.map(invoice => (
-                      <tr key={invoice.id}>
-                        <td>{invoice.id}</td>
-                        <td>{invoice.date}</td>
-                        <td>{invoice.description}</td>
-                        <td>₱{invoice.amount.toLocaleString()}</td>
-                        <td>
-                          <span className={`status-badge-cusset ${invoice.status}-cusset`}>
-                            {invoice.status === 'paid' ? 'Paid' : 'Pending'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <table><thead><tr><th>Invoice</th><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody>
+                  {billingHistory.map(invoice => (
+                    <tr key={invoice.id}><td>{invoice.id}</td><td>{invoice.date}</td><td>{invoice.description}</td><td>₱{invoice.amount.toLocaleString()}</td><td><span className={`status-badge-cusset ${invoice.status}-cusset`}>{invoice.status === 'paid' ? 'Paid' : 'Pending'}</span></td></tr>
+                  ))}
+                </tbody></table>
               </div>
             )}
           </div>
@@ -1163,21 +817,15 @@ const CustomerSettings = () => {
   // Initial Loading Skeleton
   const InitialLoadingSkeleton = () => (
     <div className="customer-settings-cusset">
-      <div className="settings-header-cusset">
-        <div className="skeleton-line-cusset large-cusset"></div>
-      </div>
-      <div className="tab-content-cusset">
-        <ProfileSkeleton />
-      </div>
+      <div className="settings-header-cusset"><div className="skeleton-line-cusset large-cusset"></div></div>
+      <div className="tab-content-cusset"><ProfileSkeleton /></div>
     </div>
   );
 
   if (loading) {
     return (
       <>
-        <Helmet>
-          <title>Settings | Salfer Engineering</title>
-        </Helmet>
+        <Helmet><title>Settings | Salfer Engineering</title></Helmet>
         <InitialLoadingSkeleton />
       </>
     );
@@ -1185,156 +833,39 @@ const CustomerSettings = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Settings | Salfer Engineering</title>
-      </Helmet>
-
+      <Helmet><title>Settings | Salfer Engineering</title></Helmet>
       <div className="customer-settings-cusset">
-        {/* Header */}
-        <div className="settings-header-cusset">
-          <h1>Account Settings</h1>
-        </div>
+        <div className="settings-header-cusset"><h1>Account Settings</h1></div>
 
-        {/* Messages */}
-        {success && (
-          <div className="settings-success-cusset">
-            <span>{success}</span>
-          </div>
-        )}
-        
-        {error && (
-          <div className="settings-error-cusset">
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Tab Content - No tab bar */}
-        <div className="tab-content-cusset">
-          {renderTabContent()}
-        </div>
+        <div className="tab-content-cusset">{renderTabContent()}</div>
 
         {/* Address Modal */}
         {showAddressModal && (
           <div className="modal-overlay-cusset" onClick={() => setShowAddressModal(false)}>
             <div className="modal-content-cusset" onClick={e => e.stopPropagation()}>
               <h3>{editingAddress ? 'Edit Address' : 'Add New Address'}</h3>
-              
               <form onSubmit={handleAddressSubmit}>
                 <div className="modal-form-cusset">
                   <div className="form-row-cusset">
-                    <div className="form-group-cusset">
-                      <label>Label</label>
-                      <select
-                        name="label"
-                        value={addressForm.label}
-                        onChange={handleAddressFormChange}
-                      >
-                        <option value="Home">Home</option>
-                        <option value="Office">Office</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-
-                    <div className="form-group-cusset checkbox-group-cusset">
-                      <label className="checkbox-label-cusset">
-                        <input
-                          type="checkbox"
-                          name="isPrimary"
-                          checked={addressForm.isPrimary}
-                          onChange={handleAddressFormChange}
-                        />
-                        <span>Set as primary</span>
-                      </label>
-                    </div>
+                    <div className="form-group-cusset"><label>Label</label><select name="label" value={addressForm.label} onChange={handleAddressFormChange}><option value="Home">Home</option><option value="Office">Office</option><option value="Other">Other</option></select></div>
+                    <div className="form-group-cusset checkbox-group-cusset"><label className="checkbox-label-cusset"><input type="checkbox" name="isPrimary" checked={addressForm.isPrimary} onChange={handleAddressFormChange} /><span>Set as primary</span></label></div>
                   </div>
-
                   <div className="form-row-cusset">
-                    <div className="form-group-cusset">
-                      <label>House/Building No.</label>
-                      <input
-                        type="text"
-                        name="houseOrBuilding"
-                        value={addressForm.houseOrBuilding}
-                        onChange={handleAddressFormChange}
-                        className={formErrors.houseOrBuilding ? 'error-cusset' : ''}
-                      />
-                      {formErrors.houseOrBuilding && <small className="error-text-cusset">{formErrors.houseOrBuilding}</small>}
-                    </div>
-
-                    <div className="form-group-cusset">
-                      <label>Street</label>
-                      <input
-                        type="text"
-                        name="street"
-                        value={addressForm.street}
-                        onChange={handleAddressFormChange}
-                        className={formErrors.street ? 'error-cusset' : ''}
-                      />
-                      {formErrors.street && <small className="error-text-cusset">{formErrors.street}</small>}
-                    </div>
+                    <div className="form-group-cusset"><label>House/Building No.</label><input type="text" name="houseOrBuilding" value={addressForm.houseOrBuilding} onChange={handleAddressFormChange} className={formErrors.houseOrBuilding ? 'error-cusset' : ''} />{formErrors.houseOrBuilding && <small className="error-text-cusset">{formErrors.houseOrBuilding}</small>}</div>
+                    <div className="form-group-cusset"><label>Street</label><input type="text" name="street" value={addressForm.street} onChange={handleAddressFormChange} className={formErrors.street ? 'error-cusset' : ''} />{formErrors.street && <small className="error-text-cusset">{formErrors.street}</small>}</div>
                   </div>
-
                   <div className="form-row-cusset">
-                    <div className="form-group-cusset">
-                      <label>Barangay</label>
-                      <input
-                        type="text"
-                        name="barangay"
-                        value={addressForm.barangay}
-                        onChange={handleAddressFormChange}
-                        className={formErrors.barangay ? 'error-cusset' : ''}
-                      />
-                      {formErrors.barangay && <small className="error-text-cusset">{formErrors.barangay}</small>}
-                    </div>
-
-                    <div className="form-group-cusset">
-                      <label>City/Municipality</label>
-                      <input
-                        type="text"
-                        name="cityMunicipality"
-                        value={addressForm.cityMunicipality}
-                        onChange={handleAddressFormChange}
-                        className={formErrors.cityMunicipality ? 'error-cusset' : ''}
-                      />
-                      {formErrors.cityMunicipality && <small className="error-text-cusset">{formErrors.cityMunicipality}</small>}
-                    </div>
+                    <div className="form-group-cusset"><label>Barangay</label><input type="text" name="barangay" value={addressForm.barangay} onChange={handleAddressFormChange} className={formErrors.barangay ? 'error-cusset' : ''} />{formErrors.barangay && <small className="error-text-cusset">{formErrors.barangay}</small>}</div>
+                    <div className="form-group-cusset"><label>City/Municipality</label><input type="text" name="cityMunicipality" value={addressForm.cityMunicipality} onChange={handleAddressFormChange} className={formErrors.cityMunicipality ? 'error-cusset' : ''} />{formErrors.cityMunicipality && <small className="error-text-cusset">{formErrors.cityMunicipality}</small>}</div>
                   </div>
-
                   <div className="form-row-cusset">
-                    <div className="form-group-cusset">
-                      <label>Province</label>
-                      <input
-                        type="text"
-                        name="province"
-                        value={addressForm.province}
-                        onChange={handleAddressFormChange}
-                        className={formErrors.province ? 'error-cusset' : ''}
-                      />
-                      {formErrors.province && <small className="error-text-cusset">{formErrors.province}</small>}
-                    </div>
-
-                    <div className="form-group-cusset">
-                      <label>ZIP Code</label>
-                      <input
-                        type="text"
-                        name="zipCode"
-                        value={addressForm.zipCode}
-                        onChange={handleAddressFormChange}
-                        className={formErrors.zipCode ? 'error-cusset' : ''}
-                        maxLength="4"
-                      />
-                      {formErrors.zipCode && <small className="error-text-cusset">{formErrors.zipCode}</small>}
-                    </div>
+                    <div className="form-group-cusset"><label>Province</label><input type="text" name="province" value={addressForm.province} onChange={handleAddressFormChange} className={formErrors.province ? 'error-cusset' : ''} />{formErrors.province && <small className="error-text-cusset">{formErrors.province}</small>}</div>
+                    <div className="form-group-cusset"><label>ZIP Code</label><input type="text" name="zipCode" value={addressForm.zipCode} onChange={handleAddressFormChange} className={formErrors.zipCode ? 'error-cusset' : ''} maxLength="4" />{formErrors.zipCode && <small className="error-text-cusset">{formErrors.zipCode}</small>}</div>
                   </div>
                 </div>
-
                 <div className="modal-actions-cusset">
-                  <button type="button" className="cancel-btn-cusset" onClick={() => setShowAddressModal(false)}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="save-btn-cusset" disabled={saving}>
-                    {saving ? 'Saving...' : 'Save Address'}
-                  </button>
+                  <button type="button" className="cancel-btn-cusset" onClick={() => setShowAddressModal(false)}>Cancel</button>
+                  <button type="submit" className="save-btn-cusset" disabled={saving}>{saving ? 'Saving...' : 'Save Address'}</button>
                 </div>
               </form>
             </div>
@@ -1347,20 +878,17 @@ const CustomerSettings = () => {
             <div className="modal-content-cusset confirm-modal-cusset" onClick={e => e.stopPropagation()}>
               <h3>Delete Address</h3>
               <p>Are you sure you want to delete this address?</p>
-              <div className="address-preview-cusset">
-                {getFullAddress(deleteConfirm)}
-              </div>
+              <div className="address-preview-cusset">{getFullAddress(deleteConfirm)}</div>
               <div className="modal-actions-cusset">
-                <button className="cancel-btn-cusset" onClick={() => setDeleteConfirm(null)}>
-                  Cancel
-                </button>
-                <button className="delete-btn-cusset" onClick={() => deleteAddress(deleteConfirm._id)}>
-                  Delete
-                </button>
+                <button className="cancel-btn-cusset" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+                <button className="delete-btn-cusset" onClick={() => deleteAddress(deleteConfirm._id)}>Delete</button>
               </div>
             </div>
           </div>
         )}
+
+        {/* Toast Notification */}
+        <ToastNotification show={toast.show} message={toast.message} type={toast.type} onClose={hideToast} />
       </div>
     </>
   );

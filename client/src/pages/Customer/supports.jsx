@@ -19,11 +19,13 @@ import {
   FaEye,
   FaTimes
 } from 'react-icons/fa';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Customer/supports.css';
 
 const Supports = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast, showToast, hideToast } = useToast();
   
   // Get tab from URL query parameter
   const getInitialTab = () => {
@@ -35,7 +37,6 @@ const Supports = () => {
   const [activeTab, setActiveTab] = useState(getInitialTab());
   const [openFaq, setOpenFaq] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   
@@ -125,20 +126,25 @@ const Supports = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      showToast('Please fill in all required fields', 'warning');
+      return;
+    }
+    
     setSubmitting(true);
     
     // Simulate API call
     setTimeout(() => {
       setSubmitting(false);
-      setSubmitSuccess(true);
+      showToast('Message sent successfully! We\'ll get back to you soon.', 'success');
       setFormData({ name: '', email: '', subject: '', message: '' });
-      setTimeout(() => setSubmitSuccess(false), 5000);
     }, 1500);
   };
 
   const handleCreateTicket = () => {
     if (!newTicket.subject || !newTicket.description) {
-      alert('Please fill in all required fields');
+      showToast('Please fill in all required fields', 'warning');
       return;
     }
     
@@ -152,6 +158,7 @@ const Supports = () => {
     setTickets([newTicketData, ...tickets]);
     setNewTicket({ subject: '', description: '' });
     setShowTicketModal(false);
+    showToast('Ticket created successfully!', 'success');
   };
 
   const toggleFaq = (id) => {
@@ -203,13 +210,6 @@ const Supports = () => {
         return (
           <div className="contact-section-support">
             <h2><FaEnvelope /> Send us a message</h2>
-            
-            {submitSuccess && (
-              <div className="success-message-support">
-                <FaCheckCircle />
-                <span>Thank you! We'll get back to you soon.</span>
-              </div>
-            )}
             
             <form onSubmit={handleSubmit}>
               <div className="form-row-support">
@@ -371,7 +371,7 @@ const Supports = () => {
                     <h3>{guide.title}</h3>
                     <p>{guide.type} • {guide.size}</p>
                   </div>
-                  <button className="download-btn-support">
+                  <button className="download-btn-support" onClick={() => showToast('Download started!', 'success')}>
                     <FaDownload /> Download
                   </button>
                 </div>
@@ -395,9 +395,6 @@ const Supports = () => {
       <div className="support-container">
         <h1 className="support-title">Support Center</h1>
         <p className="support-subtitle">How can we help you today?</p>
-
-        {/* Tab Navigation Buttons - REMOVED! Navigation now handled by header */}
-        {/* The content below will change based on the active tab from URL */}
         
         <div className="support-content">
           {renderTabContent()}
@@ -453,6 +450,14 @@ const Supports = () => {
             </div>
           </div>
         )}
+
+        {/* Toast Notification */}
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
       </div>
     </>
   );
