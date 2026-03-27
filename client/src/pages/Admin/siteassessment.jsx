@@ -63,7 +63,7 @@ const SiteAssessment = () => {
   const [engineers, setEngineers] = useState([]);
   const [devices, setDevices] = useState([]);
   const [stats, setStats] = useState({
-    freeQuotes: { total: 0, pending: 0, completed: 0 },
+    freeQuotes: { total: 0, pending: 0, assigned: 0, processing: 0, completed: 0 },
     preAssessments: { total: 0, pending: 0, forVerification: 0, paid: 0, scheduled: 0, completed: 0 }
   });
 
@@ -91,7 +91,7 @@ const SiteAssessment = () => {
           headers: { Authorization: `Bearer ${token}` },
           params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: 10 }
         });
-        console.log('Fetched pre-assessments:', response.data.assessments); // Add this debug log
+        console.log('Fetched pre-assessments:', response.data.assessments);
         setPreAssessments(response.data.assessments || []);
         setTotalPages(response.data.totalPages || 1);
       }
@@ -145,6 +145,8 @@ const SiteAssessment = () => {
         freeQuotes: {
           total: quotes.length,
           pending: quotes.filter(q => q.status === 'pending').length,
+          assigned: quotes.filter(q => q.status === 'assigned').length,
+          processing: quotes.filter(q => q.status === 'processing').length,
           completed: quotes.filter(q => q.status === 'completed').length
         },
         preAssessments: {
@@ -201,40 +203,44 @@ const SiteAssessment = () => {
     }
   };
 
-  const handleAssignEngineer = async () => {
-    if (!selectedItem || !engineerId) return;
+  // Update the handleAssignEngineer function
+const handleAssignEngineer = async () => {
+  if (!selectedItem || !engineerId) return;
 
-    try {
-      const token = sessionStorage.getItem('token');
+  try {
+    const token = sessionStorage.getItem('token');
 
-      if (activeTab === 'free-quotes') {
-        await axios.put(
-          `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/assign-engineer`,
-          { engineerId, notes: siteVisitNotes },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        alert('Engineer assigned to free quote successfully');
-      } else {
-        await axios.put(
-          `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/assign-engineer`,
-          { engineerId, siteVisitDate, notes: siteVisitNotes },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        alert('Engineer assigned successfully');
-      }
-
-      setShowAssignEngineerModal(false);
-      setSelectedItem(null);
-      setEngineerId('');
-      setSiteVisitDate('');
-      setSiteVisitNotes('');
-      fetchData();
-      fetchStats();
-    } catch (error) {
-      console.error('Error assigning engineer:', error);
-      alert('Failed to assign engineer');
+    if (activeTab === 'free-quotes') {
+      // For free quotes, call the combined endpoint that assigns engineer AND updates status
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/assign-engineer`,
+        { engineerId, notes: siteVisitNotes },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert('Engineer assigned to free quote successfully');
+    } else {
+      // For pre-assessments
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/assign-engineer`,
+        { engineerId, siteVisitDate, notes: siteVisitNotes },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert('Engineer assigned successfully');
     }
-  };
+
+    setShowAssignEngineerModal(false);
+    setSelectedItem(null);
+    setEngineerId('');
+    setSiteVisitDate('');
+    setSiteVisitNotes('');
+    fetchData();
+    fetchStats();
+  } catch (error) {
+    console.error('Error assigning engineer:', error);
+    console.error('Error response:', error.response?.data);
+    alert(error.response?.data?.message || 'Failed to assign engineer');
+  }
+};
 
   const handleAssignDevice = async () => {
     if (!selectedItem || !deviceId) return;
@@ -319,11 +325,11 @@ const SiteAssessment = () => {
     const badges = {
       'free-quote': {
         'pending': <span className="status-badge-siteassesad pending-siteassesad">Pending</span>,
+        'assigned': <span className="status-badge-siteassesad assigned-siteassesad">Assigned</span>,
         'processing': <span className="status-badge-siteassesad processing-siteassesad">Processing</span>,
         'completed': <span className="status-badge-siteassesad completed-siteassesad">Completed</span>,
         'cancelled': <span className="status-badge-siteassesad cancelled-siteassesad">Cancelled</span>
       },
-      // In SiteAssessment.jsx, update the pre-assessment badges:
       'pre-assessment': {
         'pending_payment': <span className="status-badge-siteassesad pending-siteassesad">Pending Payment</span>,
         'pending': <span className="status-badge-siteassesad pending-siteassesad">Pending</span>,
@@ -331,7 +337,7 @@ const SiteAssessment = () => {
         'paid': <span className="status-badge-siteassesad paid-siteassesad">Paid</span>,
         'scheduled': <span className="status-badge-siteassesad scheduled-siteassesad">Scheduled</span>,
         'site_visit_ongoing': <span className="status-badge-siteassesad site-visit-ongoing-siteassesad">Site Visit Ongoing</span>,
-        'device_deployed': <span className="status-badge-siteassesad deployed-siteassesad">Device Deployed</span>,  // Add this
+        'device_deployed': <span className="status-badge-siteassesad deployed-siteassesad">Device Deployed</span>,
         'data_collecting': <span className="status-badge-siteassesad collecting-siteassesad">Data Collecting</span>,
         'completed': <span className="status-badge-siteassesad completed-siteassesad">Completed</span>
       }
@@ -464,6 +470,8 @@ const SiteAssessment = () => {
               <span className="stat-label-siteassesad">Free Quotes</span>
               <div className="stat-detail-siteassesad">
                 <span>Pending: {stats.freeQuotes.pending}</span>
+                <span>Assigned: {stats.freeQuotes.assigned}</span>
+                <span>Processing: {stats.freeQuotes.processing}</span>
                 <span>Completed: {stats.freeQuotes.completed}</span>
               </div>
             </div>
@@ -505,6 +513,7 @@ const SiteAssessment = () => {
               {activeTab === 'free-quotes' ? (
                 <>
                   <option value="pending">Pending</option>
+                  <option value="assigned">Assigned</option>
                   <option value="processing">Processing</option>
                   <option value="completed">Completed</option>
                 </>
@@ -515,7 +524,7 @@ const SiteAssessment = () => {
                   <option value="paid">Paid</option>
                   <option value="scheduled">Scheduled</option>
                   <option value="site_visit_ongoing">Site Visit Ongoing</option>
-                  <option value="device_deployed">Device Deployed</option>  {/* Add this */}
+                  <option value="device_deployed">Device Deployed</option>
                   <option value="completed">Completed</option>
                 </>
               )}
@@ -591,29 +600,35 @@ const SiteAssessment = () => {
 
                       {/* Free Quote Actions */}
                       {activeTab === 'free-quotes' && item.status === 'pending' && (
-                        <>
-                          <button
-                            className="action-btn-siteassesad process-siteassesad"
-                            onClick={() => handleUpdateStatus(item._id, 'processing')}
-                            title="Mark as Processing"
-                          >
-                            <FaTools />
-                          </button>
-                          <button
-                            className="action-btn-siteassesad upload-siteassesad"
-                            onClick={() => { setSelectedItem(item); setShowUploadModal(true); }}
-                            title="Upload Quotation"
-                          >
-                            <FaDownload />
-                          </button>
-                          <button
-                            className="action-btn-siteassesad assign-siteassesad"
-                            onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }}
-                            title="Assign Engineer"
-                          >
-                            <FaUserCog />
-                          </button>
-                        </>
+                        <button
+                          className="action-btn-siteassesad assign-siteassesad"
+                          onClick={() => { setSelectedItem(item); setShowAssignEngineerModal(true); }}
+                          title="Assign Engineer"
+                        >
+                          <FaUserCog />
+                        </button>
+                      )}
+
+                      {/* Free Quote Actions - When assigned, can mark as processing */}
+                      {activeTab === 'free-quotes' && item.status === 'assigned' && (
+                        <button
+                          className="action-btn-siteassesad process-siteassesad"
+                          onClick={() => handleUpdateStatus(item._id, 'processing')}
+                          title="Mark as Processing"
+                        >
+                          <FaTools />
+                        </button>
+                      )}
+
+                      {/* Free Quote Actions - When processing, can mark as completed */}
+                      {activeTab === 'free-quotes' && item.status === 'processing' && (
+                        <button
+                          className="action-btn-siteassesad complete-siteassesad"
+                          onClick={() => handleUpdateStatus(item._id, 'completed')}
+                          title="Mark as Completed"
+                        >
+                          <FaCheckCircle />
+                        </button>
                       )}
 
                       {/* Pre-Assessment Actions - Verify Payment */}
@@ -713,6 +728,9 @@ const SiteAssessment = () => {
                   <p><strong>Desired Capacity:</strong> {selectedItem.desiredCapacity || 'Not specified'}</p>
                   <p><strong>Status:</strong> {selectedItem.status}</p>
                   <p><strong>Requested:</strong> {formatDate(selectedItem.requestedAt)}</p>
+                  {selectedItem.assignedEngineerId && (
+                    <p><strong>Assigned Engineer:</strong> {getEngineerName(selectedItem.assignedEngineerId)}</p>
+                  )}
                 </div>
               ) : (
                 <div className="detail-section-siteassesad">

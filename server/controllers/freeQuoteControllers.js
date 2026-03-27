@@ -1,16 +1,13 @@
 // controllers/freeQuoteControllers.js
 const FreeQuote = require('../models/FreeQuote');
-const Client = require('../models/Clients'); // <-- THIS IS THE IMPORT - MUST BE Client, not Clients
+const Client = require('../models/Clients');
+const User = require('../models/Users');
 const Address = require('../models/Address');
 const mongoose = require('mongoose');
-
-
-
 
 // @desc    Create a new free quote request
 // @route   POST /api/free-quotes
 // @access  Private (Customer)
-// In freeQuoteControllers.js
 exports.createFreeQuote = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -35,7 +32,7 @@ exports.createFreeQuote = async (req, res) => {
       }
     }
 
-    // Generate quotation reference in controller (no middleware needed)
+    // Generate quotation reference
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -43,7 +40,7 @@ exports.createFreeQuote = async (req, res) => {
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const quotationReference = `Q-${year}${month}${day}-${random}`;
 
-    // Create free quote object with the generated reference
+    // Create free quote object
     const freeQuote = new FreeQuote({
       clientId: client._id,
       addressId: addressId || null,
@@ -51,10 +48,9 @@ exports.createFreeQuote = async (req, res) => {
       propertyType: propertyType,
       desiredCapacity: desiredCapacity || '',
       status: 'pending',
-      quotationReference: quotationReference  // Add the generated reference here
+      quotationReference: quotationReference
     });
 
-    // Save to database
     await freeQuote.save();
 
     // Populate references for response
@@ -97,6 +93,8 @@ exports.createFreeQuote = async (req, res) => {
   }
 };
 
+// controllers/freeQuoteControllers.js
+
 // @desc    Get all free quotes (Admin only)
 // @route   GET /api/free-quotes
 // @access  Private (Admin)
@@ -110,6 +108,7 @@ exports.getAllFreeQuotes = async (req, res) => {
     const quotes = await FreeQuote.find(query)
       .populate('clientId', 'contactFirstName contactLastName contactNumber')
       .populate('addressId')
+      .populate('assignedEngineerId', 'fullName email')  // Now this will work
       .populate({
         path: 'clientId',
         populate: { path: 'userId', select: 'email' }
@@ -161,6 +160,8 @@ exports.getMyFreeQuotes = async (req, res) => {
   }
 };
 
+// controllers/freeQuoteControllers.js
+
 // @desc    Get free quote by ID
 // @route   GET /api/free-quotes/:id
 // @access  Private (Customer or Admin)
@@ -173,6 +174,7 @@ exports.getFreeQuoteById = async (req, res) => {
     const quote = await FreeQuote.findById(id)
       .populate('clientId', 'contactFirstName contactLastName contactNumber')
       .populate('addressId')
+      .populate('assignedEngineerId', 'fullName email')  // Now this will work
       .populate({
         path: 'clientId',
         populate: { path: 'userId', select: 'email' }
@@ -200,6 +202,82 @@ exports.getFreeQuoteById = async (req, res) => {
   }
 };
 
+// controllers/freeQuoteControllers.js
+
+// @desc    Assign engineer to free quote (Admin only)
+// @route   PUT /api/free-quotes/:id/assign-engineer
+// @access  Private (Admin)
+exports.assignEngineerToFreeQuote = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { engineerId, notes } = req.body;
+    const adminId = req.user.id;
+
+    // Find the free quote
+    const quote = await FreeQuote.findById(id);
+    if (!quote) {
+      return res.status(404).json({ message: 'Free quote not found' });
+    }
+
+    // Check if quote is pending
+    if (quote.status !== 'pending') {
+      return res.status(400).json({ 
+        message: `Cannot assign engineer. Current status: ${quote.status}. Only pending quotes can be assigned.` 
+      });
+    }
+
+    // Find the engineer
+    const engineer = await User.findById(engineerId);
+    if (!engineer || engineer.role !== 'engineer') {
+      return res.status(400).json({ 
+        message: 'Invalid engineer selected. User must have engineer role.' 
+      });
+    }
+
+    // Update the free quote
+    quote.assignedEngineerId = engineerId;
+    quote.assignedAt = new Date();
+    quote.assignedBy = adminId;
+    quote.status = 'assigned';
+    if (notes) quote.adminRemarks = notes;
+    quote.processedBy = adminId;
+    quote.processedAt = new Date();
+
+    await quote.save();
+
+    // Populate for response
+    await quote.populate('assignedEngineerId', 'fullName email');
+    await quote.populate('clientId', 'contactFirstName contactLastName contactNumber');
+
+    res.json({
+      success: true,
+      message: `Engineer assigned successfully to free quote ${quote.quotationReference}`,
+      quote: {
+        _id: quote._id,
+        quotationReference: quote.quotationReference,
+        status: quote.status,
+        assignedEngineer: {
+          id: engineer._id,
+          name: engineer.fullName,
+          email: engineer.email
+        },
+        client: {
+          name: `${quote.clientId.contactFirstName} ${quote.clientId.contactLastName}`,
+          contactNumber: quote.clientId.contactNumber
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Assign engineer to free quote error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to assign engineer', 
+      error: error.message 
+    });
+  }
+};
+
 // @desc    Update free quote status (Admin only)
 // @route   PUT /api/free-quotes/:id/status
 // @access  Private (Admin)
@@ -212,6 +290,21 @@ exports.updateQuoteStatus = async (req, res) => {
     const quote = await FreeQuote.findById(id);
     if (!quote) {
       return res.status(404).json({ message: 'Quote not found' });
+    }
+
+    // Validate status transition
+    const validTransitions = {
+      pending: ['assigned', 'cancelled'],
+      assigned: ['processing', 'cancelled'],
+      processing: ['completed', 'cancelled'],
+      completed: [],
+      cancelled: []
+    };
+
+    if (validTransitions[quote.status] && !validTransitions[quote.status].includes(status)) {
+      return res.status(400).json({ 
+        message: `Cannot transition from ${quote.status} to ${status}` 
+      });
     }
 
     quote.status = status;
@@ -309,6 +402,9 @@ exports.cancelFreeQuote = async (req, res) => {
     res.status(500).json({ message: 'Failed to cancel quote', error: error.message });
   }
 };
+
+// controllers/freeQuoteControllers.js
+
 // @desc    Get free quotes assigned to engineer
 // @route   GET /api/free-quotes/engineer/my-quotes
 // @access  Private (Engineer)
@@ -348,5 +444,142 @@ exports.getEngineerFreeQuotes = async (req, res) => {
   } catch (error) {
     console.error('Get engineer free quotes error:', error);
     res.status(500).json({ message: 'Failed to fetch quotes', error: error.message });
+  }
+};
+
+// controllers/freeQuoteControllers.js
+
+// @desc    Assign engineer to free quote (Admin only)
+// @route   PUT /api/free-quotes/:id/assign-engineer
+// @access  Private (Admin)
+exports.assignEngineerToFreeQuote = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { engineerId, notes } = req.body;
+    const adminId = req.user.id;
+
+    console.log('Assigning engineer to free quote:', { id, engineerId, adminId });
+
+    // Find the free quote
+    const quote = await FreeQuote.findById(id);
+    if (!quote) {
+      return res.status(404).json({ message: 'Free quote not found' });
+    }
+
+    // Check if quote is pending
+    if (quote.status !== 'pending') {
+      return res.status(400).json({ 
+        message: `Cannot assign engineer. Current status: ${quote.status}. Only pending quotes can be assigned.` 
+      });
+    }
+
+    // Find the engineer
+    const engineer = await User.findById(engineerId);
+    if (!engineer || engineer.role !== 'engineer') {
+      return res.status(400).json({ 
+        message: 'Invalid engineer selected. User must have engineer role.' 
+      });
+    }
+
+    // Update the free quote
+    quote.assignedEngineerId = engineerId;
+    quote.assignedAt = new Date();
+    quote.assignedBy = adminId;
+    quote.status = 'assigned';
+    if (notes) quote.adminRemarks = notes;
+    quote.processedBy = adminId;
+    quote.processedAt = new Date();
+
+    await quote.save();
+
+    // Populate for response
+    await quote.populate('assignedEngineerId', 'fullName email');
+    await quote.populate('clientId', 'contactFirstName contactLastName contactNumber');
+
+    res.json({
+      success: true,
+      message: `Engineer assigned successfully to free quote ${quote.quotationReference}`,
+      quote: {
+        _id: quote._id,
+        quotationReference: quote.quotationReference,
+        status: quote.status,
+        assignedEngineer: {
+          id: engineer._id,
+          name: engineer.fullName,
+          email: engineer.email
+        },
+        client: {
+          name: `${quote.clientId.contactFirstName} ${quote.clientId.contactLastName}`,
+          contactNumber: quote.clientId.contactNumber
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Assign engineer to free quote error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to assign engineer', 
+      error: error.message 
+    });
+  }
+};
+
+// @desc    Engineer updates free quote status (Engineer only)
+// @route   PUT /api/free-quotes/:id/update-status
+// @access  Private (Engineer)
+exports.engineerUpdateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, notes } = req.body;
+    const engineerId = req.user.id;
+
+    // Find the free quote
+    const quote = await FreeQuote.findById(id);
+    if (!quote) {
+      return res.status(404).json({ message: 'Free quote not found' });
+    }
+
+    // Check if engineer is assigned to this quote
+    if (quote.assignedEngineerId?.toString() !== engineerId) {
+      return res.status(403).json({ message: 'Not authorized to update this quote' });
+    }
+
+    // Validate status transitions for engineer
+    const validTransitions = {
+      assigned: ['processing'],
+      processing: ['completed']
+    };
+
+    if (!validTransitions[quote.status] || !validTransitions[quote.status].includes(status)) {
+      return res.status(400).json({ 
+        message: `Cannot transition from ${quote.status} to ${status}` 
+      });
+    }
+
+    // Update status
+    quote.status = status;
+    if (notes) quote.adminRemarks = notes;
+    quote.processedAt = new Date();
+
+    await quote.save();
+
+    res.json({
+      success: true,
+      message: `Quote status updated to ${status}`,
+      quote: {
+        _id: quote._id,
+        quotationReference: quote.quotationReference,
+        status: quote.status
+      }
+    });
+
+  } catch (error) {
+    console.error('Engineer update status error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to update status', 
+      error: error.message 
+    });
   }
 };
