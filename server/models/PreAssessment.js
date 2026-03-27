@@ -146,5 +146,42 @@ const preAssessmentSchema = new mongoose.Schema({
 preAssessmentSchema.index({ assignedEngineerId: 1, assessmentStatus: 1 });
 
 preAssessmentSchema.index({ clientId: 1, assessmentStatus: 1 });
+// models/PreAssessment.js - Add these fields if not present
+preAssessmentSchema.add({
+  // Engineer Site Visit Details
+  engineerSiteVisit: {
+    arrivalTime: Date,
+    departureTime: Date,
+    weatherConditions: String,
+    accessNotes: String,
+    safetyEquipmentUsed: [String],
+    teamMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  },
+  
+  // Device Deployment Details
+  deviceDeployment: {
+    deploymentPhotos: [String],
+    deviceSerialAtDeployment: String,
+    installationLocation: String,
+    gpsCoordinates: {
+      lat: Number,
+      lng: Number
+    },
+    signalStrength: Number,
+    calibrationNotes: String
+  },
+  
+  // Assessment Results
+  assessmentResults: {
+    totalIrradiance: Number,
+    averageTemperature: Number,
+    shadingPercentage: Number,
+    recommendedPanelCount: Number,
+    estimatedSystemSize: Number,
+    structuralAssessment: String,
+    electricalAssessment: String,
+    safetyAssessment: String
+  }
+});
 
 module.exports = mongoose.model('PreAssessment', preAssessmentSchema);

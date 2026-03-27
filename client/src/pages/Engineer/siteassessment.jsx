@@ -1,648 +1,1193 @@
-// pages/Engineer/SiteAssessment.jsx
+// pages/Engineer/MyAssessments.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
-import { FaEye, FaFileInvoice, FaDownload, FaSpinner } from 'react-icons/fa';
-import '../../styles/Engineer/siteAssessment.css';
+import {
+  FaMapMarkerAlt,
+  FaCalendarAlt,
+  FaUser,
+  FaFileAlt,
+  FaUpload,
+  FaCheckCircle,
+  FaClock,
+  FaTools,
+  FaWifi,
+  FaCamera,
+  FaDownload,
+  FaEye,
+  FaComment,
+  FaPaperPlane,
+  FaClipboardList,
+  FaHardHat,
+  FaChartLine,
+  FaMicrochip,
+  FaImages,
+  FaTrash,
+  FaPlus
+} from 'react-icons/fa';
+// import '../../styles/Engineer/MyAssessments.css';
 
-const SiteAssessment = () => {
-  const [assessments, setAssessments] = useState([]);
-  const [freeQuotes, setFreeQuotes] = useState([]);
-  const [preAssessments, setPreAssessments] = useState([]);
+const MyAssessments = () => {
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('all');
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showQuotationModal, setShowQuotationModal] = useState(false);
-  const [showIoTDataModal, setShowIoTDataModal] = useState(false);
+  const [assessments, setAssessments] = useState([]);
+  const [selectedAssessment, setSelectedAssessment] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showDeployModal, setShowDeployModal] = useState(false);
+  const [showRetrieveModal, setShowRetrieveModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [showFullImageModal, setShowFullImageModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [iotData, setIoTData] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [sitePhotos, setSitePhotos] = useState([]);
   
-  const [quotationForm, setQuotationForm] = useState({
-    quotationNumber: '',
-    quotationExpiryDate: '',
-    systemSize: '',
-    systemType: '',
-    panelsNeeded: '',
-    inverterType: '',
-    batteryType: '',
-    installationCost: '',
-    equipmentCost: '',
-    totalCost: '',
-    paymentTerms: '',
-    warrantyYears: '10',
-    quotationFile: null,
-    notes: ''
+  const [formData, setFormData] = useState({
+    // Deployment Form
+    deploymentNotes: '',
+    installationLocation: '',
+    gpsCoordinates: '',
+    deviceSerialAtDeployment: '',
+    
+    // Site Visit Form
+    siteVisitNotes: '',
+    inspectionDate: new Date().toISOString().split('T')[0],
+    roofCondition: 'good',
+    structuralIntegrity: 'good',
+    shadingAnalysis: '',
+    recommendedPanelPlacement: '',
+    
+    // Assessment Results
+    totalIrradiance: '',
+    averageTemperature: '',
+    shadingPercentage: '',
+    recommendedPanelCount: '',
+    estimatedSystemSize: '',
+    
+    // Comment
+    comment: '',
+    isPublic: true,
+    
+    // Site Photos
+    photoFiles: [],
+    photoCaptions: [],
+    photoLocations: []
+  });
+
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    ongoing: 0,
+    completed: 0
   });
 
   useEffect(() => {
-    fetchAssessments();
-  }, [activeTab]);
+    fetchMyAssessments();
+  }, []);
 
-  const fetchAssessments = async () => {
+  const fetchMyAssessments = async () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
-      
-      const freeQuotesRes = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/free-quotes/engineer/my-quotes`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setFreeQuotes(freeQuotesRes.data.quotes || []);
-      
-      const preAssessmentsRes = await axios.get(
+      const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/pre-assessments/engineer/my-assessments`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setPreAssessments(preAssessmentsRes.data.assessments || []);
-      
-      const combined = [
-        ...(freeQuotesRes.data.quotes || []).map(q => ({ ...q, type: 'free_quote' })),
-        ...(preAssessmentsRes.data.assessments || []).map(p => ({ ...p, type: 'pre_assessment' }))
-      ];
-      setAssessments(combined);
-      
+      setAssessments(response.data.assessments || []);
+      calculateStats(response.data.assessments || []);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching assessments:', error);
-    } finally {
       setLoading(false);
     }
   };
 
-  const fetchIoTData = async (assessmentId) => {
+  const fetchSitePhotos = async (assessmentId) => {
     try {
       const token = sessionStorage.getItem('token');
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${assessmentId}/iot-data`,
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${assessmentId}/photos`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setIoTData(response.data.readings || []);
+      setSitePhotos(response.data.photos || []);
     } catch (error) {
-      console.error('Error fetching IoT data:', error);
+      console.error('Error fetching site photos:', error);
     }
   };
 
-  const handleViewDetails = (item) => {
-    setSelectedItem(item);
-    setShowDetailsModal(true);
-    
-    if (item.type === 'pre_assessment' && item.iotDeviceId) {
-      fetchIoTData(item._id);
-    }
+  const calculateStats = (assessmentsList) => {
+    const total = assessmentsList.length;
+    const pending = assessmentsList.filter(a => a.assessmentStatus === 'device_assigned').length;
+    const ongoing = assessmentsList.filter(a => a.assessmentStatus === 'site_visit_ongoing').length;
+    const completed = assessmentsList.filter(a => a.assessmentStatus === 'report_draft' || a.assessmentStatus === 'completed').length;
+    setStats({ total, pending, ongoing, completed });
   };
 
-  const handleGenerateQuotation = (item) => {
-    setSelectedItem(item);
-    setShowQuotationModal(true);
-    
-    if (item.type === 'free_quote') {
-      setQuotationForm({
-        ...quotationForm,
-        systemSize: item.desiredCapacity,
-        systemType: 'grid-tie',
-        notes: `Free Quote Request - Monthly Bill: ₱${item.monthlyBill}`
-      });
-    } else if (item.type === 'pre_assessment') {
-      setQuotationForm({
-        ...quotationForm,
-        systemSize: item.finalSystemSize || item.desiredCapacity,
-        systemType: item.recommendedSystemType || 'grid-tie',
-        panelsNeeded: item.panelsNeeded,
-        notes: `Based on 7-day IoT assessment data`
-      });
-    }
-  };
-
-  const handleUploadQuotation = async () => {
-    if (!selectedItem) return;
-    
-    if (!quotationForm.quotationFile) {
-      alert('Please select a quotation PDF file');
+  const handleDeployDevice = async () => {
+    if (!formData.deploymentNotes) {
+      alert('Please enter deployment notes');
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       const token = sessionStorage.getItem('token');
-      const formData = new FormData();
-      formData.append('quotation', quotationForm.quotationFile);
-      formData.append('quotationNumber', quotationForm.quotationNumber);
-      formData.append('quotationExpiryDate', quotationForm.quotationExpiryDate);
-      formData.append('systemSize', quotationForm.systemSize);
-      formData.append('systemType', quotationForm.systemType);
-      formData.append('panelsNeeded', quotationForm.panelsNeeded);
-      formData.append('inverterType', quotationForm.inverterType);
-      formData.append('batteryType', quotationForm.batteryType);
-      formData.append('installationCost', quotationForm.installationCost);
-      formData.append('equipmentCost', quotationForm.equipmentCost);
-      formData.append('totalCost', quotationForm.totalCost);
-      formData.append('paymentTerms', quotationForm.paymentTerms);
-      formData.append('warrantyYears', quotationForm.warrantyYears);
-      formData.append('notes', quotationForm.notes);
-      
-      let endpoint;
-      if (selectedItem.type === 'free_quote') {
-        endpoint = `${import.meta.env.VITE_API_URL}/api/free-quotes/${selectedItem._id}/upload-quotation`;
-      } else {
-        endpoint = `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedItem._id}/upload-quotation`;
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/deploy-device`,
+        {
+          notes: formData.deploymentNotes,
+          location: formData.installationLocation,
+          gpsCoordinates: formData.gpsCoordinates,
+          deviceSerialAtDeployment: formData.deviceSerialAtDeployment
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        alert('✅ Device deployed successfully! Data collection started.');
+        setShowDeployModal(false);
+        fetchMyAssessments();
+        resetForm();
       }
-      
-      await axios.post(endpoint, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      alert('Quotation uploaded successfully!');
-      setShowQuotationModal(false);
-      resetQuotationForm();
-      fetchAssessments();
     } catch (error) {
-      console.error('Error uploading quotation:', error);
-      alert(error.response?.data?.message || 'Failed to upload quotation');
+      console.error('Error deploying device:', error);
+      alert(error.response?.data?.message || 'Failed to deploy device');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const resetQuotationForm = () => {
-    setQuotationForm({
-      quotationNumber: '',
-      quotationExpiryDate: '',
-      systemSize: '',
-      systemType: '',
-      panelsNeeded: '',
-      inverterType: '',
-      batteryType: '',
-      installationCost: '',
-      equipmentCost: '',
-      totalCost: '',
-      paymentTerms: '',
-      warrantyYears: '10',
-      quotationFile: null,
-      notes: ''
+  const handleRetrieveDevice = async () => {
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/retrieve-device`,
+        { notes: formData.retrievalNotes || 'Device retrieved after data collection' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        alert('✅ Device retrieved successfully! Data collection completed.');
+        setShowRetrieveModal(false);
+        fetchMyAssessments();
+        resetForm();
+      }
+    } catch (error) {
+      console.error('Error retrieving device:', error);
+      alert(error.response?.data?.message || 'Failed to retrieve device');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateSiteAssessment = async () => {
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/update-assessment`,
+        {
+          siteVisitNotes: formData.siteVisitNotes,
+          inspectionDate: formData.inspectionDate,
+          roofCondition: formData.roofCondition,
+          structuralIntegrity: formData.structuralIntegrity,
+          shadingAnalysis: formData.shadingAnalysis,
+          recommendedPanelPlacement: formData.recommendedPanelPlacement,
+          assessmentResults: {
+            totalIrradiance: formData.totalIrradiance,
+            averageTemperature: formData.averageTemperature,
+            shadingPercentage: formData.shadingPercentage,
+            recommendedPanelCount: formData.recommendedPanelCount,
+            estimatedSystemSize: formData.estimatedSystemSize
+          }
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        alert('✅ Site assessment updated successfully!');
+        fetchMyAssessments();
+        resetForm();
+      }
+    } catch (error) {
+      console.error('Error updating assessment:', error);
+      alert(error.response?.data?.message || 'Failed to update assessment');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmitReport = async () => {
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/submit-report`,
+        {
+          recommendations: formData.recommendations,
+          technicalFindings: formData.technicalFindings,
+          finalSystemSize: formData.finalSystemSize,
+          finalSystemCost: formData.finalSystemCost
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        alert('✅ Assessment report submitted successfully!');
+        setShowReportModal(false);
+        fetchMyAssessments();
+        resetForm();
+      }
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      alert(error.response?.data?.message || 'Failed to submit report');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUploadSitePhotos = async () => {
+    if (formData.photoFiles.length === 0) {
+      alert('Please select at least one photo to upload');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setUploadProgress(0);
+    
+    try {
+      const token = sessionStorage.getItem('token');
+      const uploadData = new FormData();
+      
+      // Append all photos with their metadata
+      formData.photoFiles.forEach((file, index) => {
+        uploadData.append('photos', file);
+        uploadData.append(`caption_${index}`, formData.photoCaptions[index] || '');
+        uploadData.append(`location_${index}`, formData.photoLocations[index] || '');
+      });
+      
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/upload-site-photos`,
+        uploadData,
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        }
+      );
+
+      if (response.data.success) {
+        alert(`✅ ${formData.photoFiles.length} site photo(s) uploaded successfully!`);
+        setShowPhotoModal(false);
+        fetchSitePhotos(selectedAssessment._id);
+        resetForm();
+        setUploadProgress(0);
+      }
+    } catch (error) {
+      console.error('Error uploading site photos:', error);
+      alert(error.response?.data?.message || 'Failed to upload site photos');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeletePhoto = async (photoId) => {
+    if (!window.confirm('Are you sure you want to delete this photo?')) {
+      return;
+    }
+
+    try {
+      const token = sessionStorage.getItem('token');
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/photos/${photoId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      alert('Photo deleted successfully');
+      fetchSitePhotos(selectedAssessment._id);
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      alert('Failed to delete photo');
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!formData.comment) {
+      alert('Please enter a comment');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/pre-assessments/${selectedAssessment._id}/add-comment`,
+        {
+          comment: formData.comment,
+          isPublic: formData.isPublic
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        alert('✅ Comment added successfully!');
+        setShowCommentModal(false);
+        fetchMyAssessments();
+        resetForm();
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      alert(error.response?.data?.message || 'Failed to add comment');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePhotoSelection = (e) => {
+    const files = Array.from(e.target.files);
+    setFormData({
+      ...formData,
+      photoFiles: files,
+      photoCaptions: files.map(() => ''),
+      photoLocations: files.map(() => '')
     });
   };
 
-  const getStatusBadge = (item) => {
-    if (item.type === 'free_quote') {
-      const badges = {
-        'pending': <span className="status-badge-engsiteassess pending-engsiteassess">Pending - Needs Quotation</span>,
-        'processing': <span className="status-badge-engsiteassess processing-engsiteassess">Processing</span>,
-        'completed': <span className="status-badge-engsiteassess completed-engsiteassess">Quotation Sent</span>,
-        'cancelled': <span className="status-badge-engsiteassess cancelled-engsiteassess">Cancelled</span>
-      };
-      return badges[item.status] || <span className="status-badge-engsiteassess">{item.status}</span>;
-    } else {
-      const badges = {
-        'scheduled': <span className="status-badge-engsiteassess scheduled-engsiteassess">Awaiting IoT Deployment</span>,
-        'device_deployed': <span className="status-badge-engsiteassess deployed-engsiteassess">IoT Device Deployed - Collecting Data</span>,
-        'data_collecting': <span className="status-badge-engsiteassess collecting-engsiteassess">Data Collection ({item.totalReadings || 0} readings)</span>,
-        'data_analyzing': <span className="status-badge-engsiteassess analyzing-engsiteassess">Ready for Quotation</span>,
-        'report_draft': <span className="status-badge-engsiteassess draft-engsiteassess">Quotation Draft Ready</span>,
-        'completed': <span className="status-badge-engsiteassess completed-engsiteassess">Quotation Sent</span>
-      };
-      return badges[item.assessmentStatus] || <span className="status-badge-engsiteassess">{item.assessmentStatus}</span>;
-    }
+  const updatePhotoCaption = (index, caption) => {
+    const newCaptions = [...formData.photoCaptions];
+    newCaptions[index] = caption;
+    setFormData({ ...formData, photoCaptions: newCaptions });
   };
 
-  const canGenerateQuotation = (item) => {
-    if (item.type === 'free_quote') {
-      return item.status === 'pending' || item.status === 'processing';
-    } else {
-      return item.assessmentStatus === 'data_analyzing' || item.assessmentStatus === 'report_draft';
-    }
+  const updatePhotoLocation = (index, location) => {
+    const newLocations = [...formData.photoLocations];
+    newLocations[index] = location;
+    setFormData({ ...formData, photoLocations: newLocations });
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-PH', {
-      style: 'currency',
-      currency: 'PHP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount || 0);
+  const resetForm = () => {
+    setFormData({
+      deploymentNotes: '',
+      installationLocation: '',
+      gpsCoordinates: '',
+      deviceSerialAtDeployment: '',
+      siteVisitNotes: '',
+      inspectionDate: new Date().toISOString().split('T')[0],
+      roofCondition: 'good',
+      structuralIntegrity: 'good',
+      shadingAnalysis: '',
+      recommendedPanelPlacement: '',
+      totalIrradiance: '',
+      averageTemperature: '',
+      shadingPercentage: '',
+      recommendedPanelCount: '',
+      estimatedSystemSize: '',
+      comment: '',
+      isPublic: true,
+      photoFiles: [],
+      photoCaptions: [],
+      photoLocations: []
+    });
   };
 
-  const getFilteredItems = () => {
-    if (activeTab === 'free_quotes') return freeQuotes.map(q => ({ ...q, type: 'free_quote' }));
-    if (activeTab === 'pre_assessments') return preAssessments.map(p => ({ ...p, type: 'pre_assessment' }));
-    return assessments;
+  const getStatusBadge = (status) => {
+    const badges = {
+      'device_assigned': <span className="status-badge pending">📋 Ready for Deployment</span>,
+      'site_visit_ongoing': <span className="status-badge ongoing">🔧 Site Visit Ongoing</span>,
+      'report_draft': <span className="status-badge draft">📝 Report Draft</span>,
+      'completed': <span className="status-badge completed">✅ Completed</span>,
+      'cancelled': <span className="status-badge cancelled">❌ Cancelled</span>
+    };
+    return badges[status] || <span className="status-badge">{status}</span>;
   };
 
-  const filteredItems = getFilteredItems();
-
-  // Skeleton Loader
-  const SkeletonLoader = () => (
-    <div className="site-assessment-container-engsiteassess">
-      <div className="assessment-header-engsiteassess">
-        <div className="skeleton-line-engsiteassess large-engsiteassess"></div>
-        <div className="skeleton-line-engsiteassess medium-engsiteassess"></div>
-        <div className="skeleton-tabs-engsiteassess">
-          <div className="skeleton-tab-engsiteassess"></div>
-          <div className="skeleton-tab-engsiteassess"></div>
-          <div className="skeleton-tab-engsiteassess"></div>
-        </div>
-      </div>
-      <div className="assessments-grid-engsiteassess">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="assessment-card-engsiteassess skeleton-card-engsiteassess">
-            <div className="skeleton-line-engsiteassess medium-engsiteassess"></div>
-            <div className="skeleton-line-engsiteassess small-engsiteassess"></div>
-            <div className="skeleton-line-engsiteassess small-engsiteassess"></div>
-            <div className="skeleton-button-engsiteassess"></div>
+  const getActionButtons = (assessment) => {
+    switch (assessment.assessmentStatus) {
+      case 'device_assigned':
+        return (
+          <button 
+            className="action-btn deploy-btn"
+            onClick={() => {
+              setSelectedAssessment(assessment);
+              setShowDeployModal(true);
+            }}
+          >
+            <FaMicrochip /> Deploy Device
+          </button>
+        );
+      case 'site_visit_ongoing':
+        return (
+          <div className="action-buttons-group">
+            <button 
+              className="action-btn update-btn"
+              onClick={() => {
+                setSelectedAssessment(assessment);
+                setActiveTab('assessment');
+              }}
+            >
+              <FaClipboardList /> Update Assessment
+            </button>
+            <button 
+              className="action-btn retrieve-btn"
+              onClick={() => {
+                setSelectedAssessment(assessment);
+                setShowRetrieveModal(true);
+              }}
+            >
+              <FaTools /> Retrieve Device
+            </button>
+            <button 
+              className="action-btn report-btn"
+              onClick={() => {
+                setSelectedAssessment(assessment);
+                setShowReportModal(true);
+              }}
+            >
+              <FaFileAlt /> Submit Report
+            </button>
           </div>
-        ))}
+        );
+      case 'report_draft':
+        return (
+          <button 
+            className="action-btn submit-btn"
+            onClick={() => {
+              setSelectedAssessment(assessment);
+              setShowReportModal(true);
+            }}
+          >
+            <FaPaperPlane /> Submit Final Report
+          </button>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const SkeletonLoader = () => (
+    <div className="my-assessments-container">
+      <div className="skeleton-header"></div>
+      <div className="skeleton-stats">
+        {[1,2,3,4].map(i => <div key={i} className="skeleton-stat-card"></div>)}
+      </div>
+      <div className="skeleton-list">
+        {[1,2,3].map(i => <div key={i} className="skeleton-assessment-card"></div>)}
       </div>
     </div>
   );
 
-  if (loading) {
-    return <SkeletonLoader />;
-  }
+  if (loading) return <SkeletonLoader />;
 
   return (
     <>
       <Helmet>
-        <title>My Site Assessments | Engineer Dashboard</title>
+        <title>My Assessments | Engineer | Salfer Engineering</title>
       </Helmet>
-      
-      <div className="site-assessment-container-engsiteassess">
-        <div className="assessment-header-engsiteassess">
-          <h1>My Site Assessments</h1>
-          <p>View and manage assessments assigned to you</p>
-          <div className="tabs-engsiteassess">
-            <button 
-              className={`tab-btn-engsiteassess ${activeTab === 'all' ? 'active-engsiteassess' : ''}`}
-              onClick={() => setActiveTab('all')}
-            >
-              All ({assessments.length})
-            </button>
-            <button 
-              className={`tab-btn-engsiteassess ${activeTab === 'free_quotes' ? 'active-engsiteassess' : ''}`}
-              onClick={() => setActiveTab('free_quotes')}
-            >
-              Free Quotes ({freeQuotes.length})
-            </button>
-            <button 
-              className={`tab-btn-engsiteassess ${activeTab === 'pre_assessments' ? 'active-engsiteassess' : ''}`}
-              onClick={() => setActiveTab('pre_assessments')}
-            >
-              Pre-Assessments ({preAssessments.length})
-            </button>
+
+      <div className="my-assessments-container">
+        <div className="page-header">
+          <div>
+            <h1>My Assessments</h1>
+            <p>Manage your assigned assessments, conduct site visits, and submit reports</p>
           </div>
         </div>
-        
-        {filteredItems.length === 0 ? (
-          <div className="empty-state-engsiteassess">
-            <h3>No assessments assigned</h3>
-            <p>You don't have any site assessments at the moment. Assessments will appear here once assigned by admin.</p>
+
+        {/* Stats Cards */}
+        <div className="stats-grid">
+          <div className="stat-card total">
+            <div className="stat-icon"><FaClipboardList /></div>
+            <div className="stat-info">
+              <h3>{stats.total}</h3>
+              <p>Total Assessments</p>
+            </div>
           </div>
-        ) : (
-          <div className="assessments-grid-engsiteassess">
-            {filteredItems.map(item => (
-              <div key={`${item.type}_${item._id}`} className="assessment-card-engsiteassess">
-                <div className="card-header-engsiteassess">
-                  <div className="card-title-engsiteassess">
-                    <h3>{item.type === 'free_quote' ? item.quotationReference : item.bookingReference}</h3>
+          <div className="stat-card pending">
+            <div className="stat-icon"><FaClock /></div>
+            <div className="stat-info">
+              <h3>{stats.pending}</h3>
+              <p>Ready for Deployment</p>
+            </div>
+          </div>
+          <div className="stat-card ongoing">
+            <div className="stat-icon"><FaTools /></div>
+            <div className="stat-info">
+              <h3>{stats.ongoing}</h3>
+              <p>Site Visit Ongoing</p>
+            </div>
+          </div>
+          <div className="stat-card completed">
+            <div className="stat-icon"><FaCheckCircle /></div>
+            <div className="stat-info">
+              <h3>{stats.completed}</h3>
+              <p>Completed</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Assessments List */}
+        <div className="assessments-list">
+          {assessments.length === 0 ? (
+            <div className="empty-state">
+              <p>No assessments assigned yet</p>
+            </div>
+          ) : (
+            assessments.map(assessment => (
+              <div key={assessment._id} className="assessment-card">
+                <div className="card-header">
+                  <div className="header-left">
+                    <h3>{assessment.bookingReference}</h3>
+                    {getStatusBadge(assessment.assessmentStatus)}
                   </div>
-                  {getStatusBadge(item)}
-                </div>
-                
-                <div className="card-body-engsiteassess">
-                  <p><strong>Client:</strong> {item.clientId?.contactFirstName} {item.clientId?.contactLastName}</p>
-                  <p><strong>Property Type:</strong> {item.propertyType}</p>
-                  {item.type === 'free_quote' ? (
-                    <>
-                      <p><strong>Monthly Bill:</strong> {formatCurrency(item.monthlyBill)}</p>
-                      <p><strong>Desired Capacity:</strong> {item.desiredCapacity || 'Not specified'}</p>
-                    </>
-                  ) : (
-                    <>
-                      <p><strong>Address:</strong> {item.addressId?.street || 'Address not available'}</p>
-                      <p><strong>Preferred Date:</strong> {new Date(item.preferredDate).toLocaleDateString()}</p>
-                    </>
-                  )}
-                </div>
-                
-                <div className="card-actions-engsiteassess">
-                  <button className="btn-secondary-engsiteassess" onClick={() => handleViewDetails(item)}>
-                    View Details
+                  <button 
+                    className="view-details-btn"
+                    onClick={() => {
+                      setSelectedAssessment(assessment);
+                      setActiveTab('overview');
+                      fetchSitePhotos(assessment._id);
+                    }}
+                  >
+                    <FaEye /> View Details
                   </button>
-                  {canGenerateQuotation(item) && (
-                    <button className="btn-primary-engsiteassess" onClick={() => handleGenerateQuotation(item)}>
-                      {item.type === 'free_quote' ? 'Create Quotation' : 'Generate Quotation'}
-                    </button>
+                </div>
+                
+                <div className="card-details">
+                  <div className="detail-item">
+                    <FaUser />
+                    <span>{assessment.clientId?.contactFirstName} {assessment.clientId?.contactLastName}</span>
+                  </div>
+                  <div className="detail-item">
+                    <FaMapMarkerAlt />
+                    <span>{assessment.addressId?.street}, {assessment.addressId?.city}</span>
+                  </div>
+                  <div className="detail-item">
+                    <FaCalendarAlt />
+                    <span>Preferred: {new Date(assessment.preferredDate).toLocaleDateString()}</span>
+                  </div>
+                  {assessment.assignedDeviceId && (
+                    <div className="detail-item">
+                      <FaMicrochip />
+                      <span>Device: {assessment.assignedDeviceId.deviceId} - {assessment.assignedDeviceId.deviceName}</span>
+                    </div>
                   )}
+                </div>
+                
+                <div className="card-actions">
+                  {getActionButtons(assessment)}
+                  <button 
+                    className="action-btn photo-btn"
+                    onClick={() => {
+                      setSelectedAssessment(assessment);
+                      setShowPhotoModal(true);
+                    }}
+                  >
+                    <FaCamera /> Upload Site Photos
+                  </button>
+                  <button 
+                    className="action-btn comment-btn"
+                    onClick={() => {
+                      setSelectedAssessment(assessment);
+                      setShowCommentModal(true);
+                    }}
+                  >
+                    <FaComment /> Add Comment
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-        
-        {/* Details Modal */}
-        {showDetailsModal && selectedItem && (
-          <div className="modal-overlay-engsiteassess" onClick={() => setShowDetailsModal(false)}>
-            <div className="modal-content-engsiteassess large-engsiteassess" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-engsiteassess" onClick={() => setShowDetailsModal(false)}>×</button>
-              <h2>{selectedItem.type === 'free_quote' ? 'Free Quote Details' : 'Pre-Assessment Details'}</h2>
-              <p className="modal-subtitle-engsiteassess">Assigned to you by Admin</p>
+            ))
+          )}
+        </div>
+
+        {/* Assessment Details Modal */}
+        {selectedAssessment && activeTab === 'overview' && (
+          <div className="modal-overlay" onClick={() => setSelectedAssessment(null)}>
+            <div className="modal-content large" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>{selectedAssessment.bookingReference}</h2>
+                <button className="close-btn" onClick={() => setSelectedAssessment(null)}>×</button>
+              </div>
               
-              <div className="assessment-details-engsiteassess">
-                <div className="details-section-engsiteassess">
-                  <h3>Client Information</h3>
-                  <p><strong>Name:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}</p>
-                  <p><strong>Contact:</strong> {selectedItem.clientId?.contactNumber}</p>
-                  <p><strong>Email:</strong> {selectedItem.clientId?.userId?.email}</p>
-                  <p><strong>Property Type:</strong> {selectedItem.propertyType}</p>
-                </div>
-                
-                {selectedItem.type === 'free_quote' ? (
-                  <div className="details-section-engsiteassess">
-                    <h3>Customer Requirements</h3>
-                    <p><strong>Monthly Electricity Bill:</strong> {formatCurrency(selectedItem.monthlyBill)}</p>
-                    <p><strong>Desired System Capacity:</strong> {selectedItem.desiredCapacity || 'Not specified'}</p>
-                    <p><strong>Requested At:</strong> {new Date(selectedItem.requestedAt).toLocaleString()}</p>
-                    {selectedItem.addressId && (
-                      <p><strong>Address:</strong> {selectedItem.addressId.street}, {selectedItem.addressId.city}</p>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <div className="details-section-engsiteassess">
-                      <h3>Pre-Assessment Details</h3>
-                      <p><strong>Booking Reference:</strong> {selectedItem.bookingReference}</p>
-                      <p><strong>Invoice Number:</strong> {selectedItem.invoiceNumber}</p>
-                      <p><strong>Preferred Date:</strong> {new Date(selectedItem.preferredDate).toLocaleDateString()}</p>
-                      <p><strong>Address:</strong> {selectedItem.addressId?.street}, {selectedItem.addressId?.city}, {selectedItem.addressId?.province}</p>
+              <div className="modal-tabs">
+                <button className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')}>Overview</button>
+                <button className={activeTab === 'assessment' ? 'active' : ''} onClick={() => setActiveTab('assessment')}>Site Assessment</button>
+                <button className={activeTab === 'photos' ? 'active' : ''} onClick={() => setActiveTab('photos')}>Site Photos</button>
+                <button className={activeTab === 'comments' ? 'active' : ''} onClick={() => setActiveTab('comments')}>Comments</button>
+                <button className={activeTab === 'iot-data' ? 'active' : ''} onClick={() => setActiveTab('iot-data')}>IoT Data</button>
+              </div>
+              
+              <div className="modal-body">
+                {activeTab === 'overview' && (
+                  <div className="overview-tab">
+                    <div className="info-section">
+                      <h3>Client Information</h3>
+                      <p><strong>Name:</strong> {selectedAssessment.clientId?.contactFirstName} {selectedAssessment.clientId?.contactLastName}</p>
+                      <p><strong>Email:</strong> {selectedAssessment.clientId?.email}</p>
+                      <p><strong>Phone:</strong> {selectedAssessment.clientId?.contactPhone}</p>
                     </div>
                     
-                    {selectedItem.iotDeviceId && (
-                      <div className="details-section-engsiteassess">
-                        <h3>IoT Data Collection</h3>
-                        <p><strong>Device ID:</strong> {selectedItem.iotDeviceId.deviceId || 'N/A'}</p>
-                        <p><strong>Deployed At:</strong> {selectedItem.deviceDeployedAt ? new Date(selectedItem.deviceDeployedAt).toLocaleString() : 'Not deployed'}</p>
-                        <p><strong>Total Readings:</strong> {selectedItem.totalReadings || 0}</p>
-                        
-                        {iotData.length > 0 && (
-                          <div className="iot-data-summary-engsiteassess">
-                            <button 
-                              className="btn-secondary-engsiteassess small-engsiteassess"
-                              onClick={() => setShowIoTDataModal(true)}
-                            >
-                              View IoT Data
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </>
+                    <div className="info-section">
+                      <h3>Address</h3>
+                      <p>{selectedAssessment.addressId?.street}</p>
+                      <p>{selectedAssessment.addressId?.barangay}, {selectedAssessment.addressId?.city}</p>
+                      <p>{selectedAssessment.addressId?.province}, {selectedAssessment.addressId?.zipCode}</p>
+                    </div>
+                    
+                    <div className="info-section">
+                      <h3>Assessment Details</h3>
+                      <p><strong>Property Type:</strong> {selectedAssessment.propertyType}</p>
+                      <p><strong>Desired Capacity:</strong> {selectedAssessment.desiredCapacity}</p>
+                      <p><strong>Roof Type:</strong> {selectedAssessment.roofType}</p>
+                      <p><strong>Preferred Date:</strong> {new Date(selectedAssessment.preferredDate).toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div className="info-section">
+                      <h3>Device Information</h3>
+                      {selectedAssessment.assignedDeviceId ? (
+                        <>
+                          <p><strong>Device ID:</strong> {selectedAssessment.assignedDeviceId.deviceId}</p>
+                          <p><strong>Device Name:</strong> {selectedAssessment.assignedDeviceId.deviceName}</p>
+                          <p><strong>Model:</strong> {selectedAssessment.assignedDeviceId.model}</p>
+                          <p><strong>Status:</strong> {selectedAssessment.assignedDeviceId.status}</p>
+                          {selectedAssessment.deviceDeployedAt && (
+                            <p><strong>Deployed At:</strong> {new Date(selectedAssessment.deviceDeployedAt).toLocaleString()}</p>
+                          )}
+                        </>
+                      ) : (
+                        <p>No device assigned yet</p>
+                      )}
+                    </div>
+                  </div>
                 )}
                 
-                {selectedItem.quotation && (
-                  <div className="details-section-engsiteassess">
-                    <h3>Generated Quotation</h3>
-                    <p><strong>Quotation Number:</strong> {selectedItem.quotation.quotationNumber}</p>
-                    <p><strong>Total Cost:</strong> {formatCurrency(selectedItem.quotation.systemDetails?.totalCost || 0)}</p>
-                    <p><strong>System Size:</strong> {selectedItem.quotation.systemDetails?.systemSize} kW</p>
-                    <a href={selectedItem.quotation.quotationUrl} target="_blank" rel="noopener noreferrer" className="btn-link-engsiteassess">
-                      Download Quotation PDF
-                    </a>
+                {activeTab === 'assessment' && (
+                  <div className="assessment-tab">
+                    <form onSubmit={(e) => { e.preventDefault(); handleUpdateSiteAssessment(); }}>
+                      <div className="form-group">
+                        <label>Inspection Date</label>
+                        <input 
+                          type="date" 
+                          value={formData.inspectionDate}
+                          onChange={(e) => setFormData({...formData, inspectionDate: e.target.value})}
+                          required
+                        />
+                      </div>
+                      
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Roof Condition</label>
+                          <select 
+                            value={formData.roofCondition}
+                            onChange={(e) => setFormData({...formData, roofCondition: e.target.value})}
+                          >
+                            <option value="excellent">Excellent</option>
+                            <option value="good">Good</option>
+                            <option value="fair">Fair</option>
+                            <option value="poor">Poor</option>
+                          </select>
+                        </div>
+                        
+                        <div className="form-group">
+                          <label>Structural Integrity</label>
+                          <select 
+                            value={formData.structuralIntegrity}
+                            onChange={(e) => setFormData({...formData, structuralIntegrity: e.target.value})}
+                          >
+                            <option value="excellent">Excellent</option>
+                            <option value="good">Good</option>
+                            <option value="fair">Fair</option>
+                            <option value="poor">Poor</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Site Visit Notes</label>
+                        <textarea 
+                          rows="4"
+                          value={formData.siteVisitNotes}
+                          onChange={(e) => setFormData({...formData, siteVisitNotes: e.target.value})}
+                          placeholder="Enter detailed site visit observations..."
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Shading Analysis</label>
+                        <textarea 
+                          rows="3"
+                          value={formData.shadingAnalysis}
+                          onChange={(e) => setFormData({...formData, shadingAnalysis: e.target.value})}
+                          placeholder="Describe shading conditions and impact..."
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Recommended Panel Placement</label>
+                        <textarea 
+                          rows="3"
+                          value={formData.recommendedPanelPlacement}
+                          onChange={(e) => setFormData({...formData, recommendedPanelPlacement: e.target.value})}
+                          placeholder="Where should panels be installed?"
+                        />
+                      </div>
+                      
+                      <div className="form-section-title">Assessment Results</div>
+                      
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Total Irradiance (kWh/m²/day)</label>
+                          <input 
+                            type="number"
+                            step="0.1"
+                            value={formData.totalIrradiance}
+                            onChange={(e) => setFormData({...formData, totalIrradiance: e.target.value})}
+                          />
+                        </div>
+                        
+                        <div className="form-group">
+                          <label>Average Temperature (°C)</label>
+                          <input 
+                            type="number"
+                            step="0.1"
+                            value={formData.averageTemperature}
+                            onChange={(e) => setFormData({...formData, averageTemperature: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Shading Percentage (%)</label>
+                          <input 
+                            type="number"
+                            step="1"
+                            value={formData.shadingPercentage}
+                            onChange={(e) => setFormData({...formData, shadingPercentage: e.target.value})}
+                          />
+                        </div>
+                        
+                        <div className="form-group">
+                          <label>Recommended Panel Count</label>
+                          <input 
+                            type="number"
+                            value={formData.recommendedPanelCount}
+                            onChange={(e) => setFormData({...formData, recommendedPanelCount: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Estimated System Size (kWp)</label>
+                        <input 
+                          type="number"
+                          step="0.5"
+                          value={formData.estimatedSystemSize}
+                          onChange={(e) => setFormData({...formData, estimatedSystemSize: e.target.value})}
+                        />
+                      </div>
+                      
+                      <div className="modal-actions">
+                        <button type="button" className="cancel-btn" onClick={() => setSelectedAssessment(null)}>Cancel</button>
+                        <button type="submit" className="save-btn" disabled={isSubmitting}>
+                          {isSubmitting ? 'Saving...' : 'Save Assessment'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+                
+                {activeTab === 'photos' && (
+                  <div className="photos-tab">
+                    <div className="photos-header">
+                      <h3>Site Photos</h3>
+                      <button 
+                        className="upload-photos-btn"
+                        onClick={() => setShowPhotoModal(true)}
+                      >
+                        <FaCamera /> Upload New Photos
+                      </button>
+                    </div>
+                    
+                    {sitePhotos.length === 0 ? (
+                      <div className="empty-photos">
+                        <FaImages />
+                        <p>No site photos uploaded yet</p>
+                        <button onClick={() => setShowPhotoModal(true)}>Upload Site Photos</button>
+                      </div>
+                    ) : (
+                      <div className="photos-grid">
+                        {sitePhotos.map(photo => (
+                          <div key={photo._id} className="photo-card">
+                            <img 
+                              src={photo.url} 
+                              alt={photo.caption || 'Site photo'}
+                              onClick={() => {
+                                setSelectedImage(photo.url);
+                                setShowFullImageModal(true);
+                              }}
+                            />
+                            <div className="photo-info">
+                              <p className="photo-caption">{photo.caption || 'No caption'}</p>
+                              {photo.location && (
+                                <p className="photo-location">
+                                  <FaMapMarkerAlt /> {photo.location}
+                                </p>
+                              )}
+                              <p className="photo-date">
+                                {new Date(photo.uploadedAt).toLocaleDateString()}
+                              </p>
+                              <button 
+                                className="delete-photo-btn"
+                                onClick={() => handleDeletePhoto(photo._id)}
+                              >
+                                <FaTrash /> Delete
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {activeTab === 'comments' && (
+                  <div className="comments-tab">
+                    <div className="comments-header">
+                      <h3>Assessment Comments</h3>
+                      <button 
+                        className="add-comment-btn"
+                        onClick={() => setShowCommentModal(true)}
+                      >
+                        <FaPlus /> Add Comment
+                      </button>
+                    </div>
+                    
+                    {selectedAssessment.engineerComments?.length === 0 ? (
+                      <div className="empty-comments">
+                        <FaComment />
+                        <p>No comments yet</p>
+                      </div>
+                    ) : (
+                      <div className="comments-list">
+                        {selectedAssessment.engineerComments?.map((comment, index) => (
+                          <div key={index} className="comment-item">
+                            <div className="comment-header">
+                              <strong>{comment.commentedBy?.name || 'Engineer'}</strong>
+                              <span>{new Date(comment.commentedAt).toLocaleString()}</span>
+                              {comment.isPublic && (
+                                <span className="public-badge">Public</span>
+                              )}
+                            </div>
+                            <p>{comment.comment}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {activeTab === 'iot-data' && (
+                  <div className="iot-data-tab">
+                    <h3>IoT Device Data</h3>
+                    {selectedAssessment.iotDeviceId ? (
+                      <div className="iot-data-grid">
+                        <div className="data-card">
+                          <h4>Device Status</h4>
+                          <p><strong>Device ID:</strong> {selectedAssessment.iotDeviceId.deviceId}</p>
+                          <p><strong>Status:</strong> {selectedAssessment.iotDeviceId.status}</p>
+                          <p><strong>Battery:</strong> {selectedAssessment.iotDeviceId.batteryLevel}%</p>
+                          <p><strong>Last Heartbeat:</strong> {new Date(selectedAssessment.iotDeviceId.lastHeartbeat).toLocaleString()}</p>
+                        </div>
+                        
+                        <div className="data-card">
+                          <h4>Data Collection</h4>
+                          <p><strong>Started:</strong> {new Date(selectedAssessment.dataCollectionStart).toLocaleString()}</p>
+                          {selectedAssessment.dataCollectionEnd && (
+                            <p><strong>Ended:</strong> {new Date(selectedAssessment.dataCollectionEnd).toLocaleString()}</p>
+                          )}
+                          <p><strong>Total Readings:</strong> {selectedAssessment.totalReadings || 0}</p>
+                        </div>
+                        
+                        <div className="data-card">
+                          <h4>Recent Readings</h4>
+                          {/* Add chart or data visualization here */}
+                          <p>Loading data readings...</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p>No IoT device deployed yet</p>
+                    )}
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Deploy Device Modal */}
+        {showDeployModal && (
+          <div className="modal-overlay" onClick={() => setShowDeployModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <h3>Deploy Device on Site</h3>
+              <p><strong>Device:</strong> {selectedAssessment?.assignedDeviceId?.deviceId}</p>
+              <p><strong>Assessment:</strong> {selectedAssessment?.bookingReference}</p>
               
-              <div className="modal-actions-engsiteassess">
-                {canGenerateQuotation(selectedItem) && (
-                  <button className="btn-primary-engsiteassess" onClick={() => {
-                    setShowDetailsModal(false);
-                    handleGenerateQuotation(selectedItem);
-                  }}>
-                    {selectedItem.type === 'free_quote' ? 'Create Quotation' : 'Generate Quotation'}
-                  </button>
-                )}
-                <button className="btn-secondary-engsiteassess" onClick={() => setShowDetailsModal(false)}>
-                  Close
+              <div className="form-group">
+                <label>Installation Location</label>
+                <input 
+                  type="text"
+                  value={formData.installationLocation}
+                  onChange={(e) => setFormData({...formData, installationLocation: e.target.value})}
+                  placeholder="e.g., Roof, South-facing"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>GPS Coordinates (optional)</label>
+                <input 
+                  type="text"
+                  value={formData.gpsCoordinates}
+                  onChange={(e) => setFormData({...formData, gpsCoordinates: e.target.value})}
+                  placeholder="e.g., 14.5995° N, 120.9842° E"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Device Serial at Deployment</label>
+                <input 
+                  type="text"
+                  value={formData.deviceSerialAtDeployment}
+                  onChange={(e) => setFormData({...formData, deviceSerialAtDeployment: e.target.value})}
+                  placeholder="Verify and enter device serial number"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Deployment Notes *</label>
+                <textarea 
+                  rows="4"
+                  value={formData.deploymentNotes}
+                  onChange={(e) => setFormData({...formData, deploymentNotes: e.target.value})}
+                  placeholder="Describe the deployment process, any issues encountered, etc."
+                  required
+                />
+              </div>
+              
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowDeployModal(false)}>Cancel</button>
+                <button className="deploy-btn" onClick={handleDeployDevice} disabled={isSubmitting}>
+                  {isSubmitting ? 'Deploying...' : 'Confirm Deployment'}
                 </button>
               </div>
             </div>
           </div>
         )}
         
-        {/* Quotation Generation Modal */}
-        {showQuotationModal && selectedItem && (
-          <div className="modal-overlay-engsiteassess" onClick={() => setShowQuotationModal(false)}>
-            <div className="modal-content-engsiteassess large-engsiteassess" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-engsiteassess" onClick={() => setShowQuotationModal(false)}>×</button>
-              <h2>{selectedItem.type === 'free_quote' ? 'Create Quotation' : 'Generate Quotation'}</h2>
-              <p className="modal-subtitle-engsiteassess">
-                {selectedItem.type === 'free_quote' 
-                  ? 'Create a quotation based on customer requirements'
-                  : 'Create a detailed quotation based on 7-day IoT data collection'}
-              </p>
+        {/* Retrieve Device Modal */}
+        {showRetrieveModal && (
+          <div className="modal-overlay" onClick={() => setShowRetrieveModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <h3>Retrieve Device</h3>
+              <p><strong>Device:</strong> {selectedAssessment?.iotDeviceId?.deviceId}</p>
+              <p><strong>Deployed Since:</strong> {new Date(selectedAssessment?.deviceDeployedAt).toLocaleDateString()}</p>
               
-              <div className="info-box-engsiteassess">
-                <strong>Client:</strong> {selectedItem.clientId?.contactFirstName} {selectedItem.clientId?.contactLastName}
-                <br />
-                <strong>Property Type:</strong> {selectedItem.propertyType}
-                {selectedItem.type === 'pre_assessment' && selectedItem.totalReadings > 0 && (
-                  <>
-                    <br />
-                    <strong>IoT Data Collected:</strong> {selectedItem.totalReadings} readings
-                  </>
-                )}
+              <div className="form-group">
+                <label>Retrieval Notes</label>
+                <textarea 
+                  rows="4"
+                  value={formData.retrievalNotes}
+                  onChange={(e) => setFormData({...formData, retrievalNotes: e.target.value})}
+                  placeholder="Describe the retrieval process, device condition, any data collected, etc."
+                />
               </div>
               
-              <div className="form-group-engsiteassess">
-                <label>Quotation PDF *</label>
-                <input
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowRetrieveModal(false)}>Cancel</button>
+                <button className="retrieve-btn" onClick={handleRetrieveDevice} disabled={isSubmitting}>
+                  {isSubmitting ? 'Retrieving...' : 'Confirm Retrieval'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Submit Report Modal */}
+        {showReportModal && (
+          <div className="modal-overlay" onClick={() => setShowReportModal(false)}>
+            <div className="modal-content large" onClick={e => e.stopPropagation()}>
+              <h3>Submit Assessment Report</h3>
+              
+              <div className="form-group">
+                <label>Technical Findings</label>
+                <textarea 
+                  rows="4"
+                  value={formData.technicalFindings}
+                  onChange={(e) => setFormData({...formData, technicalFindings: e.target.value})}
+                  placeholder="Describe technical findings from the site assessment and data collection..."
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Recommendations</label>
+                <textarea 
+                  rows="4"
+                  value={formData.recommendations}
+                  onChange={(e) => setFormData({...formData, recommendations: e.target.value})}
+                  placeholder="Provide recommendations for solar panel installation..."
+                />
+              </div>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Final System Size (kWp)</label>
+                  <input 
+                    type="number"
+                    step="0.5"
+                    value={formData.finalSystemSize}
+                    onChange={(e) => setFormData({...formData, finalSystemSize: e.target.value})}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Estimated System Cost (₱)</label>
+                  <input 
+                    type="number"
+                    value={formData.finalSystemCost}
+                    onChange={(e) => setFormData({...formData, finalSystemCost: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowReportModal(false)}>Cancel</button>
+                <button className="submit-btn" onClick={handleSubmitReport} disabled={isSubmitting}>
+                  {isSubmitting ? 'Submitting...' : 'Submit Report'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Upload Site Photos Modal */}
+        {showPhotoModal && (
+          <div className="modal-overlay" onClick={() => setShowPhotoModal(false)}>
+            <div className="modal-content large" onClick={e => e.stopPropagation()}>
+              <h3>Upload Site Photos</h3>
+              <p>Capture and upload photos of the site visit, equipment, installation location, etc.</p>
+              
+              <div className="form-group">
+                <label>Select Photos (Multiple allowed)</label>
+                <input 
                   type="file"
-                  accept=".pdf"
-                  onChange={(e) => setQuotationForm({...quotationForm, quotationFile: e.target.files[0]})}
+                  multiple
+                  accept="image/*"
+                  onChange={handlePhotoSelection}
+                  className="file-input"
                 />
-                <small>Upload your detailed quotation in PDF format</small>
+                <small>Supported formats: JPG, PNG, JPEG. Max size: 5MB per photo</small>
               </div>
               
-              <div className="form-row-engsiteassess">
-                <div className="form-group-engsiteassess">
-                  <label>Quotation Number</label>
-                  <input
-                    type="text"
-                    value={quotationForm.quotationNumber}
-                    onChange={(e) => setQuotationForm({...quotationForm, quotationNumber: e.target.value})}
-                    placeholder={`Q-${new Date().getFullYear()}-001`}
-                  />
+              {formData.photoFiles.length > 0 && (
+                <div className="photos-preview">
+                  <h4>Selected Photos ({formData.photoFiles.length})</h4>
+                  {formData.photoFiles.map((file, index) => (
+                    <div key={index} className="photo-preview-item">
+                      <img 
+                        src={URL.createObjectURL(file)} 
+                        alt={`Preview ${index + 1}`}
+                        className="preview-thumbnail"
+                      />
+                      <div className="photo-details">
+                        <input 
+                          type="text"
+                          placeholder="Caption (e.g., Roof condition, Panel location)"
+                          value={formData.photoCaptions[index]}
+                          onChange={(e) => updatePhotoCaption(index, e.target.value)}
+                          className="caption-input"
+                        />
+                        <input 
+                          type="text"
+                          placeholder="Location (e.g., Main roof, South side)"
+                          value={formData.photoLocations[index]}
+                          onChange={(e) => updatePhotoLocation(index, e.target.value)}
+                          className="location-input"
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                
-                <div className="form-group-engsiteassess">
-                  <label>Expiry Date</label>
-                  <input
-                    type="date"
-                    value={quotationForm.quotationExpiryDate}
-                    onChange={(e) => setQuotationForm({...quotationForm, quotationExpiryDate: e.target.value})}
-                  />
-                </div>
-              </div>
+              )}
               
-              <h3>System Specifications</h3>
-              <div className="form-row-engsiteassess">
-                <div className="form-group-engsiteassess">
-                  <label>System Size (kW)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={quotationForm.systemSize}
-                    onChange={(e) => setQuotationForm({...quotationForm, systemSize: e.target.value})}
-                    placeholder="e.g., 5.0"
-                  />
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="upload-progress">
+                  <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
+                  <span>{uploadProgress}% uploaded</span>
                 </div>
-                
-                <div className="form-group-engsiteassess">
-                  <label>System Type</label>
-                  <select
-                    value={quotationForm.systemType}
-                    onChange={(e) => setQuotationForm({...quotationForm, systemType: e.target.value})}
-                  >
-                    <option value="grid-tie">Grid-tie (No Battery)</option>
-                    <option value="hybrid">Hybrid (With Battery)</option>
-                    <option value="off-grid">Off-grid (Complete Independence)</option>
-                  </select>
-                </div>
-              </div>
+              )}
               
-              <div className="form-row-engsiteassess">
-                <div className="form-group-engsiteassess">
-                  <label>Number of Panels</label>
-                  <input
-                    type="number"
-                    value={quotationForm.panelsNeeded}
-                    onChange={(e) => setQuotationForm({...quotationForm, panelsNeeded: e.target.value})}
-                    placeholder="e.g., 15"
-                  />
-                </div>
-                
-                <div className="form-group-engsiteassess">
-                  <label>Inverter Type</label>
-                  <input
-                    type="text"
-                    value={quotationForm.inverterType}
-                    onChange={(e) => setQuotationForm({...quotationForm, inverterType: e.target.value})}
-                    placeholder="e.g., 5kW Hybrid Inverter"
-                  />
-                </div>
-              </div>
-              
-              <h3>Cost Breakdown</h3>
-              <div className="form-row-engsiteassess">
-                <div className="form-group-engsiteassess">
-                  <label>Equipment Cost (₱)</label>
-                  <input
-                    type="number"
-                    value={quotationForm.equipmentCost}
-                    onChange={(e) => setQuotationForm({...quotationForm, equipmentCost: e.target.value})}
-                    placeholder="0"
-                  />
-                </div>
-                
-                <div className="form-group-engsiteassess">
-                  <label>Installation Cost (₱)</label>
-                  <input
-                    type="number"
-                    value={quotationForm.installationCost}
-                    onChange={(e) => setQuotationForm({...quotationForm, installationCost: e.target.value})}
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-              
-              <div className="form-row-engsiteassess">
-                <div className="form-group-engsiteassess">
-                  <label>Total Cost (₱)</label>
-                  <input
-                    type="number"
-                    value={quotationForm.totalCost}
-                    onChange={(e) => setQuotationForm({...quotationForm, totalCost: e.target.value})}
-                    placeholder="0"
-                  />
-                </div>
-                
-                <div className="form-group-engsiteassess">
-                  <label>Payment Terms</label>
-                  <input
-                    type="text"
-                    value={quotationForm.paymentTerms}
-                    onChange={(e) => setQuotationForm({...quotationForm, paymentTerms: e.target.value})}
-                    placeholder="e.g., 30% down payment, balance upon completion"
-                  />
-                </div>
-              </div>
-              
-              <div className="form-group-engsiteassess">
-                <label>Additional Notes</label>
-                <textarea
-                  rows="3"
-                  value={quotationForm.notes}
-                  onChange={(e) => setQuotationForm({...quotationForm, notes: e.target.value})}
-                  placeholder="Any additional notes or special considerations..."
-                />
-              </div>
-              
-              <div className="modal-actions-engsiteassess">
-                <button className="btn-secondary-engsiteassess" onClick={() => setShowQuotationModal(false)}>
-                  Cancel
-                </button>
-                <button className="btn-primary-engsiteassess" onClick={handleUploadQuotation} disabled={isSubmitting}>
-                  {isSubmitting ? 'Uploading...' : 'Upload Quotation'}
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowPhotoModal(false)}>Cancel</button>
+                <button 
+                  className="upload-btn" 
+                  onClick={handleUploadSitePhotos} 
+                  disabled={isSubmitting || formData.photoFiles.length === 0}
+                >
+                  {isSubmitting ? 'Uploading...' : `Upload ${formData.photoFiles.length} Photo(s)`}
                 </button>
               </div>
             </div>
           </div>
         )}
         
-        {/* IoT Data Modal */}
-        {showIoTDataModal && (
-          <div className="modal-overlay-engsiteassess" onClick={() => setShowIoTDataModal(false)}>
-            <div className="modal-content-engsiteassess large-engsiteassess" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-engsiteassess" onClick={() => setShowIoTDataModal(false)}>×</button>
-              <h2>IoT Data Readings</h2>
-              <p className="modal-subtitle-engsiteassess">7-day data collection from site assessment</p>
+        {/* Add Comment Modal */}
+        {showCommentModal && (
+          <div className="modal-overlay" onClick={() => setShowCommentModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <h3>Add Comment</h3>
               
-              <div className="iot-data-table-engsiteassess">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Date/Time</th>
-                      <th>Voltage (V)</th>
-                      <th>Current (A)</th>
-                      <th>Power (W)</th>
-                      <th>Temperature (°C)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {iotData.length === 0 ? (
-                      <tr>
-                        <td colSpan="5" className="empty-state-engsiteassess">No IoT data available</td>
-                      </tr>
-                    ) : (
-                      iotData.map((reading, index) => (
-                        <tr key={index}>
-                          <td>{new Date(reading.timestamp).toLocaleString()}</td>
-                          <td>{reading.voltage?.toFixed(2) || 'N/A'}</td>
-                          <td>{reading.current?.toFixed(2) || 'N/A'}</td>
-                          <td>{reading.power?.toFixed(2) || 'N/A'}</td>
-                          <td>{reading.temperature?.toFixed(1) || 'N/A'}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+              <div className="form-group">
+                <label>Comment</label>
+                <textarea 
+                  rows="4"
+                  value={formData.comment}
+                  onChange={(e) => setFormData({...formData, comment: e.target.value})}
+                  placeholder="Add your comment or note about this assessment..."
+                  required
+                />
               </div>
               
-              <div className="modal-actions-engsiteassess">
-                <button className="btn-secondary-engsiteassess" onClick={() => setShowIoTDataModal(false)}>
-                  Close
+              <div className="form-group checkbox">
+                <label>
+                  <input 
+                    type="checkbox"
+                    checked={formData.isPublic}
+                    onChange={(e) => setFormData({...formData, isPublic: e.target.checked})}
+                  />
+                  Make this comment visible to client
+                </label>
+              </div>
+              
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setShowCommentModal(false)}>Cancel</button>
+                <button className="comment-btn" onClick={handleAddComment} disabled={isSubmitting}>
+                  {isSubmitting ? 'Adding...' : 'Add Comment'}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Full Image Modal */}
+        {showFullImageModal && selectedImage && (
+          <div className="modal-overlay" onClick={() => setShowFullImageModal(false)}>
+            <div className="full-image-modal" onClick={e => e.stopPropagation()}>
+              <img src={selectedImage} alt="Full size" />
+              <button className="close-btn" onClick={() => setShowFullImageModal(false)}>×</button>
             </div>
           </div>
         )}
@@ -651,4 +1196,4 @@ const SiteAssessment = () => {
   );
 };
 
-export default SiteAssessment;
+export default MyAssessments;
