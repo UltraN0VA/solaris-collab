@@ -17,11 +17,16 @@ import {
   FaBatteryQuarter,
   FaBatteryEmpty,
   FaWifi,
-  FaDownload
+  FaDownload,
+  FaThermometerHalf,
+  FaTachometerAlt,
+  FaClock
 } from 'react-icons/fa';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Engineer/iotDevice.css';
 
 const IoTDevice = () => {
+  const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
@@ -54,7 +59,7 @@ const IoTDevice = () => {
         params: {
           status: filter === 'all' ? undefined : filter,
           page: currentPage,
-          limit: 10
+          limit: 12
         }
       });
 
@@ -62,6 +67,7 @@ const IoTDevice = () => {
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching devices:', error);
+      showToast('Failed to fetch devices', 'error');
     } finally {
       setLoading(false);
     }
@@ -88,6 +94,7 @@ const IoTDevice = () => {
       setDeviceData(response.data.readings || []);
     } catch (error) {
       console.error('Error fetching device data:', error);
+      showToast('Failed to fetch device data', 'error');
     }
   };
 
@@ -124,21 +131,28 @@ const IoTDevice = () => {
   };
 
   const getBatteryIcon = (level) => {
-    if (level >= 75) return <FaBatteryFull className="battery-high-engdevice" />;
-    if (level >= 50) return <FaBatteryHalf className="battery-medium-engdevice" />;
-    if (level >= 25) return <FaBatteryQuarter className="battery-low-engdevice" />;
-    return <FaBatteryEmpty className="battery-critical-engdevice" />;
+    if (level >= 75) return <FaBatteryFull className="battery-high" />;
+    if (level >= 50) return <FaBatteryHalf className="battery-medium" />;
+    if (level >= 25) return <FaBatteryQuarter className="battery-low" />;
+    return <FaBatteryEmpty className="battery-critical" />;
+  };
+
+  const getBatteryClass = (level) => {
+    if (level >= 75) return 'high';
+    if (level >= 50) return 'medium';
+    if (level >= 25) return 'low';
+    return 'critical';
   };
 
   const getStatusBadge = (status) => {
     const badges = {
-      'active': <span className="status-badge-engdevice active-engdevice">Active</span>,
-      'deployed': <span className="status-badge-engdevice deployed-engdevice">Deployed - Collecting Data</span>,
-      'collecting': <span className="status-badge-engdevice collecting-engdevice">Collecting Data</span>,
-      'completed': <span className="status-badge-engdevice completed-engdevice">Completed</span>,
-      'maintenance': <span className="status-badge-engdevice maintenance-engdevice">Maintenance</span>
+      'active': <span className="status-badge active">Active</span>,
+      'deployed': <span className="status-badge deployed">Deployed</span>,
+      'collecting': <span className="status-badge collecting">Data Collecting</span>,
+      'completed': <span className="status-badge completed">Completed</span>,
+      'maintenance': <span className="status-badge maintenance">Maintenance</span>
     };
-    return badges[status] || <span className="status-badge-engdevice">{status}</span>;
+    return badges[status] || <span className="status-badge">{status}</span>;
   };
 
   const getDataSummary = (data) => {
@@ -167,9 +181,10 @@ const IoTDevice = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      showToast('Data exported successfully!', 'success');
     } catch (error) {
       console.error('Error exporting data:', error);
-      alert('Failed to export data');
+      showToast('Failed to export data', 'error');
     }
   };
 
@@ -184,30 +199,36 @@ const IoTDevice = () => {
 
   // Skeleton Loader
   const SkeletonLoader = () => (
-    <div className="iot-device-container-engdevice">
-      <div className="device-header-engdevice">
-        <div className="skeleton-line-engdevice large-engdevice"></div>
-        <div className="skeleton-line-engdevice medium-engdevice"></div>
+    <div className="iot-device-container">
+      <div className="device-header">
+        <div className="skeleton-line large"></div>
+        <div className="skeleton-line medium"></div>
       </div>
-      <div className="stats-cards-engdevice">
+      <div className="stats-cards">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="stat-card-engdevice skeleton-card-engdevice">
-            <div className="skeleton-line-engdevice small-engdevice"></div>
-            <div className="skeleton-line-engdevice large-engdevice"></div>
+          <div key={i} className="stat-card skeleton-card">
+            <div className="skeleton-line small"></div>
+            <div className="skeleton-line large"></div>
           </div>
         ))}
       </div>
-      <div className="device-filters-engdevice">
-        <div className="skeleton-select-engdevice"></div>
-        <div className="skeleton-search-engdevice"></div>
+      <div className="device-filters">
+        <div className="skeleton-select"></div>
+        <div className="skeleton-search"></div>
       </div>
-      <div className="devices-table-container-engdevice">
-        <div className="skeleton-table-engdevice">
-          <div className="skeleton-table-header-engdevice"></div>
-          {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="skeleton-table-row-engdevice"></div>
-          ))}
-        </div>
+      <div className="devices-grid">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div key={i} className="device-card skeleton-card">
+            <div className="skeleton-line medium"></div>
+            <div className="skeleton-line small"></div>
+            <div className="skeleton-line tiny"></div>
+            <div className="skeleton-badge"></div>
+            <div className="skeleton-button-group">
+              <div className="skeleton-button small"></div>
+              <div className="skeleton-button small"></div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -222,43 +243,43 @@ const IoTDevice = () => {
         <title>IoT Device Data | Engineer Dashboard</title>
       </Helmet>
 
-      <div className="iot-device-container-engdevice">
-        <div className="device-header-engdevice">
+      <div className="iot-device-container">
+        <div className="device-header">
           <h1>IoT Device Data</h1>
           <p>Monitor IoT device data from your assigned sites</p>
         </div>
 
-        {/* Stats Cards - No Icons */}
-        <div className="stats-cards-engdevice">
-          <div className="stat-card-engdevice total-engdevice">
-            <div className="stat-info-engdevice">
-              <span className="stat-value-engdevice">{stats.total}</span>
-              <span className="stat-label-engdevice">Total Devices</span>
+        {/* Stats Cards */}
+        <div className="stats-cards">
+          <div className="stat-card total">
+            <div className="stat-info">
+              <span className="stat-value">{stats.total}</span>
+              <span className="stat-label">Total Devices</span>
             </div>
           </div>
-          <div className="stat-card-engdevice active-engdevice">
-            <div className="stat-info-engdevice">
-              <span className="stat-value-engdevice">{stats.active}</span>
-              <span className="stat-label-engdevice">Active</span>
+          <div className="stat-card active">
+            <div className="stat-info">
+              <span className="stat-value">{stats.active}</span>
+              <span className="stat-label">Active</span>
             </div>
           </div>
-          <div className="stat-card-engdevice collecting-engdevice">
-            <div className="stat-info-engdevice">
-              <span className="stat-value-engdevice">{stats.collecting}</span>
-              <span className="stat-label-engdevice">Collecting Data</span>
+          <div className="stat-card collecting">
+            <div className="stat-info">
+              <span className="stat-value">{stats.collecting}</span>
+              <span className="stat-label">Collecting Data</span>
             </div>
           </div>
-          <div className="stat-card-engdevice completed-engdevice">
-            <div className="stat-info-engdevice">
-              <span className="stat-value-engdevice">{stats.completed}</span>
-              <span className="stat-label-engdevice">Completed</span>
+          <div className="stat-card completed">
+            <div className="stat-info">
+              <span className="stat-value">{stats.completed}</span>
+              <span className="stat-label">Completed</span>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="device-filters-engdevice">
-          <div className="filter-group-engdevice">
+        <div className="device-filters">
+          <div className="filter-group">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Devices</option>
               <option value="active">Active</option>
@@ -267,8 +288,8 @@ const IoTDevice = () => {
               <option value="maintenance">Maintenance</option>
             </select>
           </div>
-          <div className="search-group-engdevice">
-            <FaSearch className="search-icon-engdevice" />
+          <div className="search-group">
+            <FaSearch className="search-icon" />
             <input
               type="text"
               placeholder="Search by device ID, name, or client..."
@@ -278,93 +299,129 @@ const IoTDevice = () => {
           </div>
         </div>
 
-        {/* Devices Table */}
-        <div className="devices-table-container-engdevice">
-          <table className="devices-table-engdevice">
-            <thead>
-              <tr>
-                <th>Device ID</th>
-                <th>Name</th>
-                <th>Location</th>
-                <th>Assessment</th>
-                <th>Client</th>
-                <th>Status</th>
-                <th>Battery</th>
-                <th>Last Reading</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredDevices.length === 0 ? (
-                <tr>
-                  <td colSpan="9" className="empty-state-engdevice">
-                    <p>No devices found</p>
-                  </td>
-                </tr>
-              ) : (
-                filteredDevices.map(device => {
-                  const dataSummary = device.recentData ? getDataSummary(device.recentData) : null;
-                  return (
-                    <tr key={device._id}>
-                      <td className="device-id-engdevice">{device.deviceId}</td>
-                      <td><strong>{device.deviceName}</strong></td>
-                      <td className="location-cell-engdevice">{device.location || '—'}</td>
-                      <td>{device.assessmentReference || '—'}</td>
-                      <td>{device.clientName || '—'}</td>
-                      <td>{getStatusBadge(device.status)}</td>
-                      <td className="battery-cell-engdevice">
-                        {getBatteryIcon(device.batteryLevel)}
-                        <span>{device.batteryLevel || '—'}%</span>
-                      </td>
-                      <td>{formatDate(device.lastReading)}</td>
-                      <td className="actions-cell-engdevice">
-                        <button
-                          className="action-btn-engdevice view-engdevice"
-                          onClick={() => handleViewDevice(device)}
-                          title="View Details"
-                        >
-                          <FaEye />
-                        </button>
-                        {(device.status === 'collecting' || device.status === 'active') && (
-                          <button
-                            className="action-btn-engdevice data-engdevice"
-                            onClick={() => handleViewData(device)}
-                            title="View Data"
-                          >
-                            <FaChartLine />
-                          </button>
-                        )}
-                        {device.recentData?.length > 0 && (
-                          <button
-                            className="action-btn-engdevice export-engdevice"
-                            onClick={() => handleExportData(device)}
-                            title="Export Data"
-                          >
-                            <FaDownload />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+        {/* Devices Grid - Cards Layout */}
+        <div className="devices-grid">
+          {filteredDevices.length === 0 ? (
+            <div className="empty-state">
+              <FaMicrochip className="empty-icon" />
+              <p>No devices found</p>
+            </div>
+          ) : (
+            filteredDevices.map(device => {
+              const dataSummary = device.recentData ? getDataSummary(device.recentData) : null;
+              return (
+                <div key={device._id} className="device-card">
+                  <div className="device-header-card">
+                    <div className="device-icon">
+                      <FaMicrochip />
+                    </div>
+                    <div className="device-info">
+                      <h3>{device.deviceName}</h3>
+                      <span className="device-id">{device.deviceId}</span>
+                    </div>
+                    {getStatusBadge(device.status)}
+                  </div>
+
+                  <div className="device-specs">
+                    <div className="spec-item">
+                      <span className="spec-label">Client</span>
+                      <span className="spec-value">{device.clientName || '—'}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Assessment</span>
+                      <span className="spec-value">{device.assessmentReference || '—'}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Location</span>
+                      <span className="spec-value location-value">{device.location || '—'}</span>
+                    </div>
+                  </div>
+
+                  {/* Data Summary Section */}
+                  {dataSummary && (
+                    <div className="data-summary">
+                      <div className="summary-row">
+                        <div className="summary-item">
+                          <FaTachometerAlt />
+                          <div>
+                            <span>Avg Power</span>
+                            <strong>{dataSummary.avgPower} W</strong>
+                          </div>
+                        </div>
+                        <div className="summary-item">
+                          <FaThermometerHalf />
+                          <div>
+                            <span>Avg Temp</span>
+                            <strong>{dataSummary.avgTemp} °C</strong>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="summary-row">
+                        <div className="summary-item">
+                          <FaChartLine />
+                          <div>
+                            <span>Peak Power</span>
+                            <strong>{dataSummary.maxPower} W</strong>
+                          </div>
+                        </div>
+                        <div className="summary-item">
+                          <FaClock />
+                          <div>
+                            <span>Last Reading</span>
+                            <strong>{formatDateOnly(device.lastReading)}</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="device-footer">
+                    <div className="battery-status">
+                      {getBatteryIcon(device.batteryLevel)}
+                      <span className={`battery-level ${getBatteryClass(device.batteryLevel)}`}>
+                        {device.batteryLevel || '—'}%
+                      </span>
+                    </div>
+                    <div className="last-heartbeat">
+                      <FaClock />
+                      <span>{formatDate(device.lastHeartbeat)}</span>
+                    </div>
+                  </div>
+
+                  <div className="device-actions">
+                    <button className="action-btn view" onClick={() => handleViewDevice(device)} title="View Details">
+                      <FaEye />
+                    </button>
+                    {(device.status === 'collecting' || device.status === 'active') && (
+                      <button className="action-btn data" onClick={() => handleViewData(device)} title="View Data">
+                        <FaChartLine />
+                      </button>
+                    )}
+                    {device.recentData?.length > 0 && (
+                      <button className="action-btn export" onClick={() => handleExportData(device)} title="Export Data">
+                        <FaDownload />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="pagination-engdevice">
+          <div className="pagination">
             <button
-              className="page-btn-engdevice"
+              className="page-btn"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
               <FaChevronLeft /> Previous
             </button>
-            <span className="page-info-engdevice">Page {currentPage} of {totalPages}</span>
+            <span className="page-info">Page {currentPage} of {totalPages}</span>
             <button
-              className="page-btn-engdevice"
+              className="page-btn"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
             >
@@ -375,13 +432,13 @@ const IoTDevice = () => {
 
         {/* Device Details Modal */}
         {showDeviceModal && selectedDevice && (
-          <div className="modal-overlay-engdevice" onClick={() => setShowDeviceModal(false)}>
-            <div className="modal-content-engdevice" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-engdevice" onClick={() => setShowDeviceModal(false)}>×</button>
+          <div className="modal-overlay" onClick={() => setShowDeviceModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <button className="modal-close" onClick={() => setShowDeviceModal(false)}>×</button>
               <h2>Device Details</h2>
 
-              <div className="device-details-engdevice">
-                <div className="detail-section-engdevice">
+              <div className="device-details">
+                <div className="detail-section">
                   <h3>Device Information</h3>
                   <p><strong>Device ID:</strong> {selectedDevice.deviceId}</p>
                   <p><strong>Name:</strong> {selectedDevice.deviceName}</p>
@@ -390,7 +447,7 @@ const IoTDevice = () => {
                   <p><strong>Status:</strong> {getStatusBadge(selectedDevice.status)}</p>
                 </div>
 
-                <div className="detail-section-engdevice">
+                <div className="detail-section">
                   <h3>Assessment Information</h3>
                   <p><strong>Reference:</strong> {selectedDevice.assessmentReference || '—'}</p>
                   <p><strong>Client:</strong> {selectedDevice.clientName || '—'}</p>
@@ -401,7 +458,7 @@ const IoTDevice = () => {
                   )}
                 </div>
 
-                <div className="detail-section-engdevice">
+                <div className="detail-section">
                   <h3>Device Health</h3>
                   <p><strong>Battery Level:</strong> {selectedDevice.batteryLevel || '—'}%</p>
                   <p><strong>Last Heartbeat:</strong> {formatDate(selectedDevice.lastHeartbeat)}</p>
@@ -410,7 +467,7 @@ const IoTDevice = () => {
                 </div>
 
                 {deviceData.length > 0 && (
-                  <div className="detail-section-engdevice">
+                  <div className="detail-section">
                     <h3>Data Summary (Last 24h)</h3>
                     {(() => {
                       const summary = getDataSummary(deviceData);
@@ -426,16 +483,16 @@ const IoTDevice = () => {
                 )}
               </div>
 
-              <div className="modal-actions-engdevice">
+              <div className="modal-actions">
                 {(selectedDevice.status === 'collecting' || selectedDevice.status === 'active') && (
-                  <button className="btn-primary-engdevice" onClick={() => {
+                  <button className="btn-primary" onClick={() => {
                     setShowDeviceModal(false);
                     handleViewData(selectedDevice);
                   }}>
                     View Full Data
                   </button>
                 )}
-                <button className="btn-secondary-engdevice" onClick={() => setShowDeviceModal(false)}>
+                <button className="btn-secondary" onClick={() => setShowDeviceModal(false)}>
                   Close
                 </button>
               </div>
@@ -445,32 +502,32 @@ const IoTDevice = () => {
 
         {/* Device Data Modal */}
         {showDataModal && selectedDevice && (
-          <div className="modal-overlay-engdevice" onClick={() => setShowDataModal(false)}>
-            <div className="modal-content-engdevice large-engdevice" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-engdevice" onClick={() => setShowDataModal(false)}>×</button>
+          <div className="modal-overlay" onClick={() => setShowDataModal(false)}>
+            <div className="modal-content large" onClick={e => e.stopPropagation()}>
+              <button className="modal-close" onClick={() => setShowDataModal(false)}>×</button>
               <h2>Device Data - {selectedDevice.deviceName}</h2>
-              <p className="modal-subtitle-engdevice">
+              <p className="modal-subtitle">
                 {selectedDevice.assessmentReference} | {selectedDevice.clientName}
               </p>
 
-              <div className="data-summary-engdevice">
+              <div className="data-summary-cards">
                 {(() => {
                   const summary = getDataSummary(deviceData);
                   return (
-                    <div className="summary-cards-engdevice">
-                      <div className="summary-card-engdevice">
+                    <div className="summary-cards">
+                      <div className="summary-card">
                         <span>Avg Power</span>
                         <strong>{summary.avgPower} W</strong>
                       </div>
-                      <div className="summary-card-engdevice">
+                      <div className="summary-card">
                         <span>Peak Power</span>
                         <strong>{summary.maxPower} W</strong>
                       </div>
-                      <div className="summary-card-engdevice">
+                      <div className="summary-card">
                         <span>Avg Temp</span>
                         <strong>{summary.avgTemp} °C</strong>
                       </div>
-                      <div className="summary-card-engdevice">
+                      <div className="summary-card">
                         <span>Readings</span>
                         <strong>{deviceData.length}</strong>
                       </div>
@@ -479,8 +536,8 @@ const IoTDevice = () => {
                 })()}
               </div>
 
-              <div className="data-table-container-engdevice">
-                <table className="data-table-engdevice">
+              <div className="data-table-container">
+                <table className="data-table">
                   <thead>
                     <tr>
                       <th>Date/Time</th>
@@ -493,7 +550,7 @@ const IoTDevice = () => {
                   <tbody>
                     {deviceData.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="empty-state-engdevice">No data available</td>
+                        <td colSpan="5" className="empty-state">No data available</td>
                       </tr>
                     ) : (
                       deviceData.map((reading, index) => (
@@ -510,12 +567,12 @@ const IoTDevice = () => {
                 </table>
               </div>
 
-              <div className="modal-actions-engdevice">
-                <button className="btn-secondary-engdevice" onClick={() => setShowDataModal(false)}>
+              <div className="modal-actions">
+                <button className="btn-secondary" onClick={() => setShowDataModal(false)}>
                   Close
                 </button>
                 {deviceData.length > 0 && (
-                  <button className="btn-primary-engdevice" onClick={() => handleExportData(selectedDevice)}>
+                  <button className="btn-primary" onClick={() => handleExportData(selectedDevice)}>
                     <FaDownload /> Export CSV
                   </button>
                 )}
@@ -523,6 +580,15 @@ const IoTDevice = () => {
             </div>
           </div>
         )}
+
+        {/* Toast Notification */}
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          position="bottom-right"
+        />
       </div>
     </>
   );

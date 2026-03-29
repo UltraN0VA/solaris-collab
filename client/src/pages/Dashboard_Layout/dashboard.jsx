@@ -184,8 +184,7 @@ const Dashboard = () => {
       { icon: <FaProjectDiagram />, label: 'My Project', path: '/app/customer/project' },
       { icon: <FaCalendarAlt />, label: 'Book Assessment', path: '/app/customer/book-assessment' },
       { icon: <FaFileInvoiceDollar />, label: 'Billing', path: '/app/customer/billing' },
-      { icon: <FaChartLine />, label: 'Performance', path: '/app/customer/performance' },
-      { icon: <FaFileAlt />, label: 'Reports', path: '/app/customer/reports' },
+      // Performance and Reports removed
     ],
   };
 
@@ -575,13 +574,14 @@ const Dashboard = () => {
 
       <main className="main-content-layout-dashboard">
         <header className="dashboard-header-layout-dashboard">
-          <button 
+          {/* REMOVED HAMBURGER MENU BUTTON */}
+          {/* <button 
             className="sidebar-toggle-layout-dashboard" 
             onClick={() => setSidebarOpen(!sidebarOpen)}
             disabled={isNavigating}
           >
             <FaBars />
-          </button>
+          </button> */}
 
           <div className="header-search-layout-dashboard">
             <FaSearch className="search-icon-layout-dashboard" />

@@ -23,7 +23,18 @@ import {
   FaUserCheck,
   FaInfoCircle,
   FaUserCog,
-  FaMicrochip
+  FaMicrochip,
+  FaThermometerHalf,
+  FaTint,
+  FaSun,
+  FaMapMarkerAlt,
+  FaBatteryFull,
+  FaBatteryThreeQuarters,
+  FaBatteryHalf,
+  FaBatteryQuarter,
+  FaSignal,
+  FaHistory,
+  FaChartLine
 } from 'react-icons/fa';
 import '../../styles/Admin/iotDevice.css';
 
@@ -33,12 +44,14 @@ const IoTDevice = () => {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showDeviceModal, setShowDeviceModal] = useState(false);
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
+  const [showDataModal, setShowDataModal] = useState(false);
   const [modalMode, setModalMode] = useState('view');
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sensorData, setSensorData] = useState([]);
   const [formData, setFormData] = useState({
     deviceName: '',
     model: '',
@@ -69,7 +82,7 @@ const IoTDevice = () => {
       const token = sessionStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/devices`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: 10 }
+        params: { status: filter === 'all' ? undefined : filter, page: currentPage, limit: 12 }
       });
       setDevices(response.data.devices || []);
       setTotalPages(response.data.totalPages || 1);
@@ -89,6 +102,19 @@ const IoTDevice = () => {
       setStats(response.data.stats);
     } catch (error) {
       console.error('Error fetching stats:', error);
+    }
+  };
+
+  const fetchDeviceData = async (deviceId) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/sensor/device-data/${deviceId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSensorData(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching device data:', error);
+      setSensorData([]);
     }
   };
 
@@ -154,7 +180,7 @@ const IoTDevice = () => {
   };
 
   const handleDeleteDevice = async () => {
-    if (!window.confirm('Are you sure you want to delete this device? This action cannot be undone.')) {
+    if (!window.confirm('Are you sure you want to delete this device?')) {
       return;
     }
 
@@ -243,6 +269,12 @@ const IoTDevice = () => {
     setShowDeviceModal(true);
   };
 
+  const openDataModal = async (device) => {
+    setSelectedDevice(device);
+    await fetchDeviceData(device._id);
+    setShowDataModal(true);
+  };
+
   const openMaintenanceModal = (device) => {
     setSelectedDevice(device);
     setShowMaintenanceModal(true);
@@ -250,14 +282,30 @@ const IoTDevice = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'available': <span className="status-badge-iotdevicead available-iotdevicead">Available</span>,
-      'assigned': <span className="status-badge-iotdevicead assigned-iotdevicead">Assigned</span>,
-      'deployed': <span className="status-badge-iotdevicead deployed-iotdevicead">Deployed</span>,
-      'data_collecting': <span className="status-badge-iotdevicead data-collecting-iotdevicead">Data Collecting</span>,
-      'maintenance': <span className="status-badge-iotdevicead maintenance-iotdevicead">Maintenance</span>,
-      'retired': <span className="status-badge-iotdevicead retired-iotdevicead">Retired</span>
+      'available': <span className="status-badge-adminiot available-adminiot">Available</span>,
+      'assigned': <span className="status-badge-adminiot assigned-adminiot">Assigned</span>,
+      'deployed': <span className="status-badge-adminiot deployed-adminiot">Deployed</span>,
+      'data_collecting': <span className="status-badge-adminiot data-collecting-adminiot">Data Collecting</span>,
+      'maintenance': <span className="status-badge-adminiot maintenance-adminiot">Maintenance</span>,
+      'retired': <span className="status-badge-adminiot retired-adminiot">Retired</span>
     };
-    return badges[status] || <span className="status-badge-iotdevicead">{status}</span>;
+    return badges[status] || <span className="status-badge-adminiot">{status}</span>;
+  };
+
+  const getBatteryIcon = (level) => {
+    if (!level) return <FaBatteryQuarter />;
+    if (level >= 75) return <FaBatteryFull />;
+    if (level >= 50) return <FaBatteryThreeQuarters />;
+    if (level >= 25) return <FaBatteryHalf />;
+    return <FaBatteryQuarter />;
+  };
+
+  const getBatteryClass = (level) => {
+    if (!level) return 'low';
+    if (level >= 75) return 'high';
+    if (level >= 50) return 'medium';
+    if (level >= 25) return 'low';
+    return 'critical';
   };
 
   const formatDate = (date) => {
@@ -271,6 +319,22 @@ const IoTDevice = () => {
     });
   };
 
+  const formatDateTime = (date) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleString('en-PH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getLatestSensorReading = () => {
+    if (!sensorData.length) return null;
+    return sensorData[0];
+  };
+
   const filteredDevices = devices.filter(device => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
@@ -280,38 +344,44 @@ const IoTDevice = () => {
       device.serialNumber?.toLowerCase().includes(searchLower);
   });
 
-  // Skeleton Loader
-  const SkeletonLoader = () => (
-    <div className="iot-device-management-iotdevicead">
-      <div className="iot-header-iotdevicead">
-        <div className="skeleton-line-iotdevicead large-iotdevicead"></div>
-        <div className="skeleton-button-iotdevicead"></div>
-      </div>
-      <div className="iot-stats-iotdevicead">
-        {[1, 2, 3, 4, 5, 6].map(i => (
-          <div key={i} className="stat-card-iotdevicead skeleton-card-iotdevicead">
-            <div className="skeleton-line-iotdevicead small-iotdevicead"></div>
-            <div className="skeleton-line-iotdevicead large-iotdevicead"></div>
+  if (loading && devices.length === 0) {
+    return (
+      <div className="admin-iot-adminiot">
+        <div className="iot-header-adminiot">
+          <div>
+            <div className="skeleton-line-adminiot large-adminiot"></div>
+            <div className="skeleton-line-adminiot medium-adminiot"></div>
           </div>
-        ))}
-      </div>
-      <div className="iot-filters-iotdevicead">
-        <div className="skeleton-select-iotdevicead"></div>
-        <div className="skeleton-search-iotdevicead"></div>
-      </div>
-      <div className="iot-table-container-iotdevicead">
-        <div className="skeleton-table-iotdevicead">
-          <div className="skeleton-table-header-iotdevicead"></div>
-          {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="skeleton-table-row-iotdevicead"></div>
+          <div className="skeleton-button-adminiot"></div>
+        </div>
+        <div className="stats-cards-adminiot">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="stat-card-adminiot skeleton-card-adminiot">
+              <div className="skeleton-line-adminiot small-adminiot"></div>
+              <div className="skeleton-line-adminiot large-adminiot"></div>
+            </div>
+          ))}
+        </div>
+        <div className="filters-section-adminiot">
+          <div className="skeleton-select-adminiot"></div>
+          <div className="skeleton-search-adminiot"></div>
+        </div>
+        <div className="devices-grid-adminiot">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="device-card-adminiot skeleton-card-adminiot">
+              <div className="skeleton-line-adminiot medium-adminiot"></div>
+              <div className="skeleton-line-adminiot small-adminiot"></div>
+              <div className="skeleton-line-adminiot tiny-adminiot"></div>
+              <div className="skeleton-badge-adminiot"></div>
+              <div className="skeleton-button-group-adminiot">
+                <div className="skeleton-button-adminiot small-adminiot"></div>
+                <div className="skeleton-button-adminiot small-adminiot"></div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
-    </div>
-  );
-
-  if (loading && devices.length === 0) {
-    return <SkeletonLoader />;
+    );
   }
 
   return (
@@ -320,58 +390,61 @@ const IoTDevice = () => {
         <title>IoT Device Management | Admin | Salfer Engineering</title>
       </Helmet>
 
-      <div className="iot-device-management-iotdevicead">
-        <div className="iot-header-iotdevicead">
+      <div className="admin-iot-adminiot">
+        {/* Header */}
+        <div className="iot-header-adminiot">
           <div>
             <h1>IoT Device Management</h1>
-            <p>Manage IoT devices inventory and monitor device health</p>
+            <p>Monitor and manage IoT devices, view real-time sensor data</p>
           </div>
-          <button className="create-device-btn-iotdevicead" onClick={() => { setModalMode('create'); resetForm(); setShowDeviceModal(true); }}>
+          <button className="create-device-btn-adminiot" onClick={() => { setModalMode('create'); resetForm(); setShowDeviceModal(true); }}>
             <FaPlus /> Add New Device
           </button>
         </div>
 
-        <div className="iot-stats-iotdevicead">
-          <div className="stat-card-iotdevicead total-iotdevicead">
-            <div className="stat-info-iotdevicead">
-              <span className="stat-value-iotdevicead">{stats.total || 0}</span>
-              <span className="stat-label-iotdevicead">Total Devices</span>
+        {/* Stats Cards */}
+        <div className="stats-cards-adminiot">
+          <div className="stat-card-adminiot total-adminiot">
+            <div className="stat-info-adminiot">
+              <span className="stat-value-adminiot">{stats.total || 0}</span>
+              <span className="stat-label-adminiot">Total Devices</span>
             </div>
           </div>
-          <div className="stat-card-iotdevicead available-iotdevicead">
-            <div className="stat-info-iotdevicead">
-              <span className="stat-value-iotdevicead">{stats.available || 0}</span>
-              <span className="stat-label-iotdevicead">Available</span>
+          <div className="stat-card-adminiot available-adminiot">
+            <div className="stat-info-adminiot">
+              <span className="stat-value-adminiot">{stats.available || 0}</span>
+              <span className="stat-label-adminiot">Available</span>
             </div>
           </div>
-          <div className="stat-card-iotdevicead assigned-iotdevicead">
-            <div className="stat-info-iotdevicead">
-              <span className="stat-value-iotdevicead">{stats.assigned || 0}</span>
-              <span className="stat-label-iotdevicead">Assigned</span>
+          <div className="stat-card-adminiot assigned-adminiot">
+            <div className="stat-info-adminiot">
+              <span className="stat-value-adminiot">{stats.assigned || 0}</span>
+              <span className="stat-label-adminiot">Assigned</span>
             </div>
           </div>
-          <div className="stat-card-iotdevicead deployed-iotdevicead">
-            <div className="stat-info-iotdevicead">
-              <span className="stat-value-iotdevicead">{(stats.deployed || 0) + (stats.data_collecting || 0)}</span>
-              <span className="stat-label-iotdevicead">Deployed/Active</span>
+          <div className="stat-card-adminiot deployed-adminiot">
+            <div className="stat-info-adminiot">
+              <span className="stat-value-adminiot">{(stats.deployed || 0) + (stats.data_collecting || 0)}</span>
+              <span className="stat-label-adminiot">Active / Deployed</span>
             </div>
           </div>
-          <div className="stat-card-iotdevicead maintenance-iotdevicead">
-            <div className="stat-info-iotdevicead">
-              <span className="stat-value-iotdevicead">{stats.maintenance || 0}</span>
-              <span className="stat-label-iotdevicead">Maintenance</span>
+          <div className="stat-card-adminiot maintenance-adminiot">
+            <div className="stat-info-adminiot">
+              <span className="stat-value-adminiot">{stats.maintenance || 0}</span>
+              <span className="stat-label-adminiot">Maintenance</span>
             </div>
           </div>
-          <div className="stat-card-iotdevicead retired-iotdevicead">
-            <div className="stat-info-iotdevicead">
-              <span className="stat-value-iotdevicead">{stats.retired || 0}</span>
-              <span className="stat-label-iotdevicead">Retired</span>
+          <div className="stat-card-adminiot retired-adminiot">
+            <div className="stat-info-adminiot">
+              <span className="stat-value-adminiot">{stats.retired || 0}</span>
+              <span className="stat-label-adminiot">Retired</span>
             </div>
           </div>
         </div>
 
-        <div className="iot-filters-iotdevicead">
-          <div className="filter-group-iotdevicead">
+        {/* Filters */}
+        <div className="filters-section-adminiot">
+          <div className="filter-group-adminiot">
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All Devices</option>
               <option value="available">Available</option>
@@ -382,8 +455,8 @@ const IoTDevice = () => {
               <option value="retired">Retired</option>
             </select>
           </div>
-          <div className="search-group-iotdevicead">
-            <FaSearch className="search-icon-iotdevicead" />
+          <div className="search-group-adminiot">
+            <FaSearch className="search-icon-adminiot" />
             <input 
               type="text" 
               placeholder="Search by ID, name, model, or serial..." 
@@ -393,92 +466,134 @@ const IoTDevice = () => {
           </div>
         </div>
 
-        <div className="iot-table-container-iotdevicead">
-          <table className="iot-table-iotdevicead">
-            <thead>
-              <tr>
-                <th>Device ID</th>
-                <th>Name</th>
-                <th>Model</th>
-                <th>Firmware</th>
-                <th>Status</th>
-                <th>Battery</th>
-                <th>Assigned To</th>
-                <th>Last Heartbeat</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredDevices.length === 0 ? (
-                <tr>
-                  <td colSpan="9" className="empty-state-iotdevicead">
-                    <p>No devices found</p>
-                  </td>
-                </tr>
-              ) : (
-                filteredDevices.map(device => (
-                  <tr key={device._id}>
-                    <td className="device-id-iotdevicead">{device.deviceId}</td>
-                    <td><strong>{device.deviceName}</strong></td>
-                    <td>{device.model}</td>
-                    <td>v{device.firmwareVersion}</td>
-                    <td>{getStatusBadge(device.status)}</td>
-                    <td className="battery-cell-iotdevicead">
-                      <span className={`battery-level-${device.batteryLevel < 20 ? 'low' : device.batteryLevel < 50 ? 'medium' : 'high'}`}>
-                        {device.batteryLevel || '—'}%
-                      </span>
-                    </td>
-                    <td>
-                      {device.assignedToPreAssessmentId ? (
-                        <span className="assigned-assessment">
-                          <FaMicrochip /> {device.assignedToPreAssessmentId?.bookingReference || 'Assessment'}
-                        </span>
-                      ) : device.assignedToEngineerId ? (
-                        <span className="assigned-engineer">
-                          <FaUserCog /> {device.assignedToEngineerId?.name || 'Engineer'}
-                        </span>
-                      ) : (
-                        <span className="not-assigned">—</span>
-                      )}
-                    </td>
-                    <td>{formatDate(device.lastHeartbeat)}</td>
-                    <td className="actions-cell-iotdevicead">
-                      <button className="action-btn-iotdevicead view-iotdevicead" onClick={() => openViewModal(device)} title="View Details">
-                        <FaEye />
-                      </button>
-                      {(device.status === 'available' || device.status === 'maintenance') && (
-                        <button className="action-btn-iotdevicead edit-iotdevicead" onClick={() => openEditModal(device)} title="Edit">
-                          <FaEdit />
-                        </button>
-                      )}
-                      {(device.status === 'deployed' || device.status === 'data_collecting') && (
-                        <span className="action-note active">Device Active</span>
-                      )}
-                      {device.status !== 'retired' && device.status !== 'assigned' && device.status !== 'deployed' && device.status !== 'data_collecting' && device.status !== 'available' && (
-                        <button className="action-btn-iotdevicead maintenance-iotdevicead" onClick={() => openMaintenanceModal(device)} title="Maintenance">
-                          <FaTools />
-                        </button>
-                      )}
-                      {device.status === 'available' && (
-                        <button className="action-btn-iotdevicead delete-iotdevicead" onClick={() => { setSelectedDevice(device); if (window.confirm('Delete this device?')) handleDeleteDevice(); }} title="Delete">
-                          <FaTrash />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        {/* Devices Grid - Cards Layout */}
+        <div className="devices-grid-adminiot">
+          {filteredDevices.length === 0 ? (
+            <div className="empty-state-adminiot">
+              <FaMicrochip className="empty-icon-adminiot" />
+              <p>No devices found</p>
+            </div>
+          ) : (
+            filteredDevices.map(device => (
+              <div key={device._id} className="device-card-adminiot">
+                <div className="device-header-adminiot">
+                  <div className="device-icon-adminiot">
+                    <FaMicrochip />
+                  </div>
+                  <div className="device-info-adminiot">
+                    <h3>{device.deviceName}</h3>
+                    <span className="device-id-adminiot">{device.deviceId}</span>
+                  </div>
+                  {getStatusBadge(device.status)}
+                </div>
+
+                <div className="device-specs-adminiot">
+                  <div className="spec-item-adminiot">
+                    <span className="spec-label-adminiot">Model</span>
+                    <span className="spec-value-adminiot">{device.model}</span>
+                  </div>
+                  <div className="spec-item-adminiot">
+                    <span className="spec-label-adminiot">Firmware</span>
+                    <span className="spec-value-adminiot">v{device.firmwareVersion}</span>
+                  </div>
+                  <div className="spec-item-adminiot">
+                    <span className="spec-label-adminiot">Serial</span>
+                    <span className="spec-value-adminiot">{device.serialNumber || '—'}</span>
+                  </div>
+                </div>
+
+                {/* Sensor Data Section */}
+                {device.status === 'data_collecting' || device.status === 'deployed' ? (
+                  <div className="sensor-data-adminiot">
+                    <div className="sensor-row-adminiot">
+                      <div className="sensor-reading-adminiot">
+                        <FaSun className="sensor-icon-adminiot irradiance-adminiot" />
+                        <div>
+                          <span className="sensor-label-adminiot">Irradiance</span>
+                          <span className="sensor-value-adminiot">{device.latestIrradiance || '—'} W/m²</span>
+                        </div>
+                      </div>
+                      <div className="sensor-reading-adminiot">
+                        <FaThermometerHalf className="sensor-icon-adminiot temp-adminiot" />
+                        <div>
+                          <span className="sensor-label-adminiot">Temperature</span>
+                          <span className="sensor-value-adminiot">{device.latestTemperature || '—'} °C</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="sensor-row-adminiot">
+                      <div className="sensor-reading-adminiot">
+                        <FaTint className="sensor-icon-adminiot humidity-adminiot" />
+                        <div>
+                          <span className="sensor-label-adminiot">Humidity</span>
+                          <span className="sensor-value-adminiot">{device.latestHumidity || '—'} %</span>
+                        </div>
+                      </div>
+                      <div className="sensor-reading-adminiot">
+                        <FaMapMarkerAlt className="sensor-icon-adminiot location-adminiot" />
+                        <div>
+                          <span className="sensor-label-adminiot">Location</span>
+                          <span className="sensor-value-adminiot">{device.latitude && device.longitude ? `${device.latitude}, ${device.longitude}` : '—'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="sensor-placeholder-adminiot">
+                    <FaClock />
+                    <span>Device not collecting data</span>
+                  </div>
+                )}
+
+                <div className="device-footer-adminiot">
+                  <div className="battery-status-adminiot">
+                    {getBatteryIcon(device.batteryLevel)}
+                    <span className={`battery-level-adminiot ${getBatteryClass(device.batteryLevel)}`}>
+                      {device.batteryLevel || '—'}%
+                    </span>
+                  </div>
+                  <div className="last-heartbeat-adminiot">
+                    <FaClock />
+                    <span>{formatDate(device.lastHeartbeat)}</span>
+                  </div>
+                </div>
+
+                <div className="device-actions-adminiot">
+                  <button className="action-btn-adminiot view-adminiot" onClick={() => openViewModal(device)} title="View Details">
+                    <FaEye />
+                  </button>
+                  <button className="action-btn-adminiot data-adminiot" onClick={() => openDataModal(device)} title="View Sensor Data">
+                    <FaChartLine />
+                  </button>
+                  {(device.status === 'available' || device.status === 'maintenance') && (
+                    <button className="action-btn-adminiot edit-adminiot" onClick={() => openEditModal(device)} title="Edit">
+                      <FaEdit />
+                    </button>
+                  )}
+                  {device.status !== 'retired' && device.status !== 'assigned' && device.status !== 'deployed' && device.status !== 'data_collecting' && device.status !== 'available' && (
+                    <button className="action-btn-adminiot maintenance-adminiot" onClick={() => openMaintenanceModal(device)} title="Maintenance">
+                      <FaTools />
+                    </button>
+                  )}
+                  {device.status === 'available' && (
+                    <button className="action-btn-adminiot delete-adminiot" onClick={() => { setSelectedDevice(device); if (window.confirm('Delete this device?')) handleDeleteDevice(); }} title="Delete">
+                      <FaTrash />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
+        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="pagination-iotdevicead">
-            <button className="page-btn-iotdevicead" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+          <div className="pagination-adminiot">
+            <button className="page-btn-adminiot" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
               <FaChevronLeft /> Previous
             </button>
-            <span className="page-info-iotdevicead">Page {currentPage} of {totalPages}</span>
-            <button className="page-btn-iotdevicead" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+            <span className="page-info-adminiot">Page {currentPage} of {totalPages}</span>
+            <button className="page-btn-adminiot" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
               Next <FaChevronRight />
             </button>
           </div>
@@ -486,12 +601,13 @@ const IoTDevice = () => {
 
         {/* Device Modal (Create/Edit/View) */}
         {showDeviceModal && (
-          <div className="modal-overlay-iotdevicead" onClick={() => setShowDeviceModal(false)}>
-            <div className="modal-content-iotdevicead device-modal-iotdevicead" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminiot" onClick={() => setShowDeviceModal(false)}>
+            <div className="modal-content-adminiot" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-adminiot" onClick={() => setShowDeviceModal(false)}>×</button>
               <h3>{modalMode === 'create' ? 'Add New Device' : modalMode === 'edit' ? 'Edit Device' : 'Device Details'}</h3>
               {modalMode === 'view' && selectedDevice ? (
-                <div className="device-details-view-iotdevicead">
-                  <div className="detail-section-iotdevicead">
+                <div className="device-details-view-adminiot">
+                  <div className="detail-section-adminiot">
                     <h4>Device Information</h4>
                     <p><strong>Device ID:</strong> {selectedDevice.deviceId}</p>
                     <p><strong>Name:</strong> {selectedDevice.deviceName}</p>
@@ -501,39 +617,45 @@ const IoTDevice = () => {
                     <p><strong>Firmware:</strong> v{selectedDevice.firmwareVersion}</p>
                     <p><strong>Status:</strong> {getStatusBadge(selectedDevice.status)}</p>
                     <p><strong>Battery:</strong> {selectedDevice.batteryLevel || '—'}%</p>
-                    <p><strong>Last Heartbeat:</strong> {formatDate(selectedDevice.lastHeartbeat)}</p>
-                    {selectedDevice.assignedToPreAssessmentId && (
-                      <p><strong>Assigned to Pre-Assessment:</strong> {selectedDevice.assignedToPreAssessmentId?.bookingReference}</p>
-                    )}
-                    {selectedDevice.assignedToEngineerId && (
-                      <p><strong>Assigned Engineer:</strong> {selectedDevice.assignedToEngineerId?.name}</p>
-                    )}
+                    <p><strong>Last Heartbeat:</strong> {formatDateTime(selectedDevice.lastHeartbeat)}</p>
                   </div>
-                  <div className="detail-section-iotdevicead">
+                  <div className="detail-section-adminiot">
+                    <h4>Location & Environment</h4>
+                    <p><strong>Latitude:</strong> {selectedDevice.latitude || '—'}</p>
+                    <p><strong>Longitude:</strong> {selectedDevice.longitude || '—'}</p>
+                    <p><strong>Latest Irradiance:</strong> {selectedDevice.latestIrradiance || '—'} W/m²</p>
+                    <p><strong>Latest Temperature:</strong> {selectedDevice.latestTemperature || '—'} °C</p>
+                    <p><strong>Latest Humidity:</strong> {selectedDevice.latestHumidity || '—'} %</p>
+                  </div>
+                  <div className="detail-section-adminiot">
                     <h4>Deployment History</h4>
-                    {selectedDevice.deploymentHistory?.length > 0 ? selectedDevice.deploymentHistory.map((h, i) => (
-                      <div key={i} className="history-item-iotdevicead">
-                        <p><strong>Assigned:</strong> {formatDate(h.assignedAt)}</p>
-                        <p><strong>Deployed:</strong> {formatDate(h.deployedAt) || 'Not yet deployed'}</p>
-                        <p><strong>Retrieved:</strong> {formatDate(h.retrievedAt) || 'Still active'}</p>
-                        <p><strong>Notes:</strong> {h.notes || '—'}</p>
-                      </div>
-                    )) : <p>No deployment history</p>}
+                    {selectedDevice.deploymentHistory?.length > 0 ? (
+                      selectedDevice.deploymentHistory.map((h, i) => (
+                        <div key={i} className="history-item-adminiot">
+                          <p><strong>Assigned:</strong> {formatDateTime(h.assignedAt)}</p>
+                          <p><strong>Deployed:</strong> {formatDateTime(h.deployedAt) || 'Not yet deployed'}</p>
+                          <p><strong>Retrieved:</strong> {formatDateTime(h.retrievedAt) || 'Still active'}</p>
+                          <p><strong>Notes:</strong> {h.notes || '—'}</p>
+                        </div>
+                      ))
+                    ) : <p>No deployment history</p>}
                   </div>
-                  <div className="detail-section-iotdevicead">
+                  <div className="detail-section-adminiot">
                     <h4>Maintenance History</h4>
-                    {selectedDevice.maintenanceHistory?.length > 0 ? selectedDevice.maintenanceHistory.map((m, i) => (
-                      <div key={i} className="history-item-iotdevicead">
-                        <p><strong>Type:</strong> {m.type}</p>
-                        <p><strong>Date:</strong> {formatDate(m.date)}</p>
-                        <p><strong>Notes:</strong> {m.notes}</p>
-                      </div>
-                    )) : <p>No maintenance history</p>}
+                    {selectedDevice.maintenanceHistory?.length > 0 ? (
+                      selectedDevice.maintenanceHistory.map((m, i) => (
+                        <div key={i} className="history-item-adminiot">
+                          <p><strong>Type:</strong> {m.type}</p>
+                          <p><strong>Date:</strong> {formatDateTime(m.date)}</p>
+                          <p><strong>Notes:</strong> {m.notes}</p>
+                        </div>
+                      ))
+                    ) : <p>No maintenance history</p>}
                   </div>
                 </div>
               ) : (
-                <div className="device-form-iotdevicead">
-                  <div className="form-group-iotdevicead">
+                <div className="device-form-adminiot">
+                  <div className="form-group-adminiot">
                     <label>Device Name *</label>
                     <input 
                       type="text" 
@@ -542,8 +664,8 @@ const IoTDevice = () => {
                       placeholder="e.g., IoT Sensor 01" 
                     />
                   </div>
-                  <div className="form-row-iotdevicead">
-                    <div className="form-group-iotdevicead">
+                  <div className="form-row-adminiot">
+                    <div className="form-group-adminiot">
                       <label>Model *</label>
                       <input 
                         type="text" 
@@ -552,7 +674,7 @@ const IoTDevice = () => {
                         placeholder="e.g., ESP32-S3" 
                       />
                     </div>
-                    <div className="form-group-iotdevicead">
+                    <div className="form-group-adminiot">
                       <label>Manufacturer</label>
                       <input 
                         type="text" 
@@ -562,8 +684,8 @@ const IoTDevice = () => {
                       />
                     </div>
                   </div>
-                  <div className="form-row-iotdevicead">
-                    <div className="form-group-iotdevicead">
+                  <div className="form-row-adminiot">
+                    <div className="form-group-adminiot">
                       <label>Serial Number</label>
                       <input 
                         type="text" 
@@ -572,7 +694,7 @@ const IoTDevice = () => {
                         placeholder="Enter serial number" 
                       />
                     </div>
-                    <div className="form-group-iotdevicead">
+                    <div className="form-group-adminiot">
                       <label>Firmware Version</label>
                       <input 
                         type="text" 
@@ -582,40 +704,104 @@ const IoTDevice = () => {
                       />
                     </div>
                   </div>
-                  <div className="modal-actions-iotdevicead">
-                    <button className="cancel-btn-iotdevicead" onClick={() => setShowDeviceModal(false)}>Cancel</button>
-                    {(modalMode === 'create' || modalMode === 'edit') && (
-                      <button className="save-btn-iotdevicead" onClick={modalMode === 'create' ? handleCreateDevice : handleUpdateDevice} disabled={isSubmitting}>
-                        {isSubmitting ? 'Saving...' : 'Save Device'}
-                      </button>
-                    )}
+                </div>
+              )}
+              <div className="modal-actions-adminiot">
+                <button className="cancel-btn-adminiot" onClick={() => setShowDeviceModal(false)}>Cancel</button>
+                {(modalMode === 'create' || modalMode === 'edit') && (
+                  <button className="save-btn-adminiot" onClick={modalMode === 'create' ? handleCreateDevice : handleUpdateDevice} disabled={isSubmitting}>
+                    {isSubmitting ? 'Saving...' : 'Save Device'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sensor Data Modal */}
+        {showDataModal && selectedDevice && (
+          <div className="modal-overlay-adminiot" onClick={() => setShowDataModal(false)}>
+            <div className="modal-content-adminiot data-modal-adminiot" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-adminiot" onClick={() => setShowDataModal(false)}>×</button>
+              <h3>Sensor Data - {selectedDevice.deviceName}</h3>
+              <div className="data-summary-adminiot">
+                <div className="summary-card-adminiot">
+                  <FaSun />
+                  <div>
+                    <span>Latest Irradiance</span>
+                    <strong>{getLatestSensorReading()?.irradiance || '—'} W/m²</strong>
                   </div>
                 </div>
-              )}
-              {modalMode === 'view' && (
-                <div className="modal-actions-iotdevicead">
-                  <button className="cancel-btn-iotdevicead" onClick={() => setShowDeviceModal(false)}>Close</button>
+                <div className="summary-card-adminiot">
+                  <FaThermometerHalf />
+                  <div>
+                    <span>Latest Temperature</span>
+                    <strong>{getLatestSensorReading()?.temperature || '—'} °C</strong>
+                  </div>
                 </div>
-              )}
+                <div className="summary-card-adminiot">
+                  <FaTint />
+                  <div>
+                    <span>Latest Humidity</span>
+                    <strong>{getLatestSensorReading()?.humidity || '—'} %</strong>
+                  </div>
+                </div>
+              </div>
+              <div className="data-table-container-adminiot">
+                <table className="data-table-adminiot">
+                  <thead>
+                    <tr>
+                      <th>Date & Time</th>
+                      <th>Irradiance (W/m²)</th>
+                      <th>Temperature (°C)</th>
+                      <th>Humidity (%)</th>
+                      <th>Battery (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sensorData.length > 0 ? (
+                      sensorData.slice(0, 20).map((data, idx) => (
+                        <tr key={idx}>
+                          <td>{formatDateTime(data.timestamp)}</td>
+                          <td>{data.irradiance || '—'}</td>
+                          <td>{data.temperature || '—'}</td>
+                          <td>{data.humidity || '—'}</td>
+                          <td>{data.batteryLevel || '—'}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="empty-data-adminiot">No sensor data available</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="modal-actions-adminiot">
+                <button className="cancel-btn-adminiot" onClick={() => setShowDataModal(false)}>Close</button>
+                <button className="export-btn-adminiot" onClick={() => alert('Exporting data...')}><FaDownload /> Export CSV</button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Maintenance Modal */}
         {showMaintenanceModal && selectedDevice && (
-          <div className="modal-overlay-iotdevicead" onClick={() => setShowMaintenanceModal(false)}>
-            <div className="modal-content-iotdevicead" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay-adminiot" onClick={() => setShowMaintenanceModal(false)}>
+            <div className="modal-content-adminiot" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-adminiot" onClick={() => setShowMaintenanceModal(false)}>×</button>
               <h3>Device Maintenance</h3>
               <p><strong>Device:</strong> {selectedDevice.deviceId} - {selectedDevice.deviceName}</p>
-              <div className="form-group-iotdevicead">
+              <div className="form-group-adminiot">
                 <label>Maintenance Type</label>
                 <select value={formData.maintenanceType} onChange={(e) => setFormData({ ...formData, maintenanceType: e.target.value })}>
                   <option value="calibration">Calibration</option>
                   <option value="repair">Repair</option>
                   <option value="battery_replacement">Battery Replacement</option>
+                  <option value="firmware_update">Firmware Update</option>
                 </select>
               </div>
-              <div className="form-group-iotdevicead">
+              <div className="form-group-adminiot">
                 <label>Notes</label>
                 <textarea 
                   rows="3" 
@@ -624,9 +810,9 @@ const IoTDevice = () => {
                   placeholder="Describe maintenance performed..." 
                 />
               </div>
-              <div className="modal-actions-iotdevicead">
-                <button className="cancel-btn-iotdevicead" onClick={() => setShowMaintenanceModal(false)}>Cancel</button>
-                <button className="maintenance-btn-iotdevicead" onClick={handleMaintenance} disabled={isSubmitting}>
+              <div className="modal-actions-adminiot">
+                <button className="cancel-btn-adminiot" onClick={() => setShowMaintenanceModal(false)}>Cancel</button>
+                <button className="maintenance-btn-adminiot" onClick={handleMaintenance} disabled={isSubmitting}>
                   {isSubmitting ? 'Updating...' : 'Mark for Maintenance'}
                 </button>
               </div>

@@ -16,9 +16,11 @@ import {
   FaEnvelope,
   FaTrash
 } from 'react-icons/fa';
+import { useToast, ToastNotification } from '../../assets/toastnotification';
 import '../../styles/Admin/billing.css';
 
 const AdminBilling = () => {
+  const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pre-assessments');
   
@@ -100,6 +102,7 @@ const AdminBilling = () => {
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching pre-assessments:', error);
+      showToast('Failed to fetch pre-assessments', 'error');
     } finally {
       setLoading(false);
     }
@@ -123,6 +126,7 @@ const AdminBilling = () => {
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching solar invoices:', error);
+      showToast('Failed to fetch solar invoices', 'error');
     } finally {
       setLoading(false);
     }
@@ -174,6 +178,7 @@ const AdminBilling = () => {
       setTotalPages(1);
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      showToast('Failed to fetch transactions', 'error');
     } finally {
       setLoading(false);
     }
@@ -237,10 +242,10 @@ const AdminBilling = () => {
       setShowVerifyModal(false);
       setSelectedAssessment(null);
       setVerificationNote('');
-      alert(verified ? 'Payment verified successfully!' : 'Payment rejected');
+      showToast(verified ? 'Payment verified successfully!' : 'Payment rejected', verified ? 'success' : 'warning');
     } catch (error) {
       console.error('Error verifying payment:', error);
-      alert('Failed to verify payment');
+      showToast('Failed to verify payment', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -248,7 +253,7 @@ const AdminBilling = () => {
 
   const handleCreateSolarInvoice = async () => {
     if (!invoiceFormData.projectId || !invoiceFormData.totalAmount || !invoiceFormData.dueDate) {
-      alert('Please fill in all required fields');
+      showToast('Please fill in all required fields', 'warning');
       return;
     }
 
@@ -260,21 +265,24 @@ const AdminBilling = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      alert('Invoice created successfully!');
+      showToast('Invoice created successfully!', 'success');
       setShowInvoiceModal(false);
       resetInvoiceForm();
       fetchSolarInvoices();
       fetchStats();
     } catch (error) {
       console.error('Error creating invoice:', error);
-      alert(error.response?.data?.message || 'Failed to create invoice');
+      showToast(error.response?.data?.message || 'Failed to create invoice', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleRecordPayment = async () => {
-    if (!selectedInvoice || !paymentData.amount) return;
+    if (!selectedInvoice || !paymentData.amount) {
+      showToast('Please enter payment amount', 'warning');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -285,7 +293,7 @@ const AdminBilling = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      alert('Payment recorded successfully!');
+      showToast('Payment recorded successfully!', 'success');
       setShowPaymentModal(false);
       setSelectedInvoice(null);
       setPaymentData({ amount: '', method: 'gcash', reference: '', notes: '' });
@@ -293,7 +301,7 @@ const AdminBilling = () => {
       fetchStats();
     } catch (error) {
       console.error('Error recording payment:', error);
-      alert('Failed to record payment');
+      showToast('Failed to record payment', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -307,11 +315,11 @@ const AdminBilling = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert('Invoice sent to customer!');
+      showToast('Invoice sent to customer!', 'success');
       fetchSolarInvoices();
     } catch (error) {
       console.error('Error sending invoice:', error);
-      alert('Failed to send invoice');
+      showToast('Failed to send invoice', 'error');
     }
   };
 
@@ -334,9 +342,10 @@ const AdminBilling = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      showToast('Invoice downloaded successfully!', 'success');
     } catch (error) {
       console.error('Error downloading invoice:', error);
-      alert('Failed to download invoice');
+      showToast('Failed to download invoice', 'error');
     }
   };
 
@@ -970,7 +979,7 @@ const AdminBilling = () => {
                     <div className="detail-section-adminbilling"><h4>Items</h4>
                       <table className="items-table-adminbilling">
                         <thead>
-                          <tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+                          <tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th> </tr>
                         </thead>
                         <tbody>
                           {selectedInvoice.items?.map((item, idx) => (
@@ -1041,6 +1050,15 @@ const AdminBilling = () => {
             </div>
           </div>
         )}
+
+        {/* Toast Notification */}
+        <ToastNotification
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          position="bottom-right"
+        />
       </div>
     </>
   );
