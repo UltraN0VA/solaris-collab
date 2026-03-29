@@ -41,8 +41,6 @@ import CustomerDashboard from './pages/Customer/dashboard';
 import ScheduleAssessment from './pages/Customer/scheduleassessment';
 import MyProject from './pages/Customer/myproject';
 import Quotation from './pages/Customer/quotation';
-import SystemPerformance from './pages/Customer/systemperformance';
-import CustomerReports from './pages/Customer/reports';
 import Supports from './pages/Customer/supports';
 import CustomerProfile from './pages/Customer/profile';
 import CustomerSettings from './pages/Customer/customersettings';
@@ -210,8 +208,6 @@ function App() {
           <Route path="project" element={<MyProject />} />
           <Route path="book-assessment" element={<ScheduleAssessment />} />
           <Route path="billing" element={<Quotation />} />
-          <Route path="performance" element={<SystemPerformance />} />
-          <Route path="reports" element={<CustomerReports />} />
           <Route path="support" element={<Supports />} />
           <Route path="profile" element={<CustomerProfile />} />
           <Route path="settings" element={<CustomerSettings />} />

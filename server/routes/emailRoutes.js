@@ -9,9 +9,12 @@ const verificationCodes = new Map();
 // Generate 6-digit code
 const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
-// ==================== EMAIL TEMPLATES ====================
+// ==================== CLOUDINARY LOGO URL ====================
+const CLOUDINARY_LOGO = "https://res.cloudinary.com/dz9x2kpar/image/upload/v1774690308/solar-tps/payment-proofs/payment_PA-260327-629_1774690307311.png";
 
-// Base styles
+// ==================== MINIMALISTIC EMAIL TEMPLATES ====================
+
+// Base styles - Black & Orange theme
 const baseStyles = `
   <style>
     body {
@@ -21,92 +24,109 @@ const baseStyles = `
       padding: 20px;
     }
     .container {
-      max-width: 600px;
+      max-width: 560px;
       margin: 0 auto;
       background: #ffffff;
-      border-radius: 8px;
       border: 1px solid #e0e0e0;
     }
     .header {
-      background: #2c3e50;
-      padding: 30px;
+      background: #000000;
+      padding: 32px 24px;
       text-align: center;
-      border-bottom: 3px solid #f39c12;
+      border-bottom: 2px solid #ff6b00;
+    }
+    .header-logo {
+      max-width: 60px;
+      height: auto;
+      margin-bottom: 12px;
     }
     .header h1 {
-      color: white;
+      color: #ffffff;
       margin: 0;
-      font-weight: 400;
-      letter-spacing: 1px;
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
     }
     .content {
-      padding: 40px;
+      padding: 32px 28px;
     }
     .title {
-      font-size: 24px;
-      color: #2c3e50;
-      margin: 0 0 10px 0;
+      font-size: 22px;
+      color: #000000;
+      margin: 0 0 12px 0;
       font-weight: 500;
     }
     .code-box {
-      background: #f8f9fa;
-      border: 1px solid #e0e0e0;
+      background: #f8f8f8;
       padding: 20px;
       text-align: center;
-      margin: 20px 0;
+      margin: 24px 0;
     }
     .code {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 600;
-      letter-spacing: 4px;
-      color: #f39c12;
+      letter-spacing: 3px;
+      color: #ff6b00;
     }
     .text {
-      color: #4a5568;
-      line-height: 1.6;
-      margin: 10px 0;
+      color: #333333;
+      line-height: 1.5;
+      margin: 8px 0;
+      font-size: 15px;
     }
     .text-small {
-      color: #7f8c8d;
-      font-size: 14px;
+      color: #666666;
+      font-size: 13px;
+      line-height: 1.4;
     }
     .footer {
-      background: #f8f9fa;
+      background: #fafafa;
       padding: 20px;
       text-align: center;
       border-top: 1px solid #e0e0e0;
     }
     .footer p {
-      color: #95a5a6;
-      font-size: 12px;
-      margin: 5px 0;
+      color: #888888;
+      font-size: 11px;
+      margin: 4px 0;
     }
     .info-box {
-      background: #f8f9fa;
-      padding: 20px;
+      background: #f8f8f8;
+      padding: 16px 20px;
       margin: 20px 0;
-      border-radius: 4px;
+    }
+    .info-box p {
+      margin: 6px 0;
+      font-size: 14px;
+      color: #333;
     }
     .success-box {
-      background: #e8f5e9;
-      padding: 20px;
+      background: #fef5e8;
+      padding: 16px 20px;
       margin: 20px 0;
-      border-radius: 4px;
-      border-left: 4px solid #2ecc71;
+      border-left: 3px solid #ff6b00;
     }
     .warning-box {
-      background: #fff3e0;
-      padding: 20px;
+      background: #fff8f0;
+      padding: 16px 20px;
       margin: 20px 0;
-      border-radius: 4px;
-      border-left: 4px solid #f39c12;
+      border-left: 3px solid #ff6b00;
     }
     .pending-box {
-      background: #e3f2fd;
-      padding: 20px;
+      background: #fef5e8;
+      padding: 16px 20px;
       margin: 20px 0;
-      border-radius: 4px;
-      border-left: 4px solid #1976d2;
+      border-left: 3px solid #ff6b00;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 20px 0;
+    }
+    .divider {
+      height: 1px;
+      background: #e0e0e0;
+      margin: 20px 0;
     }
   </style>
 `;
@@ -117,18 +137,19 @@ const verificationTemplate = (email, code) => `
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Email Verification - SOLARIS</title>
+  <title>Email Verification</title>
   ${baseStyles}
 </head>
 <body>
   <div class="container">
     <div class="header">
+      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
       <h1>SOLARIS</h1>
     </div>
     <div class="content">
-      <h2 class="title">Verify Your Email</h2>
+      <h2 class="title">Verify your email</h2>
       <p class="text">Hello,</p>
-      <p class="text">Thank you for registering with SOLARIS. Please use the verification code below:</p>
+      <p class="text">Use the code below to verify your email address.</p>
       
       <div class="code-box">
         <div class="code">${code}</div>
@@ -136,12 +157,11 @@ const verificationTemplate = (email, code) => `
       
       <p class="text-small">This code expires in 10 minutes.</p>
       <p class="text-small">Email: ${email}</p>
-      
       <p class="text-small" style="margin-top: 20px;">If you didn't request this, please ignore this email.</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS. All rights reserved.</p>
-      <p>IoT-Based Solar Site Pre-Assessment System</p>
+      <p>© ${new Date().getFullYear()} SOLARIS</p>
+      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
@@ -160,27 +180,26 @@ const welcomeTemplate = (name, email) => `
 <body>
   <div class="container">
     <div class="header">
+      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
       <h1>SOLARIS</h1>
     </div>
     <div class="content">
-      <h2 class="title">Welcome to SOLARIS</h2>
-      <p class="text">Hello ${name},</p>
-      <p class="text">Your account has been successfully created. Your email ${email} has been verified.</p>
+      <h2 class="title">Welcome, ${name}</h2>
+      <p class="text">Your account has been successfully created with ${email}.</p>
       
       <div class="info-box">
-        <p class="text" style="margin: 5px 0;"><strong>What you can do with SOLARIS:</strong></p>
-        <p class="text" style="margin: 5px 0;">• Request Free Quotations</p>
-        <p class="text" style="margin: 5px 0;">• Book Site Pre-Assessments</p>
-        <p class="text" style="margin: 5px 0;">• Track Project Progress</p>
-        <p class="text" style="margin: 5px 0;">• Monitor IoT Data</p>
-        <p class="text" style="margin: 5px 0;">• Generate Assessment Reports</p>
+        <p><strong>Get started with SOLARIS</strong></p>
+        <p>• Request free quotations</p>
+        <p>• Book site pre-assessments</p>
+        <p>• Track project progress</p>
+        <p>• View assessment reports</p>
       </div>
       
-      <p class="text-small">You can now log in to access SOLARIS and start your solar journey.</p>
+      <p class="text-small">Log in to your account to begin your solar journey.</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS. All rights reserved.</p>
-      <p>IoT-Based Solar Site Pre-Assessment System</p>
+      <p>© ${new Date().getFullYear()} SOLARIS</p>
+      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
@@ -193,16 +212,17 @@ const forgotPasswordTemplate = (email, code) => `
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Password Reset - SOLARIS</title>
+  <title>Password Reset</title>
   ${baseStyles}
 </head>
 <body>
   <div class="container">
     <div class="header">
+      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
       <h1>SOLARIS</h1>
     </div>
     <div class="content">
-      <h2 class="title">Reset Your Password</h2>
+      <h2 class="title">Reset your password</h2>
       <p class="text">Hello,</p>
       <p class="text">We received a request to reset your password. Use the code below:</p>
       
@@ -212,19 +232,11 @@ const forgotPasswordTemplate = (email, code) => `
       
       <p class="text-small">This code expires in 10 minutes.</p>
       <p class="text-small">Email: ${email}</p>
-      
-      <div class="info-box">
-        <p class="text-small" style="margin: 5px 0;"><strong>How to reset:</strong></p>
-        <p class="text-small" style="margin: 5px 0;">1. Enter the 6-digit code</p>
-        <p class="text-small" style="margin: 5px 0;">2. Create a new password</p>
-        <p class="text-small" style="margin: 5px 0;">3. Login with new credentials</p>
-      </div>
-      
-      <p class="text-small">If you didn't request this, please ignore this email.</p>
+      <p class="text-small" style="margin-top: 20px;">If you didn't request this, please ignore this email.</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS. All rights reserved.</p>
-      <p>IoT-Based Solar Site Pre-Assessment System</p>
+      <p>© ${new Date().getFullYear()} SOLARIS</p>
+      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
@@ -237,30 +249,30 @@ const resetSuccessTemplate = (email) => `
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Password Reset Successful - SOLARIS</title>
+  <title>Password Reset Successful</title>
   ${baseStyles}
 </head>
 <body>
   <div class="container">
     <div class="header">
+      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
       <h1>SOLARIS</h1>
     </div>
     <div class="content">
-      <h2 class="title">Password Reset Successful</h2>
+      <h2 class="title">Password reset successful</h2>
       
       <div class="success-box">
-        <p style="color: #2ecc71; font-size: 18px; margin: 0;">✓ Password Changed Successfully</p>
+        <p style="color: #ff6b00; margin: 0;"><strong>✓ Password changed</strong></p>
       </div>
       
       <p class="text">Hello,</p>
-      <p class="text">Your password has been successfully reset for your SOLARIS account associated with ${email}.</p>
-      <p class="text">You can now log in using your new password.</p>
-      
-      <p class="text-small" style="margin-top: 20px;">If you didn't make this change, please contact support immediately.</p>
+      <p class="text">Your password has been successfully reset for ${email}.</p>
+      <p class="text">You can now log in with your new password.</p>
+      <p class="text-small" style="margin-top: 20px;">If you didn't make this change, please contact support.</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS. All rights reserved.</p>
-      <p>IoT-Based Solar Site Pre-Assessment System</p>
+      <p>© ${new Date().getFullYear()} SOLARIS</p>
+      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
@@ -273,39 +285,38 @@ const freeQuoteTemplate = (name, quoteReference, monthlyBill, propertyType, desi
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Quotation Request Received - SOLARIS</title>
+  <title>Quotation Request Received</title>
   ${baseStyles}
 </head>
 <body>
   <div class="container">
     <div class="header">
+      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
       <h1>SOLARIS</h1>
     </div>
     <div class="content">
-      <h2 class="title">Quotation Request Received</h2>
+      <h2 class="title">Quotation request received</h2>
       <p class="text">Hello ${name},</p>
-      <p class="text">Thank you for requesting a quotation from SOLARIS. Your request has been received and is now being processed.</p>
+      <p class="text">Thank you for requesting a quotation. Your request is being processed.</p>
       
       <div class="info-box">
-        <p class="text" style="margin: 5px 0;"><strong>Reference Number:</strong> ${quoteReference}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Monthly Bill:</strong> ₱${parseInt(monthlyBill).toLocaleString()}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Property Type:</strong> ${propertyType.charAt(0).toUpperCase() + propertyType.slice(1)}</p>
-        ${desiredCapacity ? `<p class="text" style="margin: 5px 0;"><strong>Desired Capacity:</strong> ${desiredCapacity}</p>` : ''}
-        <p class="text" style="margin: 5px 0;"><strong>Address:</strong> ${address}</p>
+        <p><strong>Reference:</strong> ${quoteReference}</p>
+        <p><strong>Monthly Bill:</strong> ₱${parseInt(monthlyBill).toLocaleString()}</p>
+        <p><strong>Property Type:</strong> ${propertyType}</p>
+        ${desiredCapacity ? `<p><strong>Desired Capacity:</strong> ${desiredCapacity}</p>` : ''}
+        <p><strong>Address:</strong> ${address}</p>
       </div>
       
       <div class="success-box">
-        <p class="text" style="margin: 5px 0;"><strong>What's Next?</strong></p>
-        <p class="text" style="margin: 5px 0;">• Our team will review your request within 2-3 business days</p>
-        <p class="text" style="margin: 5px 0;">• You'll receive a detailed quotation via email</p>
-        <p class="text" style="margin: 5px 0;">• Our engineer may contact you for additional information</p>
+        <p><strong>What's next?</strong></p>
+        <p>• Review within 2-3 business days</p>
+        <p>• Detailed quotation via email</p>
+        <p>• Engineer may contact you</p>
       </div>
-      
-      <p class="text-small">If you have any questions, please don't hesitate to contact our support team.</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS. All rights reserved.</p>
-      <p>IoT-Based Solar Site Pre-Assessment System</p>
+      <p>© ${new Date().getFullYear()} SOLARIS</p>
+      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
@@ -318,51 +329,42 @@ const preAssessmentTemplate = (name, invoiceNumber, amount, propertyType, desire
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Pre-Assessment Booking Confirmation - SOLARIS</title>
+  <title>Pre-Assessment Booking Confirmation</title>
   ${baseStyles}
 </head>
 <body>
   <div class="container">
     <div class="header">
+      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
       <h1>SOLARIS</h1>
     </div>
     <div class="content">
-      <h2 class="title">Pre-Assessment Booking Confirmation</h2>
+      <h2 class="title">Booking confirmation</h2>
       <p class="text">Hello ${name},</p>
-      <p class="text">Your pre-assessment booking has been created successfully. Please complete the payment to schedule your assessment.</p>
+      <p class="text">Your pre-assessment booking has been created. Please complete payment to schedule.</p>
       
       <div class="info-box">
-        <p class="text" style="margin: 5px 0;"><strong>Invoice Number:</strong> ${invoiceNumber}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Amount Due:</strong> ₱${parseInt(amount).toLocaleString()}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Property Type:</strong> ${propertyType.charAt(0).toUpperCase() + propertyType.slice(1)}</p>
-        ${desiredCapacity ? `<p class="text" style="margin: 5px 0;"><strong>Desired Capacity:</strong> ${desiredCapacity}</p>` : ''}
-        ${roofType ? `<p class="text" style="margin: 5px 0;"><strong>Roof Type:</strong> ${roofType.charAt(0).toUpperCase() + roofType.slice(1)}</p>` : ''}
-        <p class="text" style="margin: 5px 0;"><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Address:</strong> ${address}</p>
+        <p><strong>Invoice:</strong> ${invoiceNumber}</p>
+        <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
+        <p><strong>Property:</strong> ${propertyType}</p>
+        ${desiredCapacity ? `<p><strong>Capacity:</strong> ${desiredCapacity}</p>` : ''}
+        ${roofType ? `<p><strong>Roof Type:</strong> ${roofType}</p>` : ''}
+        <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
+        <p><strong>Address:</strong> ${address}</p>
       </div>
       
       <div class="warning-box">
-        <p class="text" style="margin: 5px 0;"><strong>Payment Instructions:</strong></p>
-        <p class="text" style="margin: 5px 0;">1. Log in to your SOLARIS account</p>
-        <p class="text" style="margin: 5px 0;">2. Go to Billing section</p>
-        <p class="text" style="margin: 5px 0;">3. Complete the payment for invoice ${invoiceNumber}</p>
-        <p class="text" style="margin: 5px 0;">4. Once payment is confirmed, we'll schedule your assessment</p>
+        <p><strong>Payment instructions</strong></p>
+        <p>1. Log in to your account</p>
+        <p>2. Go to Billing section</p>
+        <p>3. Pay invoice ${invoiceNumber}</p>
       </div>
       
-      <div class="success-box">
-        <p class="text" style="margin: 5px 0;"><strong>What's Included:</strong></p>
-        <p class="text" style="margin: 5px 0;">✓ On-site visit with monitoring device</p>
-        <p class="text" style="margin: 5px 0;">✓ 7-day actual environmental data collection</p>
-        <p class="text" style="margin: 5px 0;">✓ Accurate system size recommendation</p>
-        <p class="text" style="margin: 5px 0;">✓ Detailed assessment report</p>
-        <p class="text" style="margin: 5px 0;">✓ Professional engineer consultation</p>
-      </div>
-      
-      <p class="text-small">Your booking will be confirmed once payment is received. Please complete the payment to secure your preferred date.</p>
+      <p class="text-small">Booking confirmed after payment verification.</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS. All rights reserved.</p>
-      <p>IoT-Based Solar Site Pre-Assessment System</p>
+      <p>© ${new Date().getFullYear()} SOLARIS</p>
+      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
@@ -375,48 +377,39 @@ const paymentSubmissionTemplate = (name, invoiceNumber, amount, referenceNumber,
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Payment Received - SOLARIS</title>
+  <title>Payment Received</title>
   ${baseStyles}
 </head>
 <body>
   <div class="container">
     <div class="header">
+      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
       <h1>SOLARIS</h1>
     </div>
     <div class="content">
-      <h2 class="title">Payment Received - Pending Verification</h2>
+      <h2 class="title">Payment received</h2>
       <p class="text">Hello ${name},</p>
-      <p class="text">We have received your payment submission for your pre-assessment booking. Our team is now verifying your payment.</p>
+      <p class="text">We received your payment. Our team is verifying it.</p>
       
       <div class="pending-box">
-        <p class="text" style="margin: 5px 0;"><strong>Payment Details:</strong></p>
-        <p class="text" style="margin: 5px 0;"><strong>Invoice Number:</strong> ${invoiceNumber}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Reference Number:</strong> ${referenceNumber}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Property Type:</strong> ${propertyType}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p><strong>Payment details</strong></p>
+        <p><strong>Invoice:</strong> ${invoiceNumber}</p>
+        <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
+        <p><strong>Reference:</strong> ${referenceNumber}</p>
+        <p><strong>Property:</strong> ${propertyType}</p>
+        <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
       </div>
       
       <div class="warning-box">
-        <p class="text" style="margin: 5px 0;"><strong>What's Next?</strong></p>
-        <p class="text" style="margin: 5px 0;">• Our team will verify your payment within 24-48 hours</p>
-        <p class="text" style="margin: 5px 0;">• You will receive a confirmation email once payment is verified</p>
-        <p class="text" style="margin: 5px 0;">• Your assessment schedule will be confirmed after verification</p>
-        <p class="text" style="margin: 5px 0;">• If any issues, our team will contact you</p>
+        <p><strong>What's next?</strong></p>
+        <p>• Verification within 24-48 hours</p>
+        <p>• Confirmation email after verification</p>
+        <p>• Track status in your dashboard</p>
       </div>
-      
-      <div class="info-box">
-        <p class="text" style="margin: 5px 0;"><strong>Important Notes:</strong></p>
-        <p class="text" style="margin: 5px 0;">• Please keep your reference number for tracking</p>
-        <p class="text" style="margin: 5px 0;">• Check your email for verification status updates</p>
-        <p class="text" style="margin: 5px 0;">• You can track payment status in your dashboard</p>
-      </div>
-      
-      <p class="text-small">Thank you for choosing SOLARIS. We'll notify you once your payment is verified.</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS. All rights reserved.</p>
-      <p>IoT-Based Solar Site Pre-Assessment System</p>
+      <p>© ${new Date().getFullYear()} SOLARIS</p>
+      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
@@ -429,45 +422,42 @@ const paymentVerifiedTemplate = (name, invoiceNumber, amount, propertyType, pref
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Payment Verified - SOLARIS</title>
+  <title>Payment Verified</title>
   ${baseStyles}
 </head>
 <body>
   <div class="container">
     <div class="header">
+      <img src="${CLOUDINARY_LOGO}" alt="SOLARIS" class="header-logo" />
       <h1>SOLARIS</h1>
     </div>
     <div class="content">
-      <h2 class="title">Payment Verified - Assessment Confirmed</h2>
+      <h2 class="title">Payment verified</h2>
       <p class="text">Hello ${name},</p>
-      <p class="text">Great news! Your payment has been verified and your pre-assessment is now confirmed.</p>
+      <p class="text">Great news! Your payment has been verified.</p>
       
       <div class="success-box">
-        <p class="text" style="margin: 5px 0;"><strong>✓ Payment Verified</strong></p>
-        <p class="text" style="margin: 5px 0;"><strong>Invoice:</strong> ${invoiceNumber}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Status:</strong> Paid & Verified</p>
+        <p><strong>✓ Payment verified</strong></p>
+        <p><strong>Invoice:</strong> ${invoiceNumber}</p>
+        <p><strong>Amount:</strong> ₱${parseInt(amount).toLocaleString()}</p>
       </div>
       
       <div class="info-box">
-        <p class="text" style="margin: 5px 0;"><strong>Assessment Details:</strong></p>
-        <p class="text" style="margin: 5px 0;"><strong>Property Type:</strong> ${propertyType}</p>
-        <p class="text" style="margin: 5px 0;"><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p><strong>Assessment details</strong></p>
+        <p><strong>Property:</strong> ${propertyType}</p>
+        <p><strong>Preferred Date:</strong> ${new Date(preferredDate).toLocaleDateString('en-PH')}</p>
       </div>
       
       <div class="success-box">
-        <p class="text" style="margin: 5px 0;"><strong>What's Next?</strong></p>
-        <p class="text" style="margin: 5px 0;">• Our team will contact you to confirm the exact schedule</p>
-        <p class="text" style="margin: 5px 0;">• An engineer will be assigned to your assessment</p>
-        <p class="text" style="margin: 5px 0;">• Prepare your site for the assessment visit</p>
-        <p class="text" style="margin: 5px 0;">• You'll receive reminders before the assessment date</p>
+        <p><strong>What's next?</strong></p>
+        <p>• Team will confirm schedule</p>
+        <p>• Engineer assigned to your assessment</p>
+        <p>• Reminders before assessment date</p>
       </div>
-      
-      <p class="text-small">Thank you for your payment. We look forward to helping you with your solar journey!</p>
     </div>
     <div class="footer">
-      <p>© ${new Date().getFullYear()} SOLARIS. All rights reserved.</p>
-      <p>IoT-Based Solar Site Pre-Assessment System</p>
+      <p>© ${new Date().getFullYear()} SOLARIS</p>
+      <p>Solar Site Pre-Assessment System</p>
     </div>
   </div>
 </body>
@@ -492,7 +482,7 @@ router.post("/send-verification", async (req, res) => {
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
-      subject: "Verify your email address - SOLARIS",
+      subject: "Verify your email address",
       htmlContent: verificationTemplate(email, code)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
@@ -521,7 +511,7 @@ router.post("/send-reset-code", async (req, res) => {
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
-      subject: "Password reset code - SOLARIS",
+      subject: "Password reset code",
       htmlContent: forgotPasswordTemplate(email, code)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
@@ -621,7 +611,7 @@ router.post("/send-reset-success", async (req, res) => {
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
-      subject: "Password reset successful - SOLARIS",
+      subject: "Password reset successful",
       htmlContent: resetSuccessTemplate(email)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
@@ -650,7 +640,7 @@ router.post("/send-free-quote-confirmation", async (req, res) => {
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
-      subject: `Quotation Request Received - ${quoteReference}`,
+      subject: `Quotation request received - ${quoteReference}`,
       htmlContent: freeQuoteTemplate(name, quoteReference, monthlyBill, propertyType, desiredCapacity, address)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
@@ -679,7 +669,7 @@ router.post("/send-pre-assessment-confirmation", async (req, res) => {
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
-      subject: `Pre-Assessment Booking Confirmation - ${invoiceNumber}`,
+      subject: `Booking confirmation - ${invoiceNumber}`,
       htmlContent: preAssessmentTemplate(name, invoiceNumber, amount, propertyType, desiredCapacity, roofType, preferredDate, address)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
@@ -708,7 +698,7 @@ router.post("/send-payment-confirmation", async (req, res) => {
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
-      subject: `Payment Received - Pending Verification - ${invoiceNumber}`,
+      subject: `Payment received - ${invoiceNumber}`,
       htmlContent: paymentSubmissionTemplate(name, invoiceNumber, amount, referenceNumber, propertyType, preferredDate)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
@@ -737,7 +727,7 @@ router.post("/send-payment-verified", async (req, res) => {
     await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { email: process.env.BREVO_SENDER_EMAIL, name: "SOLARIS" },
       to: [{ email }],
-      subject: `Payment Verified - Assessment Confirmed - ${invoiceNumber}`,
+      subject: `Payment verified - ${invoiceNumber}`,
       htmlContent: paymentVerifiedTemplate(name, invoiceNumber, amount, propertyType, preferredDate)
     }, {
       headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" }
